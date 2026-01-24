@@ -32,20 +32,16 @@ export class RulerModule implements TimelineModule {
   }
 
   attach(timeline: TimelineApi): void {
-    this.unsubscribe = timeline.subscribe(() => {
-      const start = timeline.select((state) => state.chunkStart);
-      const end = start + timeline.getChunkTotalUnits();
-
-      const interval = getTickIntervalTime(
-        timeline.unitToPx.bind(timeline),
-        this.options.minTickIntervalPx ?? 100,
-      );
-
-      this.store.setState(() => ({
-        prevIntervalTime: interval,
-        ticks: computeTicks(start, end, interval),
-      }));
+    const unsubTimeline = timeline.subscribe(() => {
+      this.recalculateTicks(timeline);
     });
+    const unsubViewport = timeline.getViewport().subscribe(() => {
+      this.recalculateTicks(timeline);
+    });
+    this.unsubscribe = () => {
+      unsubTimeline();
+      unsubViewport();
+    };
   }
 
   detach(): void {
@@ -58,6 +54,21 @@ export class RulerModule implements TimelineModule {
 
   getState(): RulerState {
     return this.store.getState();
+  }
+
+  private recalculateTicks(timeline: TimelineApi): void {
+    const start = timeline.select((state) => state.chunkStart);
+    const end = start + timeline.getChunkRange();
+
+    const interval = getTickIntervalTime(
+      timeline.unitToPx.bind(timeline),
+      this.options.minTickIntervalPx ?? 100,
+    );
+
+    this.store.setState(() => ({
+      prevIntervalTime: interval,
+      ticks: computeTicks(start, end, interval),
+    }));
   }
 }
 

@@ -22,3 +22,21 @@ export const useTimeline = (): Timeline => {
   }
   return timeline;
 };
+
+export const useTimelineStore = <TSelected,>(
+  selector: (timeline: Timeline) => TSelected,
+): TSelected => {
+  const timeline = useTimeline();
+  return React.useSyncExternalStore(
+    (onStoreChange) => {
+      const unsubTimeline = timeline.subscribe(onStoreChange);
+      const unsubViewport = timeline.getViewport().subscribe(onStoreChange);
+      return () => {
+        unsubTimeline();
+        unsubViewport();
+      };
+    },
+    () => selector(timeline),
+    () => selector(timeline),
+  );
+};

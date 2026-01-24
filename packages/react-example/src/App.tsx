@@ -1,20 +1,20 @@
-import React, { useRef } from "react";
+import React from "react";
 import { Timeline, RulerModule, MinimapModule } from "@ptl/timeline-core";
 import {
   TimelineProvider,
-  useMinimap,
-  useRuler,
   useTimeline,
   useViewport,
 } from "@ptl/timeline-react";
+import { Ruler } from "./Ruler.tsx";
+import { Minimap } from "./Minimap.tsx";
 
 const InnerApp = () => {
   const timeline = useTimeline();
-  const { zoom, viewportWidthPx, chunkWidthPx, translatePx } = useViewport();
+  const { zoom, chunkWidthPx, translatePx } = useViewport();
 
   const handleZoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const factor = parseFloat(e.target.value);
-    timeline.setZoom(factor, viewportWidthPx / 2);
+    timeline.setZoom(factor /*, viewportWidthPx / 2 */);
   };
 
   const handlePositionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,7 +148,7 @@ const InnerApp = () => {
             backgroundSize: "40px 40px",
           }}
         >
-          {items.map((item, index) => {
+          {items.map((item) => {
             const x = timeline.projectToChunk(item);
             return (
               <div
@@ -159,8 +159,12 @@ const InnerApp = () => {
                   top: 0,
                   width: timeline.unitToPx(1000),
                   height: "40px",
-                  backgroundColor:
-                    index % 2 === 0 ? "rgba(0,255,0,0.5)" : "rgba(0,0,255,0.5)",
+                  backgroundColor: "#08aaba",
+                  border: "1px solid #06676b",
+                  boxSizing: "border-box",
+                  borderRadius: 2,
+                  boxShadow:
+                    "0 1px 2px rgba(0,0,0,0.1), inset 0 1px 1px rgba(255,255,255,0.2)",
                 }}
               />
             );
@@ -170,6 +174,7 @@ const InnerApp = () => {
       <div style={{ border: "1px solid #888" }}>
         <Minimap minimap={timeline.getModule(MinimapModule)} />
       </div>
+      <pre>{JSON.stringify(timeline.getStore().getState())}</pre>
     </div>
   );
 };
@@ -179,7 +184,7 @@ export function App() {
     const timeline = new Timeline({
       minVisibleRange: 1000,
       maxVisibleRange: 20000,
-      chunkSize: 3,
+      chunkSize: 6,
     });
 
     timeline.registerModule(new RulerModule({ minTickIntervalPx: 50 }));
@@ -194,142 +199,3 @@ export function App() {
     </TimelineProvider>
   );
 }
-
-const Ruler = ({ ruler }: { ruler: RulerModule }) => {
-  const timeline = useTimeline();
-  const { ticks } = useRuler(ruler);
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        height: 20,
-        width: "100%",
-        pointerEvents: "none",
-        fontSize: 10,
-      }}
-    >
-      {ticks.map((unit) => {
-        const x = timeline.projectToChunk(unit);
-        return (
-          <div key={unit} style={{ position: "absolute", left: x }}>
-            <div
-              style={{
-                width: 1,
-                height: 10,
-                background: "black",
-              }}
-            />
-            <div style={{ position: "absolute", top: 10 }}>{unit}</div>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
-
-const Minimap = ({ minimap }: { minimap: MinimapModule }) => {
-  const timeline = useTimeline();
-  const state = useMinimap(minimap);
-  const { viewportWidthPx } = useViewport();
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const [dragging, setDragging] = React.useState(false);
-  const [clientX, setClientX] = React.useState(0);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setDragging(true);
-    setClientX(e.clientX);
-  };
-
-  React.useEffect(() => {
-    const handleMouseUpGlobal = () => setDragging(false);
-    const handleMouseMoveGlobal = (e: MouseEvent) => {
-      if (!dragging) {
-        return;
-      }
-
-      const deltaX = e.clientX - clientX;
-
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (!rect) {
-        return;
-      }
-
-      const positionRatio =
-        (state.visibleStartRatio * rect.width + deltaX) / rect.width;
-
-      minimap.setVisibleStartRatio(positionRatio);
-      setClientX(e.clientX);
-    };
-
-    window.addEventListener("mouseup", handleMouseUpGlobal);
-    window.addEventListener("mousemove", handleMouseMoveGlobal);
-
-    return () => {
-      window.removeEventListener("mouseup", handleMouseUpGlobal);
-      window.removeEventListener("mousemove", handleMouseMoveGlobal);
-    };
-  }, [
-    clientX,
-    dragging,
-    minimap,
-    state.visibleSizeRatio,
-    state.visibleStartRatio,
-    timeline,
-    viewportWidthPx,
-  ]);
-
-  const onWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY;
-    const zoomChange = delta > 0 ? -0.05 : 0.05;
-    const newZoom = Math.min(
-      1,
-      Math.max(0, timeline.getZoomLevel() + zoomChange),
-    );
-    timeline.setZoom(newZoom, viewportWidthPx / 2);
-  };
-
-  const onClick = (e: React.MouseEvent) => {
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) {
-      return;
-    }
-
-    const positionRatio = (e.clientX - rect.left) / rect.width;
-    minimap.moveCenterTo(positionRatio);
-  };
-
-  return (
-    <div
-      ref={containerRef}
-      onWheel={onWheel}
-      onClick={onClick}
-      style={{
-        position: "relative",
-        height: 16,
-        background: "#222",
-        cursor: "pointer",
-      }}
-    >
-      {/* visible window */}
-      <div
-        onMouseDown={handleMouseDown}
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: "absolute",
-          left: `${state.visibleStartRatio * 100}%`,
-          width: `${state.visibleSizeRatio * 100}%`,
-          top: 0,
-          bottom: 0,
-          background: "rgba(255,255,255,0.25)",
-          border: "1px solid rgba(255,255,255,0.6)",
-        }}
-      />
-    </div>
-  );
-};

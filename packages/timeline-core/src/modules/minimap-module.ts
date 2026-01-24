@@ -90,10 +90,9 @@ export class MinimapModule {
     );
 
     const totalRange = this.store.select((s) => s.totalRange);
-    const visibleRange = timeline.getVisibleUnitRange();
+    const visibleRange = timeline.getVisibleRange();
     timeline.setCurrentPosition(
-      totalRange * normalizedLeftDelta -
-        (visibleRange.end - visibleRange.start) / 2,
+      totalRange * normalizedLeftDelta - visibleRange / 2,
     );
   }
 
@@ -105,10 +104,9 @@ export class MinimapModule {
 
     const total = this.store.select((s) => s.totalRange);
     const current = timeline.getStore().select((s) => s.current);
-    const visibleRange = timeline.getVisibleUnitRange();
-    const visibleUnits = visibleRange.end - visibleRange.start;
+    const visibleRange = timeline.getVisibleRange();
 
-    const visibleSizeRatio = (1 / total) * visibleUnits;
+    const visibleSizeRatio = (1 / total) * visibleRange;
     const visibleStartRatio = (1 / total) * current;
 
     this.store.setState((prev) => ({

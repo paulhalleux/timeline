@@ -75,8 +75,11 @@ export interface TimelineApi {
   getTranslatePx(): number;
   getChunkWidthPx(): number;
   getZoomLevel(): number;
-  getVisibleUnitRange(): { start: number; end: number };
-  getChunkTotalUnits(): number;
+
+  // Range info
+  getBounds(): { start: number; end: number };
+  getVisibleRange(): number;
+  getChunkRange(): number;
 }
 
 export class Timeline implements TimelineApi {
@@ -337,10 +340,11 @@ export class Timeline implements TimelineApi {
 
   /**
    * Gets the currently visible range on the timeline in units.
+   * (unit at the start and end of the visible range)
    *
    * @returns An object containing the start and end of the visible range in units.
    */
-  getVisibleUnitRange(): { start: number; end: number } {
+  getBounds(): { start: number; end: number } {
     const current = this.store.select((s) => s.current);
     const visibleRange = this.viewport.select((s) => s.visibleRange);
     return {
@@ -350,12 +354,23 @@ export class Timeline implements TimelineApi {
   }
 
   /**
-   * Gets the total number of units in the current chunk.
+   * Gets the range of a chunk in units.
+   * (how many units are in a chunk)
    *
-   * @returns The total units in the current chunk.
+   * @returns The chunk range in units.
    */
-  getChunkTotalUnits(): number {
+  getChunkRange(): number {
     return this.store.select((s) => s.chunkDuration);
+  }
+
+  /**
+   * Gets the visible range of the timeline in units.
+   * (how many units are visible in the viewport)
+   *
+   * @returns The visible range in units.
+   */
+  getVisibleRange(): number {
+    return this.viewport.select((s) => s.visibleRange);
   }
 
   /**
