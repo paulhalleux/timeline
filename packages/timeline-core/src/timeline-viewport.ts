@@ -26,12 +26,26 @@ export type TimelineViewportState = {
   headerOffsetPx: number;
 };
 
+/**
+ * API for interacting with the TimelineViewport.
+ */
+export interface ViewportApi {
+  getStore(): Store<TimelineViewportState>;
+  subscribe(listener: (state: TimelineViewportState) => void): () => void;
+  select<T>(selector: (state: TimelineViewportState) => T): T;
+  setContainer(container: HTMLElement | null): void;
+  getContainer(): HTMLElement | null;
+  setHeaderOffsetPx(offsetPx: number): void;
+  setVisibleRange(visibleRange: number): void;
+  isConnected(): boolean;
+}
+
 export type TimelineViewportOptions = {
   visibleRange: number;
   headerOffsetPx?: number;
 };
 
-export class TimelineViewport {
+export class TimelineViewport implements ViewportApi {
   private readonly store: Store<TimelineViewportState>;
   private container: HTMLElement | null = null;
   private resizeObserver: ResizeObserver | null = null;
@@ -66,6 +80,15 @@ export class TimelineViewport {
   }
 
   /**
+   * Gets the current container element for the timeline viewport.
+   *
+   * @returns The HTML element used as the container, or null if not connected.
+   */
+  getContainer(): HTMLElement | null {
+    return this.container;
+  }
+
+  /**
    * Sets the header offset in pixels.
    *
    * @param offsetPx The offset in pixels to be set for the header.
@@ -97,6 +120,26 @@ export class TimelineViewport {
    */
   getStore(): Store<TimelineViewportState> {
     return this.store;
+  }
+
+  /**
+   * Selects a specific slice of the timeline viewport state.
+   *
+   * @param selector A function that selects a part of the timeline viewport state.
+   * @returns The selected part of the timeline viewport state.
+   */
+  select<T>(selector: (state: TimelineViewportState) => T): T {
+    return this.store.select(selector);
+  }
+
+  /**
+   * Subscribes to changes in the timeline viewport state.
+   *
+   * @param listener A function that will be called whenever the timeline viewport state changes.
+   * @returns A function to unsubscribe from the changes.
+   */
+  subscribe(listener: (state: TimelineViewportState) => void): () => void {
+    return this.store.subscribe(listener);
   }
 
   /**

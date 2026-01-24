@@ -1,7 +1,8 @@
-import { TimelineViewport } from "./timeline-viewport";
+import { TimelineViewport, ViewportApi } from "./timeline-viewport";
 import { Store } from "@ptl/store";
 import type { TimelineState } from "./state";
 import { computeChunk } from "./chunk";
+import type { TimelineModule } from "./timeline-module";
 
 export type TimelineOptions = {
   /**
@@ -45,9 +46,43 @@ export type TimelineOptions = {
   chunkSize?: number;
 };
 
-export class Timeline {
+export interface TimelineApi {
+  // State related
+  getStore(): Store<TimelineState>;
+  select<S>(selector: (state: TimelineState) => S): S;
+  subscribe<S = TimelineState>(
+    listener: (selectedState: S) => void,
+    selector?: (state: TimelineState) => S,
+  ): () => void;
+
+  // Viewport related
+  getViewport(): ViewportApi;
+  connect(element: HTMLElement | null): void;
+
+  // Timeline operations
+  setCurrentPosition(position: number): void;
+  setZoom(value: number, centerPx?: number): void;
+  panByUnits(deltaUnits: number): void;
+  panByPx(deltaPx: number): void;
+
+  // Projections and conversions
+  projectToChunk(value: number): number;
+  projectToUnit(viewportPosition: number): number;
+  unitToPx(value: number): number;
+  pxToUnit(value: number): number;
+
+  // Utilities
+  getTranslatePx(): number;
+  getChunkWidthPx(): number;
+  getZoomLevel(): number;
+  getVisibleUnitRange(): { start: number; end: number };
+  getChunkTotalUnits(): number;
+}
+
+export class Timeline implements TimelineApi {
   private readonly store: Store<TimelineState>;
   private readonly viewport: TimelineViewport;
+  private modules: TimelineModule[] = [];
 
   constructor(private readonly options: TimelineOptions) {
     this.store = new Store<TimelineState>({
@@ -66,6 +101,42 @@ export class Timeline {
   }
 
   /**
+   * Registers a module with the timeline.
+   *
+   * @param module The module to register.
+   */
+  registerModule(module: TimelineModule): void {
+    module.attach(this);
+    this.modules.push(module);
+  }
+
+  /**
+   * Gets a registered module by its class.
+   *
+   * @param moduleClass The class of the module to retrieve.
+   * @returns The registered module instance, or undefined if not found.
+   */
+  getModule<T extends TimelineModule>(
+    moduleClass: new (...args: any[]) => T,
+  ): T {
+    const module = this.modules.find((module) => module instanceof moduleClass);
+    if (!module) {
+      throw new Error(`Module ${moduleClass.name} not found`);
+    }
+    return module as T;
+  }
+
+  /**
+   * Destroys the timeline instance and detaches all registered modules.
+   */
+  destroy(): void {
+    this.modules.forEach((module) => {
+      module.detach?.();
+    });
+    this.modules = [];
+  }
+
+  /**
    * Gets the timeline viewport.
    *
    * @returns The timeline viewport instance.
@@ -75,12 +146,36 @@ export class Timeline {
   }
 
   /**
-   * Gets the timeline state store.
+   * Gets the current state of the timeline.
    *
-   * @returns The store containing the timeline state.
+   * @returns The current timeline state.
    */
   getStore(): Store<TimelineState> {
     return this.store;
+  }
+
+  /**
+   * Selects a subset of the timeline state.
+   *
+   * @param selector The selector function to select a subset of the state.
+   * @returns The selected subset of the timeline state.
+   */
+  select<S>(selector: (state: TimelineState) => S): S {
+    return this.store.select(selector);
+  }
+
+  /**
+   * Subscribes to changes in the timeline state.
+   *
+   * @param listener The listener function to be called on state changes.
+   * @param selector Optional selector function to select a subset of the state.
+   * @returns A function to unsubscribe from the state changes.
+   */
+  subscribe<S = TimelineState>(
+    listener: (selectedState: S) => void,
+    selector?: (state: TimelineState) => S,
+  ): () => void {
+    return this.store.subscribe(listener, selector);
   }
 
   /**
@@ -98,12 +193,11 @@ export class Timeline {
    * @param position The position to set.
    */
   setCurrentPosition(position: number): void {
-    const viewportStore = this.viewport.getStore();
-    const viewportWidthPx = viewportStore.select((state) => state.widthPx);
+    const viewportWidthPx = this.viewport.select((state) => state.widthPx);
 
     const { index, start } = computeChunk(
       position,
-      viewportStore.select((state) => state.pxPerUnit),
+      this.viewport.select((state) => state.pxPerUnit),
       // -1 to reset the chunk when remaining visible range is less than one viewport width
       ((this.options.chunkSize ?? 2) - 1) * viewportWidthPx,
     );
@@ -125,20 +219,40 @@ export class Timeline {
     const min = this.options.minVisibleRange;
     const max = this.options.maxVisibleRange;
 
-    const vpStore = this.viewport.getStore();
-    const viewportWidthPx = vpStore.select((s) => s.widthPx);
+    const viewportWidthPx = this.viewport.select((s) => s.widthPx);
     const currentPos = this.store.select((s) => s.current);
 
     const normalizedCenterPx = Math.min(centerPx ?? 0, viewportWidthPx);
 
     // Compute new visibleRange
     const newVisibleRange = max - value * (max - min);
-    const deltaRange = newVisibleRange - vpStore.select((s) => s.visibleRange);
+    const deltaRange =
+      newVisibleRange - this.viewport.select((s) => s.visibleRange);
     const centerDelta = (1 / viewportWidthPx) * normalizedCenterPx;
 
     // Set new viewport range
     this.viewport.setVisibleRange(newVisibleRange);
     this.setCurrentPosition(Math.max(0, currentPos - deltaRange * centerDelta));
+  }
+
+  /**
+   * Pans the timeline by a specified amount in timeline units.
+   *
+   * @param deltaUnits The amount to pan in timeline units.
+   */
+  panByUnits(deltaUnits: number): void {
+    const currentPos = this.store.select((s) => s.current);
+    this.setCurrentPosition(currentPos + deltaUnits);
+  }
+
+  /**
+   * Pans the timeline by a specified amount in pixels.
+   *
+   * @param deltaPx The amount to pan in pixels.
+   */
+  panByPx(deltaPx: number): void {
+    const units = this.pxToUnit(deltaPx);
+    this.panByUnits(units);
   }
 
   /**
@@ -148,9 +262,7 @@ export class Timeline {
    * @returns The projected value in pixels.
    */
   projectToChunk(value: number): number {
-    const viewportStore = this.viewport.getStore();
-
-    const pxPerUnit = viewportStore.select((state) => state.pxPerUnit);
+    const pxPerUnit = this.viewport.select((state) => state.pxPerUnit);
     const chunkStart = this.store.select((state) => state.chunkStart);
 
     return (value - chunkStart) * pxPerUnit;
@@ -163,11 +275,8 @@ export class Timeline {
    * @returns The projected value in timeline units.
    */
   projectToUnit(viewportPosition: number): number {
-    const viewportStore = this.viewport.getStore();
-
-    const pxPerUnit = viewportStore.select((state) => state.pxPerUnit);
+    const pxPerUnit = this.viewport.select((state) => state.pxPerUnit);
     const chunkStart = this.store.select((state) => state.chunkStart);
-
     return chunkStart + viewportPosition / pxPerUnit;
   }
 
@@ -178,8 +287,7 @@ export class Timeline {
    * @returns The value converted to pixels.
    */
   unitToPx(value: number): number {
-    const viewportStore = this.viewport.getStore();
-    const pxPerUnit = viewportStore.select((state) => state.pxPerUnit);
+    const pxPerUnit = this.viewport.select((state) => state.pxPerUnit);
     return value * pxPerUnit;
   }
 
@@ -190,8 +298,7 @@ export class Timeline {
    * @returns The value converted to timeline units.
    */
   pxToUnit(value: number): number {
-    const viewportStore = this.viewport.getStore();
-    const pxPerUnit = viewportStore.select((state) => state.pxPerUnit);
+    const pxPerUnit = this.viewport.select((state) => state.pxPerUnit);
     return value / pxPerUnit;
   }
 
@@ -210,8 +317,7 @@ export class Timeline {
    * @returns The chunk width in pixels.
    */
   getChunkWidthPx(): number {
-    const viewportStore = this.viewport.getStore();
-    const viewportWidthPx = viewportStore.select((state) => state.widthPx);
+    const viewportWidthPx = this.viewport.select((state) => state.widthPx);
     const chunkSize = Math.max(2, this.options.chunkSize ?? 2);
     return chunkSize * viewportWidthPx;
   }
@@ -222,12 +328,34 @@ export class Timeline {
    * @returns The zoom level as a normalized value between 0 and 1.
    */
   getZoomLevel(): number {
-    const vpStore = this.viewport.getStore();
     const min = this.options.minVisibleRange;
     const max = this.options.maxVisibleRange;
-    const visibleRange = vpStore.select((s) => s.visibleRange);
+    const visibleRange = this.viewport.select((s) => s.visibleRange);
 
     return (max - visibleRange) / (max - min);
+  }
+
+  /**
+   * Gets the currently visible range on the timeline in units.
+   *
+   * @returns An object containing the start and end of the visible range in units.
+   */
+  getVisibleUnitRange(): { start: number; end: number } {
+    const current = this.store.select((s) => s.current);
+    const visibleRange = this.viewport.select((s) => s.visibleRange);
+    return {
+      start: current,
+      end: current + visibleRange,
+    };
+  }
+
+  /**
+   * Gets the total number of units in the current chunk.
+   *
+   * @returns The total units in the current chunk.
+   */
+  getChunkTotalUnits(): number {
+    return this.store.select((s) => s.chunkDuration);
   }
 
   /**
@@ -236,16 +364,13 @@ export class Timeline {
    * @private
    */
   private subscribeToViewportChanges(): void {
-    const viewportStore = this.viewport.getStore();
-    viewportStore.subscribe((vp) => {
-      const viewportWidthPx = viewportStore.select((state) => state.widthPx);
-      const visibleRange = viewportStore.select((state) => state.visibleRange);
+    this.viewport.subscribe(({ widthPx, visibleRange, pxPerUnit }) => {
       const chunkSize = Math.max(2, this.options.chunkSize ?? 2);
 
       const { index, start } = computeChunk(
         this.store.select((state) => state.current),
-        vp.pxPerUnit,
-        (chunkSize - 1) * viewportWidthPx,
+        pxPerUnit,
+        (chunkSize - 1) * widthPx,
       );
 
       this.store.setState((prev) => ({

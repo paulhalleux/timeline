@@ -36,6 +36,9 @@
     "packages/store": {
       "name": "@ptl/store",
       "version": "0.0.0",
+      "dependencies": {
+        "es-toolkit": "^1.44.0",
+      },
       "devDependencies": {
         "prettier": "^3.8.0",
         "tsdown": "^0.7.3",
