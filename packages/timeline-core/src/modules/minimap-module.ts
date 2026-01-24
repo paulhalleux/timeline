@@ -2,8 +2,6 @@ import { Store } from "@ptl/store";
 import { TimelineApi } from "../timeline";
 
 export type MinimapState = {
-  timeline: TimelineApi | undefined;
-
   /** total duration represented by the minimap */
   totalRange: number;
 
@@ -14,31 +12,32 @@ export type MinimapState = {
   visibleSizeRatio: number;
 };
 
+export type MinimapOptions = {
+  initialTotalRange?: number;
+};
+
 export class MinimapModule {
-  private readonly store = new Store<MinimapState>({
-    timeline: undefined,
-    totalRange: 0,
-    visibleStartRatio: 0,
-    visibleSizeRatio: 1,
-  });
+  private readonly store: Store<MinimapState>;
 
   private unsubscribe?: () => void;
   private timeline?: TimelineApi;
 
-  constructor(totalRange: number) {
-    this.store.setState((s) => ({ ...s, totalRange }));
+  constructor(options: MinimapOptions = {}) {
+    this.store = new Store<MinimapState>({
+      totalRange: options.initialTotalRange ?? 10000,
+      visibleStartRatio: 0,
+      visibleSizeRatio: 0,
+    });
   }
 
   attach(timeline: TimelineApi): void {
-    this.unsubscribe?.();
     this.timeline = timeline;
     this.unsubscribe = timeline.subscribe(() => {
-      this.recomputeVisibleWindow();
+      this.recompute();
     });
   }
 
   detach(): void {
-    console.log("MinimapModule.detach");
     this.timeline = undefined;
     this.unsubscribe?.();
   }
@@ -56,7 +55,7 @@ export class MinimapModule {
       ...prev,
       totalRange,
     }));
-    this.recomputeVisibleWindow();
+    this.recompute();
   }
 
   setVisibleStartRatio(visibleStartRatio: number): void {
@@ -96,15 +95,12 @@ export class MinimapModule {
     );
   }
 
-  private recomputeVisibleWindow(): void {
-    const timeline = this.timeline;
-    if (!timeline) {
-      return;
-    }
+  private recompute(): void {
+    if (!this.timeline) return;
 
     const total = this.store.select((s) => s.totalRange);
-    const current = timeline.getStore().select((s) => s.current);
-    const visibleRange = timeline.getVisibleRange();
+    const current = this.timeline.getStore().select((s) => s.current);
+    const visibleRange = this.timeline.getVisibleRange();
 
     const visibleSizeRatio = (1 / total) * visibleRange;
     const visibleStartRatio = (1 / total) * current;

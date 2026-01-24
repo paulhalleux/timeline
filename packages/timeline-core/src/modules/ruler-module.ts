@@ -22,7 +22,9 @@ export type RulerOptions = {
  */
 export class RulerModule implements TimelineModule {
   private readonly store: Store<RulerState>;
-  private unsubscribe?: () => void;
+
+  private unsubscribers: Array<() => void> = [];
+  private timeline?: TimelineApi;
 
   constructor(private readonly options: RulerOptions = {}) {
     this.store = new Store<RulerState>({
@@ -32,20 +34,17 @@ export class RulerModule implements TimelineModule {
   }
 
   attach(timeline: TimelineApi): void {
-    const unsubTimeline = timeline.subscribe(() => {
-      this.recalculateTicks(timeline);
-    });
-    const unsubViewport = timeline.getViewport().subscribe(() => {
-      this.recalculateTicks(timeline);
-    });
-    this.unsubscribe = () => {
-      unsubTimeline();
-      unsubViewport();
-    };
+    this.timeline = timeline;
+    this.unsubscribers.push(
+      timeline.subscribe(() => this.recompute()),
+      timeline.getViewport().subscribe(() => this.recompute()),
+    );
   }
 
   detach(): void {
-    this.unsubscribe?.();
+    this.unsubscribers.forEach((unsub) => unsub());
+    this.unsubscribers = [];
+    this.timeline = undefined;
   }
 
   subscribe(listener: (state: RulerState) => void): () => void {
@@ -56,12 +55,14 @@ export class RulerModule implements TimelineModule {
     return this.store.getState();
   }
 
-  private recalculateTicks(timeline: TimelineApi): void {
-    const start = timeline.select((state) => state.chunkStart);
-    const end = start + timeline.getChunkRange();
+  private recompute(): void {
+    if (!this.timeline) return;
+
+    const start = this.timeline.select((state) => state.chunkStart);
+    const end = start + this.timeline.getChunkRange();
 
     const interval = getTickIntervalTime(
-      timeline.unitToPx.bind(timeline),
+      this.timeline.unitToPx.bind(this.timeline),
       this.options.minTickIntervalPx ?? 100,
     );
 

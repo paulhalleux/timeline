@@ -1,7 +1,13 @@
 import React from "react";
-import { Timeline, RulerModule, MinimapModule } from "@ptl/timeline-core";
+import {
+  Timeline,
+  RulerModule,
+  MinimapModule,
+  PlayheadModule,
+} from "@ptl/timeline-core";
 import {
   TimelineProvider,
+  usePlayhead,
   useTimeline,
   useViewport,
 } from "@ptl/timeline-react";
@@ -11,6 +17,8 @@ import { Minimap } from "./Minimap.tsx";
 const InnerApp = () => {
   const timeline = useTimeline();
   const { zoom, chunkWidthPx, translatePx } = useViewport();
+  const playhead = timeline.getModule(PlayheadModule);
+  const playheadState = usePlayhead(playhead);
 
   const handleZoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const factor = parseFloat(e.target.value);
@@ -25,26 +33,6 @@ const InnerApp = () => {
   const [items] = React.useState(() => {
     return Array.from({ length: 50 }, (_, i) => i * 1000);
   });
-
-  const [nowLine, setNowLine] = React.useState(0);
-  const [playing, setPlaying] = React.useState(false);
-
-  React.useEffect(() => {
-    let animationFrameId: number;
-
-    const animate = () => {
-      setNowLine((prev) => prev + 16);
-      animationFrameId = requestAnimationFrame(animate);
-    };
-
-    if (playing) {
-      animationFrameId = requestAnimationFrame(animate);
-    }
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [playing]);
 
   return (
     <div
@@ -87,10 +75,16 @@ const InnerApp = () => {
           />
         </label>
         <button
-          onClick={() => setPlaying((prev) => !prev)}
+          onClick={() => {
+            if (!playheadState.playing) {
+              playhead.play(16);
+            } else {
+              playhead.pause();
+            }
+          }}
           style={{ marginLeft: 20 }}
         >
-          {playing ? "Pause" : "Play"}
+          {playheadState.playing ? "Pause" : "Play"}
         </button>
       </div>
       <div
@@ -115,7 +109,7 @@ const InnerApp = () => {
           <div
             style={{
               position: "absolute",
-              left: timeline.projectToChunk(nowLine) - translatePx,
+              left: playheadState.leftPx,
               top: 0,
               width: 2,
               height: "100%",
@@ -160,11 +154,11 @@ const InnerApp = () => {
                   width: timeline.unitToPx(1000),
                   height: "40px",
                   backgroundColor: "#08aaba",
-                  border: "1px solid #06676b",
+                  border: "1px solid #059baa",
                   boxSizing: "border-box",
                   borderRadius: 2,
                   boxShadow:
-                    "0 1px 2px rgba(0,0,0,0.1), inset 0 1px 1px rgba(255,255,255,0.2)",
+                    "-1px 0 0 rgba(0,0,0,0.4), inset 1px 0 0 rgba(255,255,255,0.6)",
                 }}
               />
             );
@@ -189,6 +183,7 @@ export function App() {
 
     timeline.registerModule(new RulerModule({ minTickIntervalPx: 50 }));
     timeline.registerModule(new MinimapModule(50000));
+    timeline.registerModule(new PlayheadModule());
 
     return timeline;
   });

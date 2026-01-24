@@ -10,4 +10,13 @@ export {
   type RulerOptions,
   type RulerState,
 } from "./modules/ruler-module";
-export { MinimapModule, type MinimapState } from "./modules/minimap-module";
+export {
+  MinimapModule,
+  type MinimapState,
+  type MinimapOptions,
+} from "./modules/minimap-module";
+export {
+  PlayheadModule,
+  type PlayheadState,
+  type PlayheadOptions,
+} from "./modules/playhead-module";

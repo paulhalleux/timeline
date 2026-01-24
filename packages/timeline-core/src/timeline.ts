@@ -109,6 +109,7 @@ export class Timeline implements TimelineApi {
    * @param module The module to register.
    */
   registerModule(module: TimelineModule): void {
+    module.detach?.(); // Detach if already attached
     module.attach(this);
     this.modules.push(module);
   }
