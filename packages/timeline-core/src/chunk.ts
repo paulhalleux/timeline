@@ -52,7 +52,7 @@ export const computeChunk = (
 ): Chunk => {
   const range = chunkWidthPx / pxPerUnit;
   const index = Math.floor(current / range);
-  const start = index * range;
+  const start = Math.floor(index * range);
   return {
     index,
     start,

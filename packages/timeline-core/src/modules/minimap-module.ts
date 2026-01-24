@@ -60,16 +60,41 @@ export class MinimapModule {
   }
 
   setVisibleStartRatio(visibleStartRatio: number): void {
-    this.store.setState((prev) => ({
-      ...prev,
-      visibleStartRatio,
-    }));
     const timeline = this.timeline;
     if (!timeline) {
       return;
     }
+
+    const normalizedVisibleStartRatio = Math.max(
+      0,
+      Math.min(
+        1 - this.store.select((s) => s.visibleSizeRatio),
+        visibleStartRatio,
+      ),
+    );
+
     const totalRange = this.store.select((s) => s.totalRange);
-    timeline.setCurrentPosition(totalRange * visibleStartRatio);
+    timeline.setCurrentPosition(totalRange * normalizedVisibleStartRatio);
+  }
+
+  moveCenterTo(leftDelta: number): void {
+    const timeline = this.timeline;
+    if (!timeline) {
+      return;
+    }
+
+    const sizeRatio = this.store.select((s) => s.visibleSizeRatio);
+    const normalizedLeftDelta = Math.max(
+      sizeRatio / 2,
+      Math.min(1 - sizeRatio / 2, leftDelta),
+    );
+
+    const totalRange = this.store.select((s) => s.totalRange);
+    const visibleRange = timeline.getVisibleUnitRange();
+    timeline.setCurrentPosition(
+      totalRange * normalizedLeftDelta -
+        (visibleRange.end - visibleRange.start) / 2,
+    );
   }
 
   private recomputeVisibleWindow(): void {
@@ -88,7 +113,10 @@ export class MinimapModule {
 
     this.store.setState((prev) => ({
       ...prev,
-      visibleStartRatio,
+      visibleStartRatio: Math.max(
+        0,
+        Math.min(1 - visibleSizeRatio, visibleStartRatio),
+      ),
       visibleSizeRatio,
     }));
   }

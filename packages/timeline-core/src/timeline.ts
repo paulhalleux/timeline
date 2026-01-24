@@ -204,7 +204,7 @@ export class Timeline implements TimelineApi {
 
     this.store.setState((prev) => ({
       ...prev,
-      current: position,
+      current: Math.floor(position),
       chunkIndex: index,
       chunkStart: start,
     }));

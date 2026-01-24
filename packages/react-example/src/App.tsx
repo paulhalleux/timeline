@@ -240,6 +240,7 @@ const Minimap = ({ minimap }: { minimap: MinimapModule }) => {
   const [clientX, setClientX] = React.useState(0);
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setDragging(true);
     setClientX(e.clientX);
   };
@@ -261,10 +262,7 @@ const Minimap = ({ minimap }: { minimap: MinimapModule }) => {
       const positionRatio =
         (state.visibleStartRatio * rect.width + deltaX) / rect.width;
 
-      minimap.setVisibleStartRatio(
-        Math.max(0, Math.min(1 - state.visibleSizeRatio, positionRatio)),
-      );
-
+      minimap.setVisibleStartRatio(positionRatio);
       setClientX(e.clientX);
     };
 
@@ -293,13 +291,24 @@ const Minimap = ({ minimap }: { minimap: MinimapModule }) => {
       1,
       Math.max(0, timeline.getZoomLevel() + zoomChange),
     );
-    timeline.setZoom(newZoom, (e.clientX / viewportWidthPx) * viewportWidthPx);
+    timeline.setZoom(newZoom, viewportWidthPx / 2);
+  };
+
+  const onClick = (e: React.MouseEvent) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) {
+      return;
+    }
+
+    const positionRatio = (e.clientX - rect.left) / rect.width;
+    minimap.moveCenterTo(positionRatio);
   };
 
   return (
     <div
       ref={containerRef}
       onWheel={onWheel}
+      onClick={onClick}
       style={{
         position: "relative",
         height: 16,
@@ -310,9 +319,10 @@ const Minimap = ({ minimap }: { minimap: MinimapModule }) => {
       {/* visible window */}
       <div
         onMouseDown={handleMouseDown}
+        onClick={(e) => e.stopPropagation()}
         style={{
           position: "absolute",
-          left: `${Math.min(1 - state.visibleSizeRatio, state.visibleStartRatio) * 100}%`,
+          left: `${state.visibleStartRatio * 100}%`,
           width: `${state.visibleSizeRatio * 100}%`,
           top: 0,
           bottom: 0,
