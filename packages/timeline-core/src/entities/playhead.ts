@@ -18,6 +18,7 @@ export type PlayheadEntity = {
   isPlaying: () => boolean;
   setPlaying: (isPlaying: boolean) => void;
   recompute: () => void;
+  connect: (element: HTMLElement | null) => void;
 };
 
 /**
@@ -40,6 +41,7 @@ export const createPlayhead = (
   const world = timeline.getWorld();
 
   const playheadEntity = world.createEntity();
+  let abortController: AbortController | null = null;
 
   world.addComponent(playheadEntity, Playhead, {});
   world.addComponent(playheadEntity, UnitPosition, {
@@ -54,6 +56,20 @@ export const createPlayhead = (
     isPlaying: false,
   });
 
+  const setPosition = (position: number) => {
+    world.updateComponent(playheadEntity, UnitPosition, (value) => {
+      value.unit = position;
+    });
+    world.updateComponent(playheadEntity, ViewportPosition, (value) => {
+      value.px = timeline.projectToChunk(position) - timeline.getTranslatePx();
+    });
+  };
+
+  const getPosition = () => {
+    const position = world.getComponent(playheadEntity, UnitPosition);
+    return position?.unit ?? 0;
+  };
+
   return {
     entity: playheadEntity,
     isPlaying: () => {
@@ -65,26 +81,48 @@ export const createPlayhead = (
         value.isPlaying = isPlaying;
       });
     },
-    getPosition: () => {
-      const position = world.getComponent(playheadEntity, UnitPosition);
-      return position?.unit ?? 0;
-    },
-    setPosition: (position: number) => {
-      world.updateComponent(playheadEntity, UnitPosition, (value) => {
-        value.unit = position;
-      });
-      world.updateComponent(playheadEntity, ViewportPosition, (value) => {
-        value.px = timeline.unitToPx(position) - timeline.getTranslatePx();
-      });
-    },
+    getPosition,
+    setPosition,
     recompute: () => {
       const position = world.getComponent(playheadEntity, UnitPosition);
       if (!position) return;
 
-      const px = timeline.unitToPx(position.unit) - timeline.getTranslatePx();
+      const px =
+        timeline.projectToChunk(position.unit) - timeline.getTranslatePx();
       world.updateComponent(playheadEntity, ViewportPosition, (value) => {
         value.px = px;
       });
+    },
+    connect: (element: HTMLElement | null) => {
+      if (abortController) {
+        abortController.abort();
+      }
+      if (!element) return;
+
+      abortController = new AbortController();
+      const signal = abortController.signal;
+
+      let isDragging = false;
+
+      const onPointerDown = (e: PointerEvent) => {
+        isDragging = true;
+        element.setPointerCapture(e.pointerId);
+      };
+
+      const onPointerMove = (e: PointerEvent) => {
+        if (!isDragging) return;
+        const movementX = e.movementX;
+        setPosition(getPosition() + timeline.projectToUnit(movementX));
+      };
+
+      const onPointerUp = (e: PointerEvent) => {
+        isDragging = false;
+        element.releasePointerCapture(e.pointerId);
+      };
+
+      element.addEventListener("pointerdown", onPointerDown, { signal });
+      window.addEventListener("pointermove", onPointerMove, { signal });
+      window.addEventListener("pointerup", onPointerUp, { signal });
     },
   };
 };

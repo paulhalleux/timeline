@@ -95,7 +95,7 @@ export class Timeline implements TimelineApi {
 
   constructor(private readonly options: TimelineOptions) {
     this.store = new Store<TimelineState>({
-      current: options.currentPosition ?? 0,
+      current: Math.max(0, options.currentPosition ?? 0),
       chunkIndex: 0,
       chunkStart: 0,
       chunkDuration: 0,
@@ -217,9 +217,10 @@ export class Timeline implements TimelineApi {
    */
   setCurrentPosition(position: number): void {
     const viewportWidthPx = this.viewport.select((state) => state.widthPx);
+    const normalizedPosition = Math.max(0, Math.floor(position));
 
     const { index, start } = computeChunk(
-      position,
+      normalizedPosition,
       this.viewport.select((state) => state.pxPerUnit),
       // -1 to reset the chunk when remaining visible range is less than one viewport width
       ((this.options.chunkSize ?? 2) - 1) * viewportWidthPx,
@@ -227,7 +228,7 @@ export class Timeline implements TimelineApi {
 
     this.store.setState((prev) => ({
       ...prev,
-      current: Math.floor(position),
+      current: normalizedPosition,
       chunkIndex: index,
       chunkStart: start,
     }));
@@ -255,7 +256,7 @@ export class Timeline implements TimelineApi {
 
     // Set new viewport range
     this.viewport.setVisibleRange(newVisibleRange);
-    this.setCurrentPosition(Math.max(0, currentPos - deltaRange * centerDelta));
+    this.setCurrentPosition(currentPos - deltaRange * centerDelta);
   }
 
   /**
@@ -287,7 +288,6 @@ export class Timeline implements TimelineApi {
   projectToChunk(value: number): number {
     const pxPerUnit = this.viewport.select((state) => state.pxPerUnit);
     const chunkStart = this.store.select((state) => state.chunkStart);
-
     return (value - chunkStart) * pxPerUnit;
   }
 
@@ -300,7 +300,7 @@ export class Timeline implements TimelineApi {
   projectToUnit(viewportPosition: number): number {
     const pxPerUnit = this.viewport.select((state) => state.pxPerUnit);
     const chunkStart = this.store.select((state) => state.chunkStart);
-    return chunkStart + viewportPosition / pxPerUnit;
+    return Math.abs(chunkStart) + viewportPosition / pxPerUnit;
   }
 
   /**

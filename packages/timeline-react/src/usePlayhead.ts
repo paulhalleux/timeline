@@ -18,11 +18,6 @@ export const usePlayhead = () => {
     Playable,
   );
 
-  console.log({
-    viewportPosition,
-    playing,
-  });
-
   return {
     leftPx: viewportPosition?.px ?? 0,
     playing: playing?.isPlaying ?? false,

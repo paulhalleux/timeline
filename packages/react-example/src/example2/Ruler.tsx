@@ -1,22 +1,31 @@
 import { RulerModule } from "@ptl/timeline-core";
-import { useRuler, useTimelineStore } from "@ptl/timeline-react";
+import { useRuler, useTimeline, useTimelineStore } from "@ptl/timeline-react";
+import { PlayheadModule } from "@ptl/timeline-core";
 
 export const Ruler = ({ ruler }: { ruler: RulerModule }) => {
   const { ticks, prevIntervalTime } = useRuler(ruler);
+  const timeline = useTimeline();
+  const playhead = timeline.getModule(PlayheadModule);
   const tickWidth = useTimelineStore((timeline) =>
     timeline.unitToPx(prevIntervalTime),
   );
 
   return (
     <div
+      onClick={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const time = timeline.projectToUnit(x);
+        playhead.setPosition(time);
+      }}
       style={{
         position: "absolute",
         top: 0,
         left: 0,
         height: 20,
         width: "100%",
-        pointerEvents: "none",
         fontSize: 10,
+        zIndex: 10,
       }}
     >
       {ticks.map((unit) => (
