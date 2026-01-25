@@ -17,8 +17,7 @@ import { Minimap } from "./Minimap.tsx";
 const InnerApp = () => {
   const timeline = useTimeline();
   const { zoom, chunkWidthPx, translatePx } = useViewport();
-  const playhead = timeline.getModule(PlayheadModule);
-  const playheadState = usePlayhead(playhead);
+  const playhead = usePlayhead();
 
   const handleZoomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const factor = parseFloat(e.target.value);
@@ -76,15 +75,15 @@ const InnerApp = () => {
         </label>
         <button
           onClick={() => {
-            if (!playheadState.playing) {
-              playhead.play(16);
+            if (!playhead.playing) {
+              playhead.module.play(16);
             } else {
-              playhead.pause();
+              playhead.module.pause();
             }
           }}
           style={{ marginLeft: 20 }}
         >
-          {playheadState.playing ? "Pause" : "Play"}
+          {playhead.playing ? "Pause" : "Play"}
         </button>
       </div>
       <div
@@ -109,7 +108,7 @@ const InnerApp = () => {
           <div
             style={{
               position: "absolute",
-              left: playheadState.leftPx,
+              left: playhead.leftPx,
               top: 0,
               width: 2,
               height: "100%",
@@ -182,7 +181,7 @@ export function App() {
     });
 
     timeline.registerModule(new RulerModule({ minTickIntervalPx: 50 }));
-    timeline.registerModule(new MinimapModule(50000));
+    timeline.registerModule(new MinimapModule({ initialTotalRange: 50000 }));
     timeline.registerModule(new PlayheadModule());
 
     return timeline;

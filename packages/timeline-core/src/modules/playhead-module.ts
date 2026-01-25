@@ -1,40 +1,29 @@
-import { Store } from "@ptl/store";
 import { TimelineApi } from "../timeline";
+import { createPlayhead, CreatePlayheadOptions } from "../entities";
+import { PlayheadEntity } from "../entities/playhead";
+import { TimelineModule } from "../timeline-module";
 
-export type PlayheadState = {
-  position: number;
-  leftPx: number;
-  playing: boolean;
-};
+export class PlayheadModule implements TimelineModule {
+  static id = "PlayheadModule";
 
-export type PlayheadOptions = {
-  initialPosition?: number;
-};
-
-export class PlayheadModule {
-  private readonly store;
+  private playhead: PlayheadEntity | null = null;
+  private rafId: number | null = null;
 
   private unsubscribers: Array<() => void> = [];
   private timeline?: TimelineApi;
-  private rafId: number | null = null;
 
-  constructor(options: PlayheadOptions = {}) {
-    this.store = new Store<PlayheadState>({
-      position: options.initialPosition ?? 0,
-      leftPx: 0,
-      playing: false,
-    });
-  }
+  constructor(private readonly options: CreatePlayheadOptions = {}) {}
 
   attach(timeline: TimelineApi): void {
     this.timeline = timeline;
+    this.playhead = createPlayhead(timeline, this.options);
 
     this.unsubscribers.push(
-      this.timeline.subscribe(() => this.recompute()),
-      this.timeline.getViewport().subscribe(() => this.recompute()),
+      this.timeline.subscribe(() => this.playhead?.recompute()),
+      this.timeline.getViewport().subscribe(() => this.playhead?.recompute()),
     );
 
-    this.recompute();
+    this.playhead.recompute();
   }
 
   detach(): void {
@@ -43,34 +32,29 @@ export class PlayheadModule {
     this.timeline = undefined;
   }
 
-  subscribe(listener: (state: PlayheadState) => void): () => void {
-    return this.store.subscribe(listener);
-  }
-
-  getState(): PlayheadState {
-    return this.store.getState();
+  getPlayhead(): PlayheadEntity | null {
+    return this.playhead;
   }
 
   setPosition(position: number): void {
-    this.store.setState((s) => ({
-      ...s,
-      position,
-    }));
-    this.recompute();
+    if (!this.playhead) return;
+    this.playhead.setPosition(position);
   }
 
   moveForward(delta: number): void {
-    const currentPosition = this.store.getState().position;
+    if (!this.playhead) return;
+    const currentPosition = this.playhead.getPosition();
     this.setPosition(currentPosition + delta);
   }
 
   moveBackward(delta: number): void {
-    const currentPosition = this.store.getState().position;
+    if (!this.playhead) return;
+    const currentPosition = this.playhead.getPosition();
     this.setPosition(currentPosition - delta);
   }
 
   play(delta: number): void {
-    if (this.rafId !== null) return; // Already playing
+    if (this.rafId !== null || !this.playhead) return; // Already playing
 
     const step = () => {
       this.moveForward(delta);
@@ -78,35 +62,15 @@ export class PlayheadModule {
     };
 
     this.rafId = requestAnimationFrame(step);
-
-    this.store.setState((s) => ({
-      ...s,
-      playing: true,
-    }));
+    this.playhead.setPlaying(true);
   }
 
   pause(): void {
+    if (!this.playhead) return;
     if (this.rafId !== null) {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
-
-    this.store.setState((s) => ({
-      ...s,
-      playing: false,
-    }));
-  }
-
-  private recompute(): void {
-    if (!this.timeline) return;
-
-    const position = this.store.getState().position;
-    const leftPx =
-      this.timeline.projectToChunk(position) - this.timeline.getTranslatePx();
-
-    this.store.setState((s) => ({
-      ...s,
-      leftPx,
-    }));
+    this.playhead.setPlaying(false);
   }
 }

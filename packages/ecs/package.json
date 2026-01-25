@@ -1,7 +1,8 @@
 {
-  "name": "@ptl/timeline-core",
+  "name": "@ptl/ecs",
   "type": "module",
   "version": "0.0.0",
+  "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
   "description": "",
@@ -15,13 +16,12 @@
   "files": [
     "dist"
   ],
-  "dependencies": {
-    "@ptl/ecs": "^0.0.0",
-    "@ptl/store": "^0.0.0"
-  },
   "devDependencies": {
     "prettier": "^3.8.0",
     "tsdown": "^0.20.1",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "es-toolkit": "^1.44.0"
   }
 }

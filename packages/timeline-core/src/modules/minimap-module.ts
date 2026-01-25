@@ -17,6 +17,8 @@ export type MinimapOptions = {
 };
 
 export class MinimapModule {
+  static id = "MinimapModule";
+
   private readonly store: Store<MinimapState>;
 
   private unsubscribe?: () => void;

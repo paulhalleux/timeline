@@ -21,6 +21,8 @@ export type RulerOptions = {
  * It computes tick positions based on the current view range and a specified minimum pixel distance between ticks.
  */
 export class RulerModule implements TimelineModule {
+  static id = "RulerModule";
+
   private readonly store: Store<RulerState>;
 
   private unsubscribers: Array<() => void> = [];

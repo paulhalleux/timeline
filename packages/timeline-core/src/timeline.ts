@@ -3,6 +3,7 @@ import { Store } from "@ptl/store";
 import type { TimelineState } from "./state";
 import { computeChunk } from "./chunk";
 import type { TimelineModule } from "./timeline-module";
+import { World } from "@ptl/ecs";
 
 export type TimelineOptions = {
   /**
@@ -80,11 +81,16 @@ export interface TimelineApi {
   getBounds(): { start: number; end: number };
   getVisibleRange(): number;
   getChunkRange(): number;
+
+  // ECS
+  getWorld(): World;
 }
 
 export class Timeline implements TimelineApi {
   private readonly store: Store<TimelineState>;
   private readonly viewport: TimelineViewport;
+  private readonly world: World;
+
   private modules: TimelineModule[] = [];
 
   constructor(private readonly options: TimelineOptions) {
@@ -100,7 +106,17 @@ export class Timeline implements TimelineApi {
       headerOffsetPx: options.headerOffsetPx ?? 0,
     });
 
+    this.world = new World();
     this.subscribeToViewportChanges();
+  }
+
+  /**
+   * Gets the ECS world associated with the timeline.
+   *
+   * @returns The ECS world instance.
+   */
+  getWorld(): World {
+    return this.world;
   }
 
   /**
@@ -120,12 +136,15 @@ export class Timeline implements TimelineApi {
    * @param moduleClass The class of the module to retrieve.
    * @returns The registered module instance, or undefined if not found.
    */
-  getModule<T extends TimelineModule>(
-    moduleClass: new (...args: any[]) => T,
-  ): T {
-    const module = this.modules.find((module) => module instanceof moduleClass);
+  getModule<T extends TimelineModule>(moduleClass: {
+    new (...args: any[]): T;
+    id: string;
+  }): T {
+    const module = this.modules.find(
+      (module) => (module.constructor as any).id === moduleClass.id,
+    );
     if (!module) {
-      throw new Error(`Module ${moduleClass.name} not found`);
+      throw new Error(`Module ${moduleClass.id} not found`);
     }
     return module as T;
   }

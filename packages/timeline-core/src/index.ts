@@ -15,8 +15,6 @@ export {
   type MinimapState,
   type MinimapOptions,
 } from "./modules/minimap-module";
-export {
-  PlayheadModule,
-  type PlayheadState,
-  type PlayheadOptions,
-} from "./modules/playhead-module";
+export { PlayheadModule } from "./modules/playhead-module";
+export * from "./entities";
+export * from "./timeline-components";

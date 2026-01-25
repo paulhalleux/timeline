@@ -1,5 +1,5 @@
 {
-  "name": "@ptl/timeline-react",
+  "name": "@ptl/ecs-react",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -20,8 +20,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@ptl/timeline-core": "^0.0.0",
-    "@ptl/ecs-react": "^0.0.0",
     "@ptl/ecs": "^0.0.0",
     "es-toolkit": "^1.44.0",
     "react": "^19.2.0",
