@@ -1,7 +1,13 @@
 import { Component, ComponentStore } from "./component";
+import { System } from "./system";
+import { ReactiveSystem } from "./reactive-system";
 
 export type Entity = number;
-export type StructureListener = (component?: Component<any>) => void;
+export type StructureListener = (component?: Component<string, any>) => void;
+export type ComponentListener = (
+  entity: Entity,
+  component: Component<string, any>,
+) => void;
 
 export class World {
   private nextEntity: Entity = 0;
@@ -10,10 +16,34 @@ export class World {
   private components = new Map<Entity, Map<string, ComponentStore<any>>>();
 
   private structureListeners = new Set<StructureListener>();
+  private componentListeners = new Set<ComponentListener>();
 
   private batchLevel = 0;
   private pendingComponentEmits = new Set<ComponentStore<any>>();
-  private pendingStructureEmits = new Set<Component<any> | undefined>();
+  private pendingComponentChangeEmits = new Set<{
+    entity: Entity;
+    component: Component<string, any>;
+  }>();
+  private pendingStructureEmits = new Set<Component<string, any> | undefined>();
+
+  private reactiveSystems = new Set<ReactiveSystem<any>>();
+
+  /* -------------------- systems -------------------- */
+
+  addSystem(system: System): void {
+    if (system.kind === "reactive") {
+      this.reactiveSystems.add(system);
+    }
+
+    system.attach(this);
+  }
+
+  removeSystem(system: System): void {
+    system.detach();
+    if (system.kind === "reactive") {
+      this.reactiveSystems.delete(system);
+    }
+  }
 
   /* -------------------- entities -------------------- */
 
@@ -38,7 +68,7 @@ export class World {
 
   addComponent<T>(
     entity: Entity,
-    component: Component<T>,
+    component: Component<string, T>,
     initial?: Partial<T>,
   ): T {
     let map = this.components.get(entity);
@@ -57,7 +87,7 @@ export class World {
     return value;
   }
 
-  removeComponent(entity: Entity, component: Component<any>): void {
+  removeComponent(entity: Entity, component: Component<any, any>): void {
     const map = this.components.get(entity);
     if (!map) return;
 
@@ -66,17 +96,24 @@ export class World {
     }
   }
 
-  hasComponent(entity: Entity, component: Component<any>): boolean {
+  hasComponent(entity: Entity, component: Component<any, any>): boolean {
     return !!this.components.get(entity)?.has(component.name);
   }
 
-  getComponent<T>(entity: Entity, component: Component<T>): T | undefined {
-    return this.components.get(entity)?.get(component.name)?.value;
+  getComponent<T>(
+    entity: Entity,
+    component: Component<string, T>,
+  ): T | undefined {
+    return this.getComponentByName<T>(entity, component.name);
+  }
+
+  getComponentByName<T>(entity: Entity, name: string): T | undefined {
+    return this.components.get(entity)?.get(name)?.value;
   }
 
   updateComponent<T>(
     entity: Entity,
-    component: Component<T>,
+    component: Component<string, T>,
     updater: (value: T) => void,
   ): void {
     const store = this.components.get(entity)?.get(component.name);
@@ -86,11 +123,12 @@ export class World {
     store.value = { ...store.value };
 
     this.queueComponentEmit(store);
+    this.queueComponentChangeEmit(entity, component);
   }
 
   subscribeComponent<T>(
     entity: Entity,
-    component: Component<T>,
+    component: Component<string, T>,
     listener: (value: T) => void,
   ): () => void {
     const store = this.components.get(entity)?.get(component.name);
@@ -102,6 +140,20 @@ export class World {
     return () => {
       store.listeners.delete(listener);
     };
+  }
+
+  subscribeComponentChange(listener: ComponentListener): () => void {
+    this.componentListeners.add(listener);
+    return () => this.componentListeners.delete(listener);
+  }
+
+  private emitComponentChangeListeners(
+    entity: Entity,
+    component: Component<string, any>,
+  ) {
+    for (const l of this.componentListeners) {
+      l(entity, component);
+    }
   }
 
   private emitComponentChange(store: ComponentStore<any>) {
@@ -117,8 +169,7 @@ export class World {
     return () => this.structureListeners.delete(listener);
   }
 
-  private emitStructureChange(component?: Component<any>) {
-    console.log("emitStructureChange", component?.name);
+  private emitStructureChange(component?: Component<string, any>) {
     for (const l of this.structureListeners) {
       l(component);
     }
@@ -138,6 +189,17 @@ export class World {
     }
   }
 
+  private queueComponentChangeEmit(
+    entity: Entity,
+    component: Component<string, any>,
+  ) {
+    if (this.batchLevel > 0) {
+      this.pendingComponentChangeEmits.add({ entity, component });
+    } else {
+      this.emitComponentChangeListeners(entity, component);
+    }
+  }
+
   private queueComponentEmit(store: ComponentStore<any>) {
     if (this.batchLevel > 0) {
       this.pendingComponentEmits.add(store);
@@ -146,7 +208,7 @@ export class World {
     }
   }
 
-  private queueStructureEmit(component?: Component<any>) {
+  private queueStructureEmit(component?: Component<string, any>) {
     if (this.batchLevel > 0) {
       this.pendingStructureEmits.add(component);
     } else {
@@ -164,5 +226,10 @@ export class World {
       this.emitStructureChange(component);
     }
     this.pendingStructureEmits.clear();
+
+    for (const { entity, component } of this.pendingComponentChangeEmits) {
+      this.emitComponentChangeListeners(entity, component);
+    }
+    this.pendingComponentChangeEmits.clear();
   }
 }

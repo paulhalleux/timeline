@@ -14,5 +14,5 @@ export interface TimelineModule {
   /**
    * Detaches the module from the timeline.
    */
-  detach?(): void;
+  detach?(timeline: TimelineApi): void;
 }

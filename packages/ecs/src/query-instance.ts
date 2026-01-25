@@ -1,26 +1,43 @@
 import { Entity, World } from "./world";
-import { isEqual } from "es-toolkit";
-import { collectQueryComponents, matchQuery, QueryExpr } from "./query";
+import {
+  _QueryList,
+  collectQueryComponents,
+  matchQuery,
+  QueryBuilder,
+  QueryExpr,
+} from "./query";
+import { ComponentsOf } from "./component";
 
-export class QueryInstance {
+export class QueryInstance<T extends _QueryList> {
   private entities: Entity[] = [];
   private listeners = new Set<(e: readonly Entity[]) => void>();
   private deps: Set<string>;
+  private readonly expr: QueryExpr;
 
-  private readonly unsubscribeWorld: () => void;
+  private readonly unsubscribeWorldStructural: () => void;
+  private readonly unsubscribeWorldComponents: () => void;
 
   constructor(
     private readonly world: World,
-    private readonly expr: QueryExpr,
+    builder: QueryBuilder<T>,
   ) {
-    this.deps = collectQueryComponents(expr);
+    this.expr = builder.build();
+    this.deps = collectQueryComponents(this.expr);
     this.recompute();
 
-    this.unsubscribeWorld = world.subscribeStructure((component) => {
+    this.unsubscribeWorldStructural = world.subscribeStructure((component) => {
       if (!component || this.deps.has(component.name)) {
         this.recompute();
       }
     });
+
+    this.unsubscribeWorldComponents = world.subscribeComponentChange(
+      (entity, component) => {
+        if (this.deps.has(component.name) && this.entities.includes(entity)) {
+          this.recompute();
+        }
+      },
+    );
   }
 
   private recompute() {
@@ -32,10 +49,8 @@ export class QueryInstance {
       }
     }
 
-    if (!isEqual(this.entities, next)) {
-      this.entities = next;
-      this.emit();
-    }
+    this.entities = next;
+    this.emit();
   }
 
   private emit() {
@@ -46,6 +61,15 @@ export class QueryInstance {
     return this.entities;
   }
 
+  getComponents(entity: Entity): ComponentsOf<T> {
+    return Array.from(this.deps.values()).reduce((acc, compName) => {
+      const value = this.world.getComponentByName(entity, compName);
+      // not that good
+      acc[compName as keyof ComponentsOf<T>] = value as any;
+      return acc;
+    }, {} as ComponentsOf<T>);
+  }
+
   subscribe(listener: (e: readonly Entity[]) => void): () => void {
     this.listeners.add(listener);
     listener(this.entities);
@@ -53,7 +77,8 @@ export class QueryInstance {
   }
 
   destroy(): void {
-    this.unsubscribeWorld();
+    this.unsubscribeWorldStructural();
+    this.unsubscribeWorldComponents();
     this.listeners.clear();
   }
 }

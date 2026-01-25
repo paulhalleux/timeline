@@ -11,16 +11,6 @@ export type CreatePlayheadOptions = {
   initialPosition?: number;
 };
 
-export type PlayheadEntity = {
-  entity: Entity;
-  getPosition: () => number;
-  setPosition: (position: number) => void;
-  isPlaying: () => boolean;
-  setPlaying: (isPlaying: boolean) => void;
-  recompute: () => void;
-  connect: (element: HTMLElement | null) => void;
-};
-
 /**
  * Creates a playhead entity in the timeline's world.
  *
@@ -37,92 +27,16 @@ export type PlayheadEntity = {
 export const createPlayhead = (
   timeline: TimelineApi,
   options?: CreatePlayheadOptions,
-): PlayheadEntity => {
+): Entity => {
   const world = timeline.getWorld();
-
   const playheadEntity = world.createEntity();
-  let abortController: AbortController | null = null;
+
+  const initialPosition = options?.initialPosition ?? 0;
 
   world.addComponent(playheadEntity, Playhead, {});
-  world.addComponent(playheadEntity, UnitPosition, {
-    unit: options?.initialPosition ?? 0,
-  });
-  world.addComponent(playheadEntity, ViewportPosition, {
-    px:
-      timeline.unitToPx(options?.initialPosition ?? 0) -
-      timeline.getTranslatePx(),
-  });
-  world.addComponent(playheadEntity, Playable, {
-    isPlaying: false,
-  });
+  world.addComponent(playheadEntity, UnitPosition, { unit: initialPosition });
+  world.addComponent(playheadEntity, ViewportPosition, { px: 0 });
+  world.addComponent(playheadEntity, Playable, { isPlaying: false });
 
-  const setPosition = (position: number) => {
-    world.updateComponent(playheadEntity, UnitPosition, (value) => {
-      value.unit = position;
-    });
-    world.updateComponent(playheadEntity, ViewportPosition, (value) => {
-      value.px = timeline.projectToChunk(position) - timeline.getTranslatePx();
-    });
-  };
-
-  const getPosition = () => {
-    const position = world.getComponent(playheadEntity, UnitPosition);
-    return position?.unit ?? 0;
-  };
-
-  return {
-    entity: playheadEntity,
-    isPlaying: () => {
-      const playable = world.getComponent(playheadEntity, Playable);
-      return playable?.isPlaying ?? false;
-    },
-    setPlaying: (isPlaying: boolean) => {
-      world.updateComponent(playheadEntity, Playable, (value) => {
-        value.isPlaying = isPlaying;
-      });
-    },
-    getPosition,
-    setPosition,
-    recompute: () => {
-      const position = world.getComponent(playheadEntity, UnitPosition);
-      if (!position) return;
-
-      const px =
-        timeline.projectToChunk(position.unit) - timeline.getTranslatePx();
-      world.updateComponent(playheadEntity, ViewportPosition, (value) => {
-        value.px = px;
-      });
-    },
-    connect: (element: HTMLElement | null) => {
-      if (abortController) {
-        abortController.abort();
-      }
-      if (!element) return;
-
-      abortController = new AbortController();
-      const signal = abortController.signal;
-
-      let isDragging = false;
-
-      const onPointerDown = (e: PointerEvent) => {
-        isDragging = true;
-        element.setPointerCapture(e.pointerId);
-      };
-
-      const onPointerMove = (e: PointerEvent) => {
-        if (!isDragging) return;
-        const movementX = e.movementX;
-        setPosition(getPosition() + timeline.projectToUnit(movementX));
-      };
-
-      const onPointerUp = (e: PointerEvent) => {
-        isDragging = false;
-        element.releasePointerCapture(e.pointerId);
-      };
-
-      element.addEventListener("pointerdown", onPointerDown, { signal });
-      window.addEventListener("pointermove", onPointerMove, { signal });
-      window.addEventListener("pointerup", onPointerUp, { signal });
-    },
-  };
+  return playheadEntity;
 };

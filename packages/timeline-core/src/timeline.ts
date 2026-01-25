@@ -4,6 +4,7 @@ import type { TimelineState } from "./state";
 import { computeChunk } from "./chunk";
 import type { TimelineModule } from "./timeline-module";
 import { World } from "@ptl/ecs";
+import { createViewportProjectionSystem } from "./system/viewport-projection-system";
 
 export type TimelineOptions = {
   /**
@@ -107,6 +108,8 @@ export class Timeline implements TimelineApi {
     });
 
     this.world = new World();
+    this.world.addSystem(createViewportProjectionSystem(this));
+
     this.subscribeToViewportChanges();
   }
 
@@ -125,7 +128,7 @@ export class Timeline implements TimelineApi {
    * @param module The module to register.
    */
   registerModule(module: TimelineModule): void {
-    module.detach?.(); // Detach if already attached
+    module.detach?.(this); // Detach if already attached
     module.attach(this);
     this.modules.push(module);
   }
@@ -154,7 +157,7 @@ export class Timeline implements TimelineApi {
    */
   destroy(): void {
     this.modules.forEach((module) => {
-      module.detach?.();
+      module.detach?.(this);
     });
     this.modules = [];
   }

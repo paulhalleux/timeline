@@ -1,76 +1,58 @@
-import { TimelineApi } from "../timeline";
-import { createPlayhead, CreatePlayheadOptions } from "../entities";
-import { PlayheadEntity } from "../entities/playhead";
 import { TimelineModule } from "../timeline-module";
+import { TimelineApi } from "../timeline";
+import { Entity } from "@ptl/ecs";
+import { createPlayhead } from "../entities";
+import { UnitPosition } from "../timeline-components";
 
 export class PlayheadModule implements TimelineModule {
   static id = "PlayheadModule";
 
-  private playhead: PlayheadEntity | null = null;
-  private rafId: number | null = null;
-
-  private unsubscribers: Array<() => void> = [];
-  private timeline?: TimelineApi;
-
-  constructor(private readonly options: CreatePlayheadOptions = {}) {}
+  private entity: Entity | null = null;
+  private timeline: TimelineApi | null = null;
 
   attach(timeline: TimelineApi): void {
     this.timeline = timeline;
-    this.playhead = createPlayhead(timeline, this.options);
-
-    this.unsubscribers.push(
-      this.timeline.subscribe(() => this.playhead?.recompute()),
-      this.timeline.getViewport().subscribe(() => this.playhead?.recompute()),
-    );
-
-    this.playhead.recompute();
+    this.entity = createPlayhead(timeline, { initialPosition: 0 });
+    timeline.subscribe(() => {
+      this.setPosition(this.getPosition());
+    });
   }
 
-  detach(): void {
-    this.unsubscribers.forEach((unsub) => unsub());
-    this.unsubscribers = [];
-    this.timeline = undefined;
+  detach(timeline: TimelineApi): void {
+    this.timeline = null;
+    if (this.entity) {
+      const world = timeline.getWorld();
+      world.destroyEntity(this.entity);
+      this.entity = null;
+    }
   }
 
-  getPlayhead(): PlayheadEntity | null {
-    return this.playhead;
+  getEntity(): Entity | null {
+    return this.entity;
   }
 
   setPosition(position: number): void {
-    if (!this.playhead) return;
-    this.playhead.setPosition(position);
+    if (!this.timeline || !this.entity) return;
+    const world = this.timeline.getWorld();
+    world.updateComponent(this.entity, UnitPosition, (value) => {
+      value.unit = position;
+    });
+  }
+
+  getPosition(): number {
+    if (!this.timeline || !this.entity) return 0;
+    const world = this.timeline.getWorld();
+    const unitPosition = world.getComponent(this.entity, UnitPosition);
+    return unitPosition ? unitPosition.unit : 0;
   }
 
   moveForward(delta: number): void {
-    if (!this.playhead) return;
-    const currentPosition = this.playhead.getPosition();
-    this.setPosition(currentPosition + delta);
+    if (!this.timeline || !this.entity) return;
+    this.setPosition(this.getPosition() + delta);
   }
 
   moveBackward(delta: number): void {
-    if (!this.playhead) return;
-    const currentPosition = this.playhead.getPosition();
-    this.setPosition(currentPosition - delta);
-  }
-
-  play(delta: number): void {
-    if (this.rafId !== null || !this.playhead) return; // Already playing
-
-    const step = () => {
-      this.moveForward(delta);
-      this.rafId = requestAnimationFrame(step);
-    };
-
-    this.rafId = requestAnimationFrame(step);
-    this.playhead.setPlaying(true);
-  }
-
-  pause(): void {
-    if (!this.playhead) return;
-    if (this.rafId !== null) {
-      cancelAnimationFrame(this.rafId);
-      this.rafId = null;
-    }
-    this.playhead.setPlaying(false);
+    if (!this.timeline || !this.entity) return;
+    this.setPosition(this.getPosition() - delta);
   }
 }

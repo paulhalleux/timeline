@@ -95,16 +95,7 @@ const InnerApp = () => {
             style={{ width: 200, marginLeft: 10 }}
           />
         </label>
-        <button
-          onClick={() => {
-            if (!playhead.playing) {
-              playhead.module.play(16);
-            } else {
-              playhead.module.pause();
-            }
-          }}
-          style={{ marginLeft: 20 }}
-        >
+        <button onClick={() => {}} style={{ marginLeft: 20 }}>
           {playhead.playing ? "Pause" : "Play"}
         </button>
       </div>
@@ -133,7 +124,6 @@ const InnerApp = () => {
           }}
         >
           <div
-            ref={playhead.module.getPlayhead()?.connect}
             style={{
               position: "absolute",
               left: playhead.leftPx,

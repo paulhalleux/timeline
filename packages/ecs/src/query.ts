@@ -1,48 +1,109 @@
 import { type Entity, World } from "./world";
-import { type Component, isComponent } from "./component";
+import { type Component } from "./component";
+
+type AppendRequired<T extends readonly any[], U extends readonly any[]> = [
+  ...T,
+  { type: "required"; components: U },
+];
+
+type AppendOptional<T extends readonly any[], U extends readonly any[]> = [
+  ...T,
+  { type: "optional"; components: U },
+];
+
+export type _QueryList = readonly {
+  type: "required" | "optional";
+  components: Component<any, any>[];
+}[];
+
+export class QueryBuilder<T extends _QueryList = []> {
+  constructor(private expr: QueryExpr) {}
+
+  and<C extends Component<any, any>[]>(
+    ...components: C
+  ): QueryBuilder<AppendRequired<T, C>> {
+    const terms: QueryExpr[] = components.map((component) => ({
+      type: "has",
+      component,
+    }));
+    return new QueryBuilder<AppendRequired<T, C>>({
+      type: "and",
+      terms: [this.expr, ...terms],
+    });
+  }
+
+  or<C extends Component<any, any>[]>(
+    ...components: C
+  ): QueryBuilder<AppendOptional<T, C>> {
+    const terms: QueryExpr[] = components.map((component) => ({
+      type: "has",
+      component,
+    }));
+    return new QueryBuilder<AppendOptional<T, C>>({
+      type: "or",
+      terms: [this.expr, ...terms],
+    });
+  }
+
+  not(): QueryBuilder<T> {
+    return new QueryBuilder<T>({
+      type: "not",
+      term: this.expr,
+    });
+  }
+
+  build(): QueryExpr {
+    return this.expr;
+  }
+}
+
+export class Query {
+  static and<C extends Component<any, any>[]>(
+    ...components: C
+  ): QueryBuilder<AppendRequired<[], C>> {
+    return new QueryBuilder<AppendRequired<[], C>>({
+      type: "and",
+      terms: components.map((component) => ({
+        type: "has",
+        component,
+      })),
+    });
+  }
+
+  static or<C extends Component<any, any>[]>(
+    ...components: C
+  ): QueryBuilder<AppendOptional<[], C>> {
+    return new QueryBuilder<AppendOptional<[], C>>({
+      type: "or",
+      terms: components.map((component) => ({
+        type: "has",
+        component,
+      })),
+    });
+  }
+
+  static has<C extends Component<any, any>>(
+    component: C,
+  ): QueryBuilder<AppendRequired<[], [C]>> {
+    return new QueryBuilder<AppendRequired<[], [C]>>({
+      type: "has",
+      component,
+    });
+  }
+
+  static not(): QueryBuilder {
+    return new QueryBuilder<[]>({
+      type: "not",
+      term: { type: "and", terms: [] },
+    });
+  }
+}
 
 export type QueryExpr =
-  | { type: "has"; component: Component<any> }
+  | { type: "has"; component: Component<any, any> }
   | { type: "and"; terms: QueryExpr[] }
   | { type: "or"; terms: QueryExpr[] }
   | { type: "not"; term: QueryExpr };
-
-export class Query {
-  static has(component: Component<any>): QueryExpr {
-    return { type: "has", component };
-  }
-
-  static and(...terms: (Component<any> | QueryExpr)[]): QueryExpr {
-    return {
-      type: "and",
-      terms: terms.map(normalizeQuery),
-    };
-  }
-
-  static or(...terms: (Component<any> | QueryExpr)[]): QueryExpr {
-    return {
-      type: "or",
-      terms: terms.map(normalizeQuery),
-    };
-  }
-
-  static not(term: Component<any> | QueryExpr): QueryExpr {
-    return {
-      type: "not",
-      term: normalizeQuery(term),
-    };
-  }
-}
-
-/**
- * Normalizes an input into a QueryExpr.
- *
- * @param input - The input to normalize, either a Component or a QueryExpr.
- * @returns The normalized QueryExpr.
- */
-export function normalizeQuery(input: Component<any> | QueryExpr): QueryExpr {
-  return isComponent(input) ? Query.has(input) : input;
-}
 
 /**
  * Determines if an entity in the world matches a given query expression.

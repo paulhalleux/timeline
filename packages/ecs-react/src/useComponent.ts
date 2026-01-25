@@ -1,5 +1,5 @@
 import React from "react";
-import { type Component, type Entity, World } from "@ptl/ecs";
+import { type Component, type Entity, type World } from "@ptl/ecs";
 
 /**
  * React hook to subscribe to a component's state on a specific entity within a world.
@@ -12,7 +12,7 @@ import { type Component, type Entity, World } from "@ptl/ecs";
 export function useComponent<T>(
   world: World,
   entity: Entity,
-  component: Component<T>,
+  component: Component<string, T>,
 ): T | undefined {
   return React.useSyncExternalStore(
     (cb) => world.subscribeComponent(entity, component, cb),
