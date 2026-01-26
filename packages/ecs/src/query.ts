@@ -1,32 +1,59 @@
-import { type Entity, World } from "./world";
+import { World } from "./world";
 import { type Component } from "./component";
+import { Entity } from "./entity";
 
-type AppendRequired<T extends readonly any[], U extends readonly any[]> = [
-  ...T,
-  { type: "required"; components: U },
-];
+/**
+ * Appends required components to the existing query components.
+ *
+ * @param T - The existing query components.
+ * @param U - The components to append as required.
+ * @returns The new query components with the required components appended.
+ */
+type AppendRequiredComponents<
+  T extends QueryComponents,
+  U extends Component<any, any>[],
+> = [...T, { type: "required"; components: U }];
 
-type AppendOptional<T extends readonly any[], U extends readonly any[]> = [
-  ...T,
-  { type: "optional"; components: U },
-];
+/**
+ * Appends optional components to the existing query components.
+ *
+ * @param T - The existing query components.
+ * @param U - The components to append as optional.
+ * @returns The new query components with the optional components appended.
+ */
+type AppendOptionalComponents<
+  T extends QueryComponents,
+  U extends Component<any, any>[],
+> = [...T, { type: "optional"; components: U }];
 
-export type _QueryList = readonly {
+/**
+ * Represents a component group in a query, specifying whether the components are required or optional.
+ */
+export type QueryComponent = {
   type: "required" | "optional";
   components: Component<any, any>[];
-}[];
+};
 
-export class QueryBuilder<T extends _QueryList = []> {
+/**
+ * Represents a collection of query components.
+ */
+export type QueryComponents = readonly QueryComponent[];
+
+/**
+ * A builder class for constructing complex query expressions.
+ * @param T - The type representing the components involved in the query.
+ */
+export class QueryBuilder<T extends QueryComponents = []> {
   constructor(private expr: QueryExpr) {}
 
   and<C extends Component<any, any>[]>(
     ...components: C
-  ): QueryBuilder<AppendRequired<T, C>> {
+  ): QueryBuilder<AppendRequiredComponents<T, C>> {
     const terms: QueryExpr[] = components.map((component) => ({
       type: "has",
       component,
     }));
-    return new QueryBuilder<AppendRequired<T, C>>({
+    return new QueryBuilder<AppendRequiredComponents<T, C>>({
       type: "and",
       terms: [this.expr, ...terms],
     });
@@ -34,12 +61,12 @@ export class QueryBuilder<T extends _QueryList = []> {
 
   or<C extends Component<any, any>[]>(
     ...components: C
-  ): QueryBuilder<AppendOptional<T, C>> {
+  ): QueryBuilder<AppendOptionalComponents<T, C>> {
     const terms: QueryExpr[] = components.map((component) => ({
       type: "has",
       component,
     }));
-    return new QueryBuilder<AppendOptional<T, C>>({
+    return new QueryBuilder<AppendOptionalComponents<T, C>>({
       type: "or",
       terms: [this.expr, ...terms],
     });
@@ -57,11 +84,14 @@ export class QueryBuilder<T extends _QueryList = []> {
   }
 }
 
+/**
+ * A static class providing methods to create query builders for various query expressions.
+ */
 export class Query {
   static and<C extends Component<any, any>[]>(
     ...components: C
-  ): QueryBuilder<AppendRequired<[], C>> {
-    return new QueryBuilder<AppendRequired<[], C>>({
+  ): QueryBuilder<AppendRequiredComponents<[], C>> {
+    return new QueryBuilder<AppendRequiredComponents<[], C>>({
       type: "and",
       terms: components.map((component) => ({
         type: "has",
@@ -72,8 +102,8 @@ export class Query {
 
   static or<C extends Component<any, any>[]>(
     ...components: C
-  ): QueryBuilder<AppendOptional<[], C>> {
-    return new QueryBuilder<AppendOptional<[], C>>({
+  ): QueryBuilder<AppendOptionalComponents<[], C>> {
+    return new QueryBuilder<AppendOptionalComponents<[], C>>({
       type: "or",
       terms: components.map((component) => ({
         type: "has",
@@ -84,8 +114,8 @@ export class Query {
 
   static has<C extends Component<any, any>>(
     component: C,
-  ): QueryBuilder<AppendRequired<[], [C]>> {
-    return new QueryBuilder<AppendRequired<[], [C]>>({
+  ): QueryBuilder<AppendRequiredComponents<[], [C]>> {
+    return new QueryBuilder<AppendRequiredComponents<[], [C]>>({
       type: "has",
       component,
     });

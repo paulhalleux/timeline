@@ -56,13 +56,11 @@ export const createPlayhead = (
     isPlaying: false,
   });
 
-  const setPosition = (position: number) => {
-    world.updateComponent(playheadEntity, UnitPosition, (value) => {
-      value.unit = position;
-    });
-    world.updateComponent(playheadEntity, ViewportPosition, (value) => {
-      value.px = timeline.projectToChunk(position) - timeline.getTranslatePx();
-    });
+  const setPosition = (unit: number) => {
+    console.log("Setting playhead position to unit:", unit);
+    world.updateComponent(playheadEntity, UnitPosition, () => ({
+      unit,
+    }));
   };
 
   const getPosition = () => {
@@ -77,22 +75,13 @@ export const createPlayhead = (
       return playable?.isPlaying ?? false;
     },
     setPlaying: (isPlaying: boolean) => {
-      world.updateComponent(playheadEntity, Playable, (value) => {
-        value.isPlaying = isPlaying;
-      });
+      world.updateComponent(playheadEntity, Playable, () => ({
+        isPlaying,
+      }));
     },
     getPosition,
     setPosition,
-    recompute: () => {
-      const position = world.getComponent(playheadEntity, UnitPosition);
-      if (!position) return;
-
-      const px =
-        timeline.projectToChunk(position.unit) - timeline.getTranslatePx();
-      world.updateComponent(playheadEntity, ViewportPosition, (value) => {
-        value.px = px;
-      });
-    },
+    recompute: () => {},
     connect: (element: HTMLElement | null) => {
       if (abortController) {
         abortController.abort();

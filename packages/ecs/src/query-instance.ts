@@ -1,21 +1,42 @@
-import { Entity, World } from "./world";
+import { World } from "./world";
 import {
-  _QueryList,
+  QueryComponents,
   collectQueryComponents,
   matchQuery,
   QueryBuilder,
   QueryExpr,
 } from "./query";
 import { ComponentsOf } from "./component";
+import { Entity } from "./entity";
+import { StructuralChange } from "./structural-change";
 
-export class QueryInstance<T extends _QueryList> {
+/**
+ * Represents the difference between two query results.
+ */
+export type QueryDiff = {
+  entered: readonly Entity[];
+  exited: readonly Entity[];
+  updated: readonly Entity[];
+};
+
+/**
+ * A listener function that handles query result differences.
+ */
+export type QueryInstanceListener = (
+  diff: QueryDiff,
+  entities: readonly Entity[],
+) => void;
+
+/**
+ * An instance of a query that can be used to retrieve entities matching the query.
+ */
+export class QueryInstance<T extends QueryComponents> {
   private entities: Entity[] = [];
-  private listeners = new Set<(e: readonly Entity[]) => void>();
+  private listeners = new Set<QueryInstanceListener>();
   private deps: Set<string>;
-  private readonly expr: QueryExpr;
 
-  private readonly unsubscribeWorldStructural: () => void;
-  private readonly unsubscribeWorldComponents: () => void;
+  private readonly expr: QueryExpr;
+  private readonly unsubscribe: () => void;
 
   constructor(
     private readonly world: World,
@@ -23,24 +44,20 @@ export class QueryInstance<T extends _QueryList> {
   ) {
     this.expr = builder.build();
     this.deps = collectQueryComponents(this.expr);
-    this.recompute();
 
-    this.unsubscribeWorldStructural = world.subscribeStructure((component) => {
-      if (!component || this.deps.has(component.name)) {
-        this.recompute();
-      }
+    this.unsubscribe = world.subscribe((change) => {
+      this.recompute(change);
     });
 
-    this.unsubscribeWorldComponents = world.subscribeComponentChange(
-      (entity, component) => {
-        if (this.deps.has(component.name) && this.entities.includes(entity)) {
-          this.recompute();
-        }
-      },
-    );
+    this.init();
   }
 
-  private recompute() {
+  /**
+   * Initializes the query instance by evaluating the query expression
+   * against all entities in the world.
+   * @private
+   */
+  private init() {
     const next: Entity[] = [];
 
     for (const e of this.world.entities()) {
@@ -50,17 +67,84 @@ export class QueryInstance<T extends _QueryList> {
     }
 
     this.entities = next;
-    this.emit();
+    this.emit({
+      entered: next,
+      exited: [],
+      updated: [],
+    });
   }
 
-  private emit() {
-    for (const l of this.listeners) l(this.entities);
+  /**
+   * Recomputes the query results based on a structural change in the world.
+   * @param change - The structural change that occurred.
+   * @private
+   */
+  private recompute(change: StructuralChange) {
+    const entity = change.entity;
+    const matches = matchQuery(this.world, entity, this.expr);
+    const index = this.entities.indexOf(entity);
+    const exists = index !== -1;
+
+    const entered: Entity[] = [];
+    const exited: Entity[] = [];
+    const updated: Entity[] = [];
+
+    if (matches && !exists) {
+      // entity entered the query
+      this.entities.push(entity);
+      entered.push(entity);
+    } else if (!matches && exists) {
+      // entity exited the query
+      this.entities.splice(index, 1);
+      exited.push(entity);
+    } else if (matches && exists) {
+      // entity updated within the query
+      updated.push(entity);
+    }
+
+    if (entered.length > 0 || exited.length > 0 || updated.length > 0) {
+      this.emit({
+        entered,
+        exited,
+        updated,
+      });
+    }
   }
 
+  /**
+   * Retrieves the entities matching the query.
+   * @returns An array of entities matching the query.
+   */
   get(): readonly Entity[] {
     return this.entities;
   }
 
+  /**
+   * Subscribes a listener to query result differences.
+   * @param listener - The listener function to subscribe.
+   * @returns A function to unsubscribe the listener.
+   */
+  subscribe(listener: QueryInstanceListener): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  /**
+   * Destroys the query instance.
+   * - Unsubscribes from world changes.
+   * - Clears all listeners.
+   */
+  destroy(): void {
+    this.unsubscribe();
+    this.listeners.clear();
+  }
+
+  /**
+   * Retrieves the components of a given entity as specified by the query.
+   * @param entity - The entity whose components are to be retrieved.
+   * @returns An object containing the components of the entity.
+   * @note This method assumes that the entity has the components specified in the query.
+   */
   getComponents(entity: Entity): ComponentsOf<T> {
     return Array.from(this.deps.values()).reduce((acc, compName) => {
       const value = this.world.getComponentByName(entity, compName);
@@ -70,15 +154,12 @@ export class QueryInstance<T extends _QueryList> {
     }, {} as ComponentsOf<T>);
   }
 
-  subscribe(listener: (e: readonly Entity[]) => void): () => void {
-    this.listeners.add(listener);
-    listener(this.entities);
-    return () => this.listeners.delete(listener);
-  }
-
-  destroy(): void {
-    this.unsubscribeWorldStructural();
-    this.unsubscribeWorldComponents();
-    this.listeners.clear();
+  /**
+   * Emits a query difference to all subscribed listeners.
+   * @param diff - The query difference to emit.
+   * @private
+   */
+  private emit(diff: QueryDiff) {
+    for (const l of this.listeners) l(diff, this.entities);
   }
 }

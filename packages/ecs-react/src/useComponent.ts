@@ -12,7 +12,7 @@ import { type Component, type Entity, World } from "@ptl/ecs";
 export function useComponent<T>(
   world: World,
   entity: Entity,
-  component: Component<T>,
+  component: Component<string, T>,
 ): T | undefined {
   return React.useSyncExternalStore(
     (cb) => world.subscribeComponent(entity, component, cb),

@@ -5,9 +5,12 @@ export {
   matchQuery,
   collectQueryComponents,
   QueryBuilder,
+  type QueryComponents,
+  type QueryComponent,
 } from "./query";
-export { QueryInstance } from "./query-instance";
-export { World, type Entity, type StructureListener } from "./world";
+export { type Entity } from "./entity";
+export { QueryInstance, type QueryInstanceListener } from "./query-instance";
+export { World } from "./world";
 export {
   type ComponentStore,
   type Component,
@@ -15,5 +18,9 @@ export {
   createComponent,
   isComponent,
 } from "./component";
-export { type System, isReactiveSystem } from "./system";
-export { type ReactiveSystem, createReactiveSystem } from "./reactive-system";
+export {
+  type System,
+  type SystemBase,
+  type ReactiveSystem,
+  createReactiveSystem,
+} from "./system";

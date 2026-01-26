@@ -1,24 +1,20 @@
 import { Component, ComponentStore } from "./component";
-import { System } from "./system";
-import { ReactiveSystem } from "./reactive-system";
-
-export type Entity = number;
-export type StructureListener = (component?: Component<string, any>) => void;
-export type ComponentListener = (
-  entity: Entity,
-  component: Component<string, any>,
-) => void;
+import { System, ReactiveSystem } from "./system";
+import { Entity } from "./entity";
+import {
+  StructuralChangeEmitter,
+  StructuralChangeListener,
+} from "./structural-change";
+import { QueryBuilder, QueryComponents } from "./query";
+import { QueryInstance } from "./query-instance";
+import { isEqual } from "es-toolkit";
 
 export class World {
   private nextEntity: Entity = 0;
-
   private entitiesSet = new Set<Entity>();
   private components = new Map<Entity, Map<string, ComponentStore<any>>>();
-
-  private structureListeners = new Set<StructureListener>();
-  private componentListeners = new Set<ComponentListener>();
-
-  private reactiveSystems = new Set<ReactiveSystem<any>>();
+  private structuralChangeEmitter = new StructuralChangeEmitter();
+  private reactiveSystems = new Set<ReactiveSystem>();
 
   /* -------------------- systems -------------------- */
 
@@ -27,6 +23,7 @@ export class World {
       this.reactiveSystems.add(system);
     }
 
+    system.detach(); // Ensure the system is detached before attaching to this world
     system.attach(this);
   }
 
@@ -42,14 +39,22 @@ export class World {
   createEntity(): Entity {
     const e = ++this.nextEntity;
     this.entitiesSet.add(e);
-    this.emitStructureChange();
+    this.structuralChangeEmitter.emit({
+      type: "create",
+      entity: e,
+      component: null,
+    });
     return e;
   }
 
   destroyEntity(entity: Entity): void {
     this.entitiesSet.delete(entity);
     this.components.delete(entity);
-    this.emitStructureChange();
+    this.structuralChangeEmitter.emit({
+      type: "destroy",
+      entity,
+      component: null,
+    });
   }
 
   entities(): Iterable<Entity> {
@@ -75,7 +80,13 @@ export class World {
       listeners: new Set(),
     });
 
-    this.emitStructureChange(component);
+    this.structuralChangeEmitter.emit({
+      type: "add",
+      entity,
+      component,
+      value,
+    });
+
     return value;
   }
 
@@ -84,7 +95,11 @@ export class World {
     if (!map) return;
 
     if (map.delete(component.name)) {
-      this.emitStructureChange(component);
+      this.structuralChangeEmitter.emit({
+        type: "remove",
+        entity,
+        component,
+      });
     }
   }
 
@@ -106,16 +121,23 @@ export class World {
   updateComponent<T>(
     entity: Entity,
     component: Component<string, T>,
-    updater: (value: T) => void,
+    updater: (value: T) => T,
   ): void {
     const store = this.components.get(entity)?.get(component.name);
     if (!store) return;
 
-    updater(store.value);
-    store.value = { ...store.value };
+    let previousValue = store.value;
+    store.value = updater(structuredClone(store.value));
+    if (!isEqual(previousValue, store.value)) {
+      store.listeners.forEach((listener) => listener(store.value));
+    }
 
-    this.emitComponentChange(store);
-    this.emitComponentChangeListeners(entity, component);
+    this.structuralChangeEmitter.emit({
+      type: "update",
+      entity,
+      component,
+      value: store.value,
+    });
   }
 
   subscribeComponent<T>(
@@ -134,36 +156,63 @@ export class World {
     };
   }
 
-  subscribeComponentChange(listener: ComponentListener): () => void {
-    this.componentListeners.add(listener);
-    return () => this.componentListeners.delete(listener);
+  /* -------------------- subscription -------------------- */
+
+  /**
+   * Subscribes to entity creation and destruction events.
+   * @param listener - A callback function that receives the entity involved in the event.
+   * @returns A function to unsubscribe from the events.
+   */
+  subscribeToEntities(listener: (entity: Entity) => void): () => void {
+    return this.structuralChangeEmitter.subscribe((change) => {
+      if (!(change.type === "create" || change.type === "destroy")) {
+        return;
+      }
+
+      listener(change.entity);
+    });
   }
 
-  private emitComponentChangeListeners(
-    entity: Entity,
-    component: Component<string, any>,
-  ) {
-    for (const l of this.componentListeners) {
-      l(entity, component);
-    }
+  /**
+   * Subscribes to component addition, removal, and update events.
+   * @param listener - A callback function that receives the entity and component involved in the event.
+   * @returns A function to unsubscribe from the events.
+   */
+  subscribeToComponentChange(
+    listener: (entity: Entity, component: Component<string, any>) => void,
+  ): () => void {
+    return this.structuralChangeEmitter.subscribe((change) => {
+      if (
+        !(
+          change.type === "add" ||
+          change.type === "remove" ||
+          change.type === "update"
+        )
+      ) {
+        return;
+      }
+
+      listener(change.entity, change.component!);
+    });
   }
 
-  private emitComponentChange(store: ComponentStore<any>) {
-    for (const l of store.listeners) {
-      l(store.value);
-    }
+  /**
+   * Subscribes to all structural change events in the world.
+   * @param listener - A callback function that receives the structural change event.
+   * @returns A function to unsubscribe from the events.
+   */
+  subscribe(listener: StructuralChangeListener): () => void {
+    return this.structuralChangeEmitter.subscribe(listener);
   }
 
-  /* -------------------- structure -------------------- */
+  /* -------------------- queries -------------------- */
 
-  subscribeStructure(listener: StructureListener): () => void {
-    this.structureListeners.add(listener);
-    return () => this.structureListeners.delete(listener);
-  }
-
-  private emitStructureChange(component?: Component<string, any>) {
-    for (const l of this.structureListeners) {
-      l(component);
-    }
+  /**
+   * Creates a new QueryInstance based on the provided QueryBuilder.
+   * @param query - The QueryBuilder defining the query criteria.
+   * @returns A new QueryInstance for the specified query.
+   */
+  createQuery<T extends QueryComponents>(query: QueryBuilder<T>) {
+    return new QueryInstance(this, query);
   }
 }

@@ -1,4 +1,4 @@
-import { _QueryList } from "./query";
+import { QueryComponents } from "./query";
 
 /**
  * A component is a piece of data that can be attached to an entity.
@@ -45,8 +45,8 @@ type _ComponentAsObjectArray<
 /**
  * Extracts the data types from an array of Components.
  */
-type _ComponentsOf<T extends _QueryList> = T extends [infer A, ...infer R]
-  ? A extends _QueryList[number]
+type _ComponentsOf<T extends QueryComponents> = T extends [infer A, ...infer R]
+  ? A extends QueryComponents[number]
     ? (A extends {
         type: "required";
         components: infer C extends readonly Component<any, any>[];
@@ -58,7 +58,7 @@ type _ComponentsOf<T extends _QueryList> = T extends [infer A, ...infer R]
             }
           ? _ComponentAsObjectArray<C, false>
           : {}) &
-        _ComponentsOf<R extends _QueryList ? R : []>
+        _ComponentsOf<R extends QueryComponents ? R : []>
     : "Invalid QueryList element"
   : {};
 
@@ -66,7 +66,9 @@ type _Prettify<T> = {
   [K in keyof T]: T[K];
 } & {};
 
-export type ComponentsOf<T extends _QueryList> = _Prettify<_ComponentsOf<T>>;
+export type ComponentsOf<T extends QueryComponents> = _Prettify<
+  _ComponentsOf<T>
+>;
 
 /**
  * Store for a component attached to an entity.

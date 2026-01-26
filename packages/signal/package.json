@@ -1,5 +1,5 @@
 {
-  "name": "@ptl/store",
+  "name": "@ptl/signal",
   "type": "module",
   "version": "0.0.0",
   "module": "./dist/index.mjs",
@@ -21,7 +21,6 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@ptl/signal": "^0.0.0",
     "es-toolkit": "^1.44.0"
   }
 }

@@ -4,6 +4,7 @@ import type { TimelineState } from "./state";
 import { computeChunk } from "./chunk";
 import type { TimelineModule } from "./timeline-module";
 import { World } from "@ptl/ecs";
+import { createViewportProjectionSystem } from "./systems/viewport-projection-system";
 
 export type TimelineOptions = {
   /**
@@ -107,6 +108,8 @@ export class Timeline implements TimelineApi {
     });
 
     this.world = new World();
+    this.world.addSystem(createViewportProjectionSystem(this));
+
     this.subscribeToViewportChanges();
   }
 
