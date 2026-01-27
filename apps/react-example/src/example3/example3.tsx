@@ -1,6 +1,7 @@
 import React from "react";
 import { MinimapModule, Timeline } from "@ptl/timeline-core";
 import {
+  Minimap,
   TimelineProvider,
   useTimeline,
   useTimelineStore,
@@ -11,7 +12,6 @@ import { PlayheadModule, RulerModule } from "@ptl/timeline-core";
 import { Playhead } from "./Playhead.tsx";
 import { TimelineOverlay } from "./TimelineOverlay.tsx";
 import { PanWidget } from "./PanWidget.tsx";
-import { Minimap } from "./Minimap.tsx";
 
 export const Example3 = () => {
   const [timeline] = React.useState(() => {
@@ -74,6 +74,8 @@ export const Example3 = () => {
             marginTop: "auto",
             overflow: "hidden",
             position: "relative",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           <TimelineOverlay>
@@ -101,7 +103,25 @@ export const Example3 = () => {
               flexDirection: "column",
             }}
           >
-            <Minimap />
+            <Minimap.Root
+              style={{
+                height: 24,
+                border: "1px solid black",
+                borderRadius: 4,
+                padding: 2,
+                position: "relative",
+              }}
+            >
+              <Minimap.Thumb
+                style={{
+                  border: "1px solid black",
+                  background: "#c0c0c0",
+                  borderRadius: 2,
+                  top: 2,
+                  bottom: 2,
+                }}
+              />
+            </Minimap.Root>
             <div style={{ display: "flex" }}>
               <input
                 type="range"
@@ -164,7 +184,7 @@ const Viewport = ({
     <div
       onMouseDown={() => setIsDraggingViewport(true)}
       style={{
-        height: "calc(100% - 82px)",
+        flex: "1",
         overflowY: "auto",
         width: "100%",
         position: "relative",
@@ -175,7 +195,7 @@ const Viewport = ({
           key={track.id}
           style={{
             borderBottom:
-              index === self.length - 1 ? undefined : "1px solid gray",
+              index === self.length - 1 ? undefined : "1px solid #ddd",
             height: 40,
             display: "flex",
             overflow: "hidden",
@@ -234,9 +254,11 @@ const Item = React.memo(
           left: left,
           width: width,
           height: "100%",
-          background: "#4fabe4",
-          borderRight: "1px solid #00000040",
-          borderLeft: "1px solid #ffffff80",
+          background: "#11becc",
+          border: "1px solid #10a0b1",
+          borderWidth: "1px 1px 0px 0",
+          boxShadow:
+            "inset 1px 0 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(255, 255, 255, 0.2)",
           borderRadius: 2,
           boxSizing: "border-box",
           display: "flex",

@@ -22,18 +22,18 @@ export const createViewportProjectionSystem = (timeline: TimelineApi) => {
     Query.has(UnitPosition),
     {
       onEnter(_, entity, { UnitPosition: { unit, projectable } }) {
-        if (!projectable) {
+        if (!projectable || !timeline.$mounted.get()) {
           return;
         }
         updateViewportPosition(entity, unit);
       },
       onUpdate(_, entity, { UnitPosition: { unit, projectable } }) {
-        if (!projectable) {
+        if (!projectable || !timeline.$mounted.get()) {
           return;
         }
         updateViewportPosition(entity, unit);
       },
     },
-    [onRangeChange],
+    [onRangeChange, timeline.$mounted.filter(Boolean)],
   );
 };

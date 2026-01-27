@@ -11,6 +11,8 @@ export type SignalSubscriber<T> = (value: T) => void;
 export interface Signal<T> {
   get(): T;
   subscribe(listener: SignalSubscriber<T>): () => void;
+  map<U>(fn: (value: T) => U): Signal<U>;
+  filter(predicate: (value: T) => boolean): Signal<void>;
 }
 
 /**
@@ -91,6 +93,8 @@ export class WritableSignal<T> implements Signal<T> {
     return {
       get: this.get.bind(this),
       subscribe: this.subscribe.bind(this),
+      map: this.map.bind(this),
+      filter: this.filter.bind(this),
     };
   }
 

@@ -7,6 +7,7 @@ export {
 export type { TimelineModule } from "./timeline-module";
 export {
   RulerModule,
+  createDefaultTickIntervalGenerator,
   type RulerOptions,
   type RulerState,
 } from "./modules/ruler-module";

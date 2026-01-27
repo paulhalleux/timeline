@@ -5,6 +5,7 @@ import { computeChunk } from "./chunk";
 import type { TimelineModule } from "./timeline-module";
 import { World } from "@ptl/ecs";
 import { createViewportProjectionSystem } from "./systems/viewport-projection-system";
+import { Signal, WritableSignal } from "@ptl/signal";
 
 export type TimelineOptions = {
   /**
@@ -84,6 +85,9 @@ export interface TimelineApi {
 
   // ECS
   getWorld(): World;
+
+  // Signals
+  $mounted: Signal<boolean>;
 }
 
 export class Timeline implements TimelineApi {
@@ -92,6 +96,8 @@ export class Timeline implements TimelineApi {
   private readonly world: World;
 
   private modules: TimelineModule[] = [];
+
+  public readonly $mounted = new WritableSignal(false);
 
   constructor(private readonly options: TimelineOptions) {
     this.store = new Store<TimelineState>({
@@ -215,6 +221,7 @@ export class Timeline implements TimelineApi {
    */
   connect(element: HTMLElement | null): void {
     this.viewport.setContainer(element);
+    this.$mounted.set(!!element);
   }
 
   /**
@@ -293,6 +300,10 @@ export class Timeline implements TimelineApi {
    * @returns The projected value in pixels.
    */
   projectToChunk(value: number): number {
+    if (!this.$mounted.get()) {
+      return 0;
+    }
+
     const pxPerUnit = this.viewport.select((state) => state.pxPerUnit);
     const chunkStart = this.store.select((state) => state.chunkStart);
     return (value - chunkStart) * pxPerUnit;
@@ -305,6 +316,10 @@ export class Timeline implements TimelineApi {
    * @returns The projected value in timeline units.
    */
   projectToUnit(viewportPosition: number): number {
+    if (!this.$mounted.get()) {
+      return 0;
+    }
+
     const pxPerUnit = this.viewport.select((state) => state.pxPerUnit);
     const chunkStart = this.store.select((state) => state.chunkStart);
     return Math.abs(chunkStart) + viewportPosition / pxPerUnit;
