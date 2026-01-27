@@ -1,4 +1,4 @@
-import { TimelineViewport, ViewportApi } from "./timeline-viewport";
+import { Viewport, ViewportApi } from "./viewport";
 import { Store } from "@ptl/store";
 import type { TimelineState } from "./state";
 import { computeChunk } from "./chunk";
@@ -52,10 +52,8 @@ export interface TimelineApi {
   // State related
   getStore(): Store<TimelineState>;
   select<S>(selector: (state: TimelineState) => S): S;
-  subscribe<S = TimelineState>(
-    listener: (selectedState: S) => void,
-    selector?: (state: TimelineState) => S,
-  ): () => void;
+  subscribe(listener: (selectedState: TimelineState) => void): () => void;
+  getOptions(): TimelineOptions;
 
   // Viewport related
   getViewport(): ViewportApi;
@@ -82,6 +80,7 @@ export interface TimelineApi {
   getBounds(): { start: number; end: number };
   getVisibleRange(): number;
   getChunkRange(): number;
+  setVisibleRange(visibleRange: number): void;
 
   // ECS
   getWorld(): World;
@@ -89,7 +88,7 @@ export interface TimelineApi {
 
 export class Timeline implements TimelineApi {
   private readonly store: Store<TimelineState>;
-  private readonly viewport: TimelineViewport;
+  private readonly viewport: Viewport;
   private readonly world: World;
 
   private modules: TimelineModule[] = [];
@@ -102,7 +101,7 @@ export class Timeline implements TimelineApi {
       chunkDuration: 0,
     });
 
-    this.viewport = new TimelineViewport({
+    this.viewport = new Viewport({
       visibleRange: options.visibleRange ?? options.maxVisibleRange,
       headerOffsetPx: options.headerOffsetPx ?? 0,
     });
@@ -111,6 +110,15 @@ export class Timeline implements TimelineApi {
     this.world.addSystem(createViewportProjectionSystem(this));
 
     this.subscribeToViewportChanges();
+  }
+
+  /**
+   * Gets the timeline options.
+   *
+   * @returns The timeline options.
+   */
+  getOptions(): TimelineOptions {
+    return this.options;
   }
 
   /**
@@ -167,7 +175,7 @@ export class Timeline implements TimelineApi {
    *
    * @returns The timeline viewport instance.
    */
-  getViewport(): TimelineViewport {
+  getViewport(): Viewport {
     return this.viewport;
   }
 
@@ -194,14 +202,10 @@ export class Timeline implements TimelineApi {
    * Subscribes to changes in the timeline state.
    *
    * @param listener The listener function to be called on state changes.
-   * @param selector Optional selector function to select a subset of the state.
    * @returns A function to unsubscribe from the state changes.
    */
-  subscribe<S = TimelineState>(
-    listener: (selectedState: S) => void,
-    selector?: (state: TimelineState) => S,
-  ): () => void {
-    return this.store.subscribe(listener, selector);
+  subscribe(listener: (selectedState: TimelineState) => void): () => void {
+    return this.store.subscribe(listener);
   }
 
   /**
@@ -229,7 +233,7 @@ export class Timeline implements TimelineApi {
       ((this.options.chunkSize ?? 2) - 1) * viewportWidthPx,
     );
 
-    this.store.setState((prev) => ({
+    this.store.update((prev) => ({
       ...prev,
       current: normalizedPosition,
       chunkIndex: index,
@@ -397,6 +401,19 @@ export class Timeline implements TimelineApi {
   }
 
   /**
+   * Sets the visible range of the timeline in units.
+   *
+   * @param visibleRange The visible range to set.
+   */
+  setVisibleRange(visibleRange: number) {
+    const clampedVisibleRange = Math.max(
+      this.options.minVisibleRange,
+      Math.min(this.options.maxVisibleRange, visibleRange),
+    );
+    this.viewport.setVisibleRange(clampedVisibleRange);
+  }
+
+  /**
    * Subscribes to changes in the viewport and updates the current chunk accordingly.
    *
    * @private
@@ -411,7 +428,7 @@ export class Timeline implements TimelineApi {
         (chunkSize - 1) * widthPx,
       );
 
-      this.store.setState((prev) => ({
+      this.store.update((prev) => ({
         ...prev,
         chunkIndex: index,
         chunkStart: start,

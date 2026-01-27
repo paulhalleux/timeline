@@ -1,15 +1,9 @@
-export {
-  Query,
-  type QueryExpr,
-  serializeQuery,
-  matchQuery,
-  collectQueryComponents,
-  QueryBuilder,
-  type QueryComponents,
-  type QueryComponent,
-} from "./query";
+export * from "./query";
 export { type Entity } from "./entity";
-export { QueryInstance, type QueryInstanceListener } from "./query-instance";
+export {
+  QueryInstance,
+  type QueryInstanceListener,
+} from "./query/query-instance";
 export { World } from "./world";
 export {
   type ComponentStore,

@@ -1,8 +1,7 @@
-import { QueryInstance } from "../query-instance";
 import { ComponentsOf } from "../component";
 import { World } from "../world";
-import { QueryComponents, QueryBuilder } from "../query";
-import { SystemBase } from "./index";
+import { QueryComponents, QueryBuilder, QueryInstance } from "../query";
+import { SystemBase } from "./";
 import { Entity } from "../entity";
 import { Signal } from "@ptl/signal";
 
@@ -43,12 +42,8 @@ export const createReactiveSystem = <T extends QueryComponents>(
     worldRef = world;
     queryInstance = new QueryInstance<T>(world, query);
 
-    const unsubscribe = queryInstance.subscribe(
+    const unsubscribe = queryInstance.subscribeDiff(
       ({ updated, entered, exited }) => {
-        if (!world) {
-          return;
-        }
-
         for (const entity of entered) {
           handlers.onEnter?.(
             world,

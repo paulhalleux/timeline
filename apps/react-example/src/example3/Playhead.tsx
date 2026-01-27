@@ -5,7 +5,6 @@ export const Playhead = () => {
   const { translatePx } = useViewport();
   return (
     <div
-      ref={position.module.getPlayhead()?.connect}
       style={{
         position: "absolute",
         left: position.leftPx - translatePx,

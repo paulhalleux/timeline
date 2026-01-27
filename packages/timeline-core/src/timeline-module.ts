@@ -3,7 +3,7 @@ import { TimelineApi } from "./timeline";
 /**
  * Interface representing a module that can be attached to the timeline.
  */
-export interface TimelineModule {
+export type TimelineModule<Api extends {} = {}> = {
   /**
    * Attaches the module to the given timeline instance.
    *
@@ -15,4 +15,4 @@ export interface TimelineModule {
    * Detaches the module from the timeline.
    */
   detach?(): void;
-}
+} & Api;

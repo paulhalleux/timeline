@@ -1,6 +1,6 @@
 import { Store } from "@ptl/store";
 
-export type TimelineViewportState = {
+export type ViewportState = {
   /**
    * Width of the viewport in pixels
    * @remarks This is the width of the timeline area, excluding any headers or sidebars.
@@ -30,9 +30,9 @@ export type TimelineViewportState = {
  * API for interacting with the TimelineViewport.
  */
 export interface ViewportApi {
-  getStore(): Store<TimelineViewportState>;
-  subscribe(listener: (state: TimelineViewportState) => void): () => void;
-  select<T>(selector: (state: TimelineViewportState) => T): T;
+  getStore(): Store<ViewportState>;
+  subscribe(listener: (state: ViewportState) => void): () => void;
+  select<T>(selector: (state: ViewportState) => T): T;
   setContainer(container: HTMLElement | null): void;
   getContainer(): HTMLElement | null;
   setHeaderOffsetPx(offsetPx: number): void;
@@ -45,17 +45,15 @@ export type TimelineViewportOptions = {
   headerOffsetPx?: number;
 };
 
-export class TimelineViewport implements ViewportApi {
-  private readonly store: Store<TimelineViewportState>;
+export class Viewport implements ViewportApi {
+  private readonly store: Store<ViewportState>;
   private container: HTMLElement | null = null;
   private resizeObserver: ResizeObserver | null = null;
 
   constructor(options: TimelineViewportOptions) {
-    this.store = new Store<TimelineViewportState>({
+    this.store = new Store<ViewportState>({
       visibleRange: options.visibleRange,
       headerOffsetPx: options.headerOffsetPx ?? 0,
-
-      // Initial values; these will be updated when a container is set
       widthPx: 0,
       pxPerUnit: 0,
     });
@@ -94,7 +92,7 @@ export class TimelineViewport implements ViewportApi {
    * @param offsetPx The offset in pixels to be set for the header.
    */
   setHeaderOffsetPx(offsetPx: number): void {
-    this.store.setState((prev) => ({
+    this.store.update((prev) => ({
       ...prev,
       headerOffsetPx: offsetPx,
     }));
@@ -106,7 +104,7 @@ export class TimelineViewport implements ViewportApi {
    * @param visibleRange The amount of units to be visible in the viewport.
    */
   setVisibleRange(visibleRange: number): void {
-    this.store.setState((prev) => ({
+    this.store.update((prev) => ({
       ...prev,
       visibleRange: visibleRange,
       pxPerUnit: prev.widthPx > 0 ? prev.widthPx / visibleRange : 0,
@@ -118,7 +116,7 @@ export class TimelineViewport implements ViewportApi {
    *
    * @returns The store with the timeline viewport state.
    */
-  getStore(): Store<TimelineViewportState> {
+  getStore(): Store<ViewportState> {
     return this.store;
   }
 
@@ -128,7 +126,7 @@ export class TimelineViewport implements ViewportApi {
    * @param selector A function that selects a part of the timeline viewport state.
    * @returns The selected part of the timeline viewport state.
    */
-  select<T>(selector: (state: TimelineViewportState) => T): T {
+  select<T>(selector: (state: ViewportState) => T): T {
     return this.store.select(selector);
   }
 
@@ -138,7 +136,7 @@ export class TimelineViewport implements ViewportApi {
    * @param listener A function that will be called whenever the timeline viewport state changes.
    * @returns A function to unsubscribe from the changes.
    */
-  subscribe(listener: (state: TimelineViewportState) => void): () => void {
+  subscribe(listener: (state: ViewportState) => void): () => void {
     return this.store.subscribe(listener);
   }
 
@@ -166,7 +164,7 @@ export class TimelineViewport implements ViewportApi {
       const widthPx = this.store.select((state) => state.widthPx);
       if (widthPx === width) return;
 
-      this.store.setState((prev) => ({
+      this.store.update((prev) => ({
         ...prev,
         widthPx: width,
         pxPerUnit: width / prev.visibleRange,

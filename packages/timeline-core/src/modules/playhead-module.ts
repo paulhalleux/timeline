@@ -1,12 +1,23 @@
 import { TimelineApi } from "../timeline";
 import { createPlayhead, CreatePlayheadOptions } from "../entities";
-import { PlayheadEntity } from "../entities/playhead";
 import { TimelineModule } from "../timeline-module";
+import { Entity } from "@ptl/ecs";
+import { Playable, UnitPosition } from "../components";
 
-export class PlayheadModule implements TimelineModule {
+export type PlayheadApi = {
+  getEntity(): Entity | null;
+  setPosition(position: number): void;
+  getPosition(): number;
+  moveForward(delta: number): void;
+  moveBackward(delta: number): void;
+  play(delta: number): void;
+  pause(): void;
+};
+
+export class PlayheadModule implements TimelineModule<PlayheadApi> {
   static id = "PlayheadModule";
 
-  private playhead: PlayheadEntity | null = null;
+  private playheadEntity: Entity | null = null;
   private rafId: number | null = null;
 
   private unsubscribers: Array<() => void> = [];
@@ -14,47 +25,89 @@ export class PlayheadModule implements TimelineModule {
 
   constructor(private readonly options: CreatePlayheadOptions = {}) {}
 
+  // Lifecycle Methods
+
+  /**
+   * Attach the PlayheadModule to a TimelineApi instance.
+   * @param timeline - The TimelineApi instance to attach to.
+   */
   attach(timeline: TimelineApi): void {
     this.timeline = timeline;
-    this.playhead = createPlayhead(timeline, this.options);
-
-    this.unsubscribers.push(
-      this.timeline.subscribe(() => this.playhead?.recompute()),
-      this.timeline.getViewport().subscribe(() => this.playhead?.recompute()),
-    );
-
-    this.playhead.recompute();
+    this.playheadEntity = createPlayhead(timeline, this.options);
   }
 
+  /**
+   * Detach the PlayheadModule from the TimelineApi instance.
+   */
   detach(): void {
     this.unsubscribers.forEach((unsub) => unsub());
     this.unsubscribers = [];
     this.timeline = undefined;
   }
 
-  getPlayhead(): PlayheadEntity | null {
-    return this.playhead;
+  // API Methods
+
+  /**
+   * Get the playhead entity.
+   * @returns The playhead entity or null if not available.
+   */
+  getEntity(): Entity | null {
+    return this.playheadEntity;
   }
 
-  setPosition(position: number): void {
-    if (!this.playhead) return;
-    this.playhead.setPosition(position);
+  /**
+   * Set the playhead position.
+   * @param unit - The new position in units.
+   */
+  setPosition(unit: number): void {
+    if (!this.playheadEntity || !this.timeline) return;
+    const world = this.timeline.getWorld();
+    world.updateComponent(this.playheadEntity, UnitPosition, (value) => ({
+      ...value,
+      unit,
+    }));
   }
 
+  /**
+   * Get the current playhead position.
+   * @returns The current position in units.
+   */
+  getPosition(): number {
+    if (!this.playheadEntity || !this.timeline) return 0;
+    const world = this.timeline.getWorld();
+    const positionComponent = world.getComponent(
+      this.playheadEntity,
+      UnitPosition,
+    );
+    return positionComponent?.unit ?? 0;
+  }
+
+  /**
+   * Move the playhead forward by a specified delta.
+   * @param delta - The amount to move forward in units.
+   */
   moveForward(delta: number): void {
-    if (!this.playhead) return;
-    const currentPosition = this.playhead.getPosition();
+    if (!this.playheadEntity) return;
+    const currentPosition = this.getPosition();
     this.setPosition(currentPosition + delta);
   }
 
+  /**
+   * Move the playhead backward by a specified delta.
+   * @param delta - The amount to move backward in units.
+   */
   moveBackward(delta: number): void {
-    if (!this.playhead) return;
-    const currentPosition = this.playhead.getPosition();
+    if (!this.playheadEntity) return;
+    const currentPosition = this.getPosition();
     this.setPosition(currentPosition - delta);
   }
 
+  /**
+   * Start playing the playhead, moving it forward continuously.
+   * @param delta - The amount to move forward in units per frame.
+   */
   play(delta: number): void {
-    if (this.rafId !== null || !this.playhead) return; // Already playing
+    if (this.rafId !== null || !this.playheadEntity) return; // Already playing
 
     const step = () => {
       this.moveForward(delta);
@@ -62,15 +115,31 @@ export class PlayheadModule implements TimelineModule {
     };
 
     this.rafId = requestAnimationFrame(step);
-    this.playhead.setPlaying(true);
+    this.setPlaying(true);
   }
 
+  /**
+   * Pause the playhead, stopping its continuous movement.
+   */
   pause(): void {
-    if (!this.playhead) return;
+    if (!this.playheadEntity) return;
     if (this.rafId !== null) {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
-    this.playhead.setPlaying(false);
+    this.setPlaying(false);
+  }
+
+  /**
+   * Set the playing state of the playhead.
+   * @param isPlaying - Whether the playhead is playing.
+   * @private
+   */
+  private setPlaying(isPlaying: boolean): void {
+    if (!this.playheadEntity || !this.timeline) return;
+    const world = this.timeline.getWorld();
+    world.updateComponent(this.playheadEntity, Playable, () => ({
+      isPlaying,
+    }));
   }
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { Timeline } from "@ptl/timeline-core";
+import { MinimapModule, Timeline } from "@ptl/timeline-core";
 import {
   TimelineProvider,
   useTimeline,
@@ -11,6 +11,7 @@ import { PlayheadModule, RulerModule } from "@ptl/timeline-core";
 import { Playhead } from "./Playhead.tsx";
 import { TimelineOverlay } from "./TimelineOverlay.tsx";
 import { PanWidget } from "./PanWidget.tsx";
+import { Minimap } from "./Minimap.tsx";
 
 export const Example3 = () => {
   const [timeline] = React.useState(() => {
@@ -23,6 +24,16 @@ export const Example3 = () => {
 
     timeline.registerModule(new RulerModule());
     timeline.registerModule(new PlayheadModule());
+    timeline.registerModule(
+      new MinimapModule({
+        initialTotalRange: 200000,
+        computeTotalRange: (timeline) => {
+          const current = timeline.getBounds().start;
+          const overflow = 200000 - timeline.getVisibleRange();
+          return 200000 + (current > overflow ? current - overflow : 0);
+        },
+      }),
+    );
 
     return timeline;
   });
@@ -38,6 +49,12 @@ export const Example3 = () => {
       })),
     }));
   }, []);
+
+  const zoom = React.useSyncExternalStore(
+    (callback) => timeline.getViewport().subscribe(callback),
+    () => timeline.getZoomLevel(),
+    () => timeline.getZoomLevel(),
+  );
 
   return (
     <TimelineProvider timeline={timeline}>
@@ -81,25 +98,29 @@ export const Example3 = () => {
               borderTop: "1px solid black",
               background: "#f0f0f0",
               display: "flex",
+              flexDirection: "column",
             }}
           >
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.001"
-              defaultValue="0"
-              onChange={(e) => {
-                const range = Number(e.target.value);
-                timeline.setZoom(range);
-              }}
-              style={{ width: "100%" }}
-            />
-            <PanWidget
-              onPan={(delta) => {
-                timeline.panByPx(delta * 100);
-              }}
-            />
+            <Minimap />
+            <div style={{ display: "flex" }}>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.001"
+                value={zoom}
+                onChange={(e) => {
+                  const range = Number(e.target.value);
+                  timeline.setZoom(range);
+                }}
+                style={{ width: "100%" }}
+              />
+              <PanWidget
+                onPan={(delta) => {
+                  timeline.panByPx(delta * 100);
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -143,7 +164,7 @@ const Viewport = ({
     <div
       onMouseDown={() => setIsDraggingViewport(true)}
       style={{
-        height: "calc(100% - 72px)",
+        height: "calc(100% - 82px)",
         overflowY: "auto",
         width: "100%",
         position: "relative",

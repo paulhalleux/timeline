@@ -1,26 +1,39 @@
 import { TimelineApi } from "../timeline";
 import { createReactiveSystem, Query } from "@ptl/ecs";
-import { UnitPosition, ViewportPosition } from "../timeline-components";
+import { UnitPosition, ViewportPosition } from "../components";
 
 export const createViewportProjectionSystem = (timeline: TimelineApi) => {
+  const onRangeChange = timeline
+    .getViewport()
+    .getStore()
+    .map((s) => s.visibleRange);
+
+  const updateViewportPosition = (entity: number, unit: number) => {
+    const px = timeline.projectToChunk(unit);
+    const world = timeline.getWorld();
+    if (!world.hasComponent(entity, ViewportPosition)) {
+      world.addComponent(entity, ViewportPosition, { px });
+    } else {
+      world.updateComponent(entity, ViewportPosition, () => ({ px }));
+    }
+  };
+
   return createReactiveSystem(
     Query.has(UnitPosition),
     {
-      onUpdate(world, entity, components) {
-        if (!world.hasComponent(entity, ViewportPosition)) {
+      onEnter(_, entity, { UnitPosition: { unit, projectable } }) {
+        if (!projectable) {
           return;
         }
-
-        world.updateComponent(entity, ViewportPosition, () => ({
-          px: timeline.projectToChunk(components.Position.unit),
-        }));
+        updateViewportPosition(entity, unit);
+      },
+      onUpdate(_, entity, { UnitPosition: { unit, projectable } }) {
+        if (!projectable) {
+          return;
+        }
+        updateViewportPosition(entity, unit);
       },
     },
-    [
-      timeline
-        .getViewport()
-        .getStore()
-        .derive((s) => s.visibleRange),
-    ],
+    [onRangeChange],
   );
 };

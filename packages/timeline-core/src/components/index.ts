@@ -1,9 +1,9 @@
-// timeline-components.ts
 import { createComponent } from "@ptl/ecs";
 
 export const Playhead = createComponent("Playhead", {});
-export const UnitPosition = createComponent("Position", {
+export const UnitPosition = createComponent("UnitPosition", {
   unit: 0,
+  projectable: true,
 });
 export const ViewportPosition = createComponent("ViewportPosition", {
   px: 0,

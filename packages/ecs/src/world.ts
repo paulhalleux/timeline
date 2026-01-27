@@ -5,8 +5,7 @@ import {
   StructuralChangeEmitter,
   StructuralChangeListener,
 } from "./structural-change";
-import { QueryBuilder, QueryComponents } from "./query";
-import { QueryInstance } from "./query-instance";
+import { QueryBuilder, QueryComponents, QueryInstance } from "./query";
 import { isEqual } from "es-toolkit";
 
 export class World {

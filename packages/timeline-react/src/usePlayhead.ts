@@ -8,15 +8,13 @@ export const usePlayhead = () => {
 
   const viewportPosition = useComponent(
     timeline.getWorld(),
-    module.getPlayhead()?.entity ?? -1,
+    module.getEntity() ?? -1,
     ViewportPosition,
   );
 
-  console.log(viewportPosition);
-
   const playing = useComponent(
     timeline.getWorld(),
-    module.getPlayhead()?.entity ?? -1,
+    module.getEntity() ?? -1,
     Playable,
   );
 

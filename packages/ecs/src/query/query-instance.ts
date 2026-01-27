@@ -1,14 +1,10 @@
-import { World } from "./world";
-import {
-  QueryComponents,
-  collectQueryComponents,
-  matchQuery,
-  QueryBuilder,
-  QueryExpr,
-} from "./query";
-import { ComponentsOf } from "./component";
-import { Entity } from "./entity";
-import { StructuralChange } from "./structural-change";
+import { World } from "../world";
+import { ComponentsOf } from "../component";
+import { Entity } from "../entity";
+import { StructuralChange } from "../structural-change";
+import { Signal, SignalSubscriber } from "@ptl/signal";
+import { QueryBuilder, QueryComponents } from "./query-builder";
+import { collectQueryComponents, matchQuery, QueryExpr } from "./query-utils";
 
 /**
  * Represents the difference between two query results.
@@ -30,9 +26,12 @@ export type QueryInstanceListener = (
 /**
  * An instance of a query that can be used to retrieve entities matching the query.
  */
-export class QueryInstance<T extends QueryComponents> {
+export class QueryInstance<T extends QueryComponents> implements Signal<
+  Entity[]
+> {
   private entities: Entity[] = [];
-  private listeners = new Set<QueryInstanceListener>();
+  private diffListeners = new Set<QueryInstanceListener>();
+  private entityListeners = new Set<SignalSubscriber<Entity[]>>();
   private deps: Set<string>;
 
   private readonly expr: QueryExpr;
@@ -109,14 +108,29 @@ export class QueryInstance<T extends QueryComponents> {
         updated,
       });
     }
+
+    for (const l of this.entityListeners) {
+      l(this.entities);
+    }
   }
 
   /**
    * Retrieves the entities matching the query.
    * @returns An array of entities matching the query.
    */
-  get(): readonly Entity[] {
+  get(): Entity[] {
     return this.entities;
+  }
+
+  /**
+   * Subscribes a listener to query result changes.
+   * @param listener - The listener function to subscribe.
+   * @returns A function to unsubscribe the listener.
+   */
+  subscribe(listener: SignalSubscriber<Entity[]>): () => void {
+    listener(this.entities);
+    this.entityListeners.add(listener);
+    return () => this.entityListeners.delete(listener);
   }
 
   /**
@@ -124,19 +138,19 @@ export class QueryInstance<T extends QueryComponents> {
    * @param listener - The listener function to subscribe.
    * @returns A function to unsubscribe the listener.
    */
-  subscribe(listener: QueryInstanceListener): () => void {
-    this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
+  subscribeDiff(listener: QueryInstanceListener): () => void {
+    this.diffListeners.add(listener);
+    return () => this.diffListeners.delete(listener);
   }
 
   /**
    * Destroys the query instance.
    * - Unsubscribes from world changes.
-   * - Clears all listeners.
+   * - Clears all diffListeners.
    */
   destroy(): void {
     this.unsubscribe();
-    this.listeners.clear();
+    this.diffListeners.clear();
   }
 
   /**
@@ -155,11 +169,11 @@ export class QueryInstance<T extends QueryComponents> {
   }
 
   /**
-   * Emits a query difference to all subscribed listeners.
+   * Emits a query difference to all subscribed diffListeners.
    * @param diff - The query difference to emit.
    * @private
    */
   private emit(diff: QueryDiff) {
-    for (const l of this.listeners) l(diff, this.entities);
+    for (const l of this.diffListeners) l(diff, this.entities);
   }
 }

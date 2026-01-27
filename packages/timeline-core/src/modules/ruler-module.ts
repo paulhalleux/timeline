@@ -38,7 +38,7 @@ export class RulerModule implements TimelineModule {
   attach(timeline: TimelineApi): void {
     this.timeline = timeline;
     this.unsubscribers.push(
-      timeline.subscribe(() => this.recompute()),
+      timeline.getStore().subscribe(() => this.recompute()),
       timeline.getViewport().subscribe(() => this.recompute()),
     );
   }
@@ -54,7 +54,7 @@ export class RulerModule implements TimelineModule {
   }
 
   getState(): RulerState {
-    return this.store.getState();
+    return this.store.get();
   }
 
   private recompute(): void {
@@ -68,10 +68,10 @@ export class RulerModule implements TimelineModule {
       this.options.minTickIntervalPx ?? 100,
     );
 
-    this.store.setState(() => ({
+    this.store.set({
       prevIntervalTime: interval,
       ticks: computeTicks(start, end, interval),
-    }));
+    });
   }
 }
 

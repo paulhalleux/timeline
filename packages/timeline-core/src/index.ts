@@ -1,9 +1,9 @@
 export { Timeline, type TimelineOptions } from "./timeline";
 export {
-  TimelineViewport,
+  Viewport,
   type TimelineViewportOptions,
-  type TimelineViewportState,
-} from "./timeline-viewport";
+  type ViewportState,
+} from "./viewport";
 export type { TimelineModule } from "./timeline-module";
 export {
   RulerModule,
@@ -14,7 +14,9 @@ export {
   MinimapModule,
   type MinimapState,
   type MinimapOptions,
+  type MinimapApi,
 } from "./modules/minimap-module";
-export { PlayheadModule } from "./modules/playhead-module";
+export { PlayheadModule, type PlayheadApi } from "./modules/playhead-module";
+
 export * from "./entities";
-export * from "./timeline-components";
+export * from "./components";
