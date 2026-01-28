@@ -3,7 +3,9 @@ import { createReactiveSystem, Query } from "@ptl/ecs";
 import { UnitPosition, ViewportPosition } from "../components";
 
 export const createViewportProjectionSystem = (timeline: TimelineApi) => {
-  const onRangeChange = timeline
+  const $mounted = timeline.$mounted.filter(Boolean);
+  const $chunkChange = timeline.getStore().map((s) => s.chunkIndex);
+  const $rangeChange = timeline
     .getViewport()
     .getStore()
     .map((s) => s.visibleRange);
@@ -34,6 +36,6 @@ export const createViewportProjectionSystem = (timeline: TimelineApi) => {
         updateViewportPosition(entity, unit);
       },
     },
-    [onRangeChange, timeline.$mounted.filter(Boolean)],
+    [$mounted, $chunkChange, $rangeChange],
   );
 };

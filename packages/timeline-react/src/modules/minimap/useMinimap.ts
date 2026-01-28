@@ -6,7 +6,7 @@ import {
   type MinimapState,
 } from "@ptl/timeline-core";
 
-import { useTimeline } from "../TimelineProvider.tsx";
+import { useTimeline } from "../../TimelineProvider.tsx";
 
 /**
  * Hook to access the minimap module and its state within the timeline.

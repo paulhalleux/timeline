@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { useTimeline } from "../TimelineProvider.tsx";
+import { useTimeline } from "../../TimelineProvider.tsx";
 import { useMinimap } from "./useMinimap.ts";
-import { useMinimapContext } from "./Minimap.tsx";
+import { useMinimapContext } from "./MinimapProvider.tsx";
 
 type UseMinimapThumbArgs = {
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
@@ -74,41 +74,20 @@ export const useMinimapThumb = (args: UseMinimapThumbArgs) => {
     timeline,
   ]);
 
-  const gerContainerInlinePadding = React.useCallback(() => {
-    const container = containerRef.current;
-    if (!container) {
-      return { paddingLeft: 0, paddingRight: 0, borderWidth: 0 };
-    }
-    const style = window.getComputedStyle(container);
-    const paddingLeft = parseFloat(style.paddingLeft) || 0;
-    const paddingRight = parseFloat(style.paddingRight) || 0;
-    const borderWidth = parseFloat(style.borderWidth) || 0;
-    return { paddingLeft, paddingRight, borderWidth };
-  }, [containerRef]);
-
   const style = React.useMemo<React.CSSProperties>(() => {
-    const { paddingRight, paddingLeft, borderWidth } =
-      gerContainerInlinePadding();
     if (containerSize.width === null) {
       return {};
     }
 
     return {
       position: "absolute",
-      left:
-        state.visibleStartRatio *
-          (containerSize.width - paddingLeft - paddingRight - borderWidth) +
-        paddingLeft,
-      width:
-        state.visibleSizeRatio *
-          (containerSize.width - paddingLeft - paddingRight - borderWidth) -
-        1,
+      left: state.visibleStartRatio * containerSize.width,
+      width: state.visibleSizeRatio * containerSize.width,
       top: 0,
       bottom: 0,
       ...args.style,
     };
   }, [
-    gerContainerInlinePadding,
     containerSize.width,
     state.visibleStartRatio,
     state.visibleSizeRatio,

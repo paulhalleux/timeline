@@ -16,6 +16,8 @@ export const Playhead = () => {
         cursor: "pointer",
         zIndex: 205,
       }}
-    />
+    >
+      {position.module.getPosition()}
+    </div>
   );
 };

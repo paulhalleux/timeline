@@ -2,6 +2,7 @@ import React from "react";
 import { MinimapModule, Timeline } from "@ptl/timeline-core";
 import {
   Minimap,
+  Panner,
   TimelineProvider,
   useTimeline,
   useTimelineStore,
@@ -11,7 +12,7 @@ import { Ruler, RulerHeader } from "./Ruler.tsx";
 import { PlayheadModule, RulerModule } from "@ptl/timeline-core";
 import { Playhead } from "./Playhead.tsx";
 import { TimelineOverlay } from "./TimelineOverlay.tsx";
-import { PanWidget } from "./PanWidget.tsx";
+// import { PanWidget } from "./PanWidget.tsx";
 
 export const Example3 = () => {
   const [timeline] = React.useState(() => {
@@ -103,25 +104,70 @@ export const Example3 = () => {
               flexDirection: "column",
             }}
           >
-            <Minimap.Root
+            <div
               style={{
-                height: 24,
-                border: "1px solid black",
-                borderRadius: 4,
-                padding: 2,
-                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                marginBottom: 8,
+                width: "100%",
+                gap: 2,
               }}
             >
-              <Minimap.Thumb
+              <div
                 style={{
+                  padding: 2,
+                  height: 24,
                   border: "1px solid black",
-                  background: "#c0c0c0",
-                  borderRadius: 2,
-                  top: 2,
-                  bottom: 2,
+                  borderRadius: 4,
+                  flexGrow: 1,
                 }}
-              />
-            </Minimap.Root>
+              >
+                <Minimap.Root
+                  style={{
+                    height: "100%",
+                    padding: 2,
+                    position: "relative",
+                  }}
+                >
+                  <Minimap.Thumb
+                    style={{
+                      border: "1px solid black",
+                      background: "#c0c0c0",
+                      borderRadius: 2,
+                    }}
+                  />
+                </Minimap.Root>
+              </div>
+              <div
+                style={{
+                  padding: 2,
+                  height: 24,
+                  border: "1px solid black",
+                  borderRadius: 4,
+                  width: 240,
+                }}
+              >
+                <Panner.Root
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                  }}
+                  onPan={(delta) => {
+                    timeline.panByPx(delta * 100);
+                  }}
+                >
+                  <Panner.Handle
+                    style={{
+                      background: "#c0c0c0",
+                      border: "1px solid black",
+                      borderRadius: 2,
+                      height: "100%",
+                      width: 40,
+                    }}
+                  />
+                </Panner.Root>
+              </div>
+            </div>
             <div style={{ display: "flex" }}>
               <input
                 type="range"
@@ -134,11 +180,6 @@ export const Example3 = () => {
                   timeline.setZoom(range);
                 }}
                 style={{ width: "100%" }}
-              />
-              <PanWidget
-                onPan={(delta) => {
-                  timeline.panByPx(delta * 100);
-                }}
               />
             </div>
           </div>

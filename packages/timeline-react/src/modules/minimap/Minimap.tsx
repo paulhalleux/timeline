@@ -1,32 +1,22 @@
 import React from "react";
 import { useMinimapThumb } from "./useMinimapThumb.ts";
 import { useMinimapContainer } from "./useMinimapContainer.ts";
+import { MinimapContext } from "./MinimapProvider.tsx";
 
-type MinimapContextType = {
-  containerRef: React.RefObject<HTMLDivElement | null>;
-  containerSize: { width: number | null; height: number | null };
+export type MinimapRootProps = React.ComponentProps<"div"> & {
+  zoomSensitivity?: number;
 };
 
-const MinimapContext = React.createContext<MinimapContextType | null>(null);
-export const useMinimapContext = () => {
-  const context = React.useContext(MinimapContext);
-  if (!context) {
-    throw new Error(
-      "Minimap components must be used within a Minimap.Root component",
-    );
-  }
-  return context;
-};
-
-export type MinimapRootProps = React.ComponentProps<"div">;
 const MinimapRoot = ({
   children,
   onWheel,
   onClick,
+  zoomSensitivity,
   ...rest
 }: MinimapRootProps) => {
   const { ref, containerRef, containerSize, ...containerProps } =
     useMinimapContainer({
+      zoomSensitivity,
       onWheel,
       onClick,
     });
