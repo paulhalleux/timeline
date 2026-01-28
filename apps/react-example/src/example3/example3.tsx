@@ -3,12 +3,12 @@ import { MinimapModule, Timeline } from "@ptl/timeline-core";
 import {
   Minimap,
   Panner,
+  Ruler,
   TimelineProvider,
   useTimeline,
   useTimelineStore,
-  useViewport,
+  useTimelineTranslate,
 } from "@ptl/timeline-react";
-import { Ruler, RulerHeader } from "./Ruler.tsx";
 import { PlayheadModule, RulerModule } from "@ptl/timeline-core";
 import { Playhead } from "./Playhead.tsx";
 import { TimelineOverlay } from "./TimelineOverlay.tsx";
@@ -52,12 +52,6 @@ export const Example3 = () => {
     }));
   }, []);
 
-  const zoom = React.useSyncExternalStore(
-    (callback) => timeline.getViewport().subscribe(callback),
-    () => timeline.getZoomLevel(),
-    () => timeline.getZoomLevel(),
-  );
-
   const isOverflow = React.useSyncExternalStore(
     (callback) => timeline.subscribe(callback),
     () => timeline.getModule(MinimapModule).isOverflowing(),
@@ -89,18 +83,50 @@ export const Example3 = () => {
           <TimelineOverlay>
             <Playhead />
           </TimelineOverlay>
-          <div
+          <Ruler.Root
             style={{
-              height: "32px",
+              height: 40,
               borderBottom: "1px solid black",
               background: "#f0f0f0",
-              overflow: "hidden",
-              display: "flex",
             }}
           >
-            <RulerHeader />
-            <Ruler />
-          </div>
+            <Ruler.Header
+              style={{
+                background: "#f0f0f0",
+              }}
+            >
+              Ruler
+            </Ruler.Header>
+            <Ruler.Ticks>
+              {({ unit, left, width }) => {
+                if (unit === 0) return null;
+                return (
+                  <div
+                    style={{
+                      position: "absolute",
+                      width,
+                      left,
+                      height: "100%",
+                      borderLeft: "1px solid black",
+                      boxSizing: "border-box",
+                      fontSize: 10,
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: "0px 4px 1px",
+                        background: "black",
+                        color: "white",
+                        width: "max-content",
+                      }}
+                    >
+                      {unit}
+                    </div>
+                  </div>
+                );
+              }}
+            </Ruler.Ticks>
+          </Ruler.Root>
           <Viewport tracks={tracks} />
           <div
             style={{
@@ -115,9 +141,8 @@ export const Example3 = () => {
               style={{
                 display: "flex",
                 alignItems: "center",
-                marginBottom: 8,
                 width: "100%",
-                gap: 2,
+                gap: 8,
               }}
             >
               <div
@@ -213,20 +238,6 @@ export const Example3 = () => {
                 </Panner.Root>
               </div>
             </div>
-            <div style={{ display: "flex" }}>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.001"
-                value={zoom}
-                onChange={(e) => {
-                  const range = Number(e.target.value);
-                  timeline.setZoom(range);
-                }}
-                style={{ width: "100%" }}
-              />
-            </div>
           </div>
         </div>
       </div>
@@ -243,7 +254,7 @@ const Viewport = ({
   }>;
 }) => {
   const timeline = useTimeline();
-  const viewport = useViewport();
+  const translatePx = useTimelineTranslate();
 
   const [isDraggingViewport, setIsDraggingViewport] = React.useState(false);
   React.useEffect(() => {
@@ -306,7 +317,7 @@ const Viewport = ({
             style={{
               position: "relative",
               flexGrow: 1,
-              transform: `translateX(${-viewport.translatePx}px)`,
+              transform: `translateX(${-translatePx}px)`,
             }}
           >
             {track.items.map((item) => (

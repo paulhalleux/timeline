@@ -1,5 +1,5 @@
 import React from "react";
-import { useTimeline } from "../../TimelineProvider.tsx";
+import { useTimeline } from "../../timeline";
 import { useMinimap } from "./useMinimap.ts";
 import { useMeasure } from "../../utils/useMeasure.ts";
 

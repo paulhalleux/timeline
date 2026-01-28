@@ -2,15 +2,14 @@ import React from "react";
 
 import { isEqual } from "es-toolkit";
 import { useTimeline } from "./TimelineProvider.tsx";
-import { Timeline } from "@ptl/timeline-core";
+import { Timeline, type TimelineApi } from "@ptl/timeline-core";
+import { useTimelineStore } from "./useTimelineStore.ts";
 
-const select = (timeline: Timeline) => {
+const selectViewport = (timeline: Timeline) => {
   const viewportStore = timeline.getViewport().getStore();
-  const viewportWidthPx = viewportStore.select((s) => s.widthPx);
   return {
-    translatePx: timeline.getTranslatePx(),
+    viewportWidthPx: viewportStore.select((s) => s.widthPx),
     chunkWidthPx: timeline.getChunkWidthPx(),
-    viewportWidthPx,
     zoom: timeline.getZoomLevel(),
     visibleRange: viewportStore.select((s) => s.visibleRange),
     chunkRange: timeline.getStore().select((s) => s.chunkDuration),
@@ -19,10 +18,10 @@ const select = (timeline: Timeline) => {
 
 export const useViewport = () => {
   const timeline = useTimeline();
-  const latestRef = React.useRef(select(timeline));
+  const latestRef = React.useRef(selectViewport(timeline));
 
   const selectWithMemo = React.useCallback((tl: Timeline) => {
-    const selected = select(tl);
+    const selected = selectViewport(tl);
     if (isEqual(latestRef.current, selected)) {
       return latestRef.current;
     } else {
@@ -36,4 +35,9 @@ export const useViewport = () => {
     () => selectWithMemo(timeline),
     () => selectWithMemo(timeline),
   );
+};
+
+const selectTimelineTranslate = (tl: TimelineApi) => tl.getTranslatePx();
+export const useTimelineTranslate = () => {
+  return useTimelineStore(selectTimelineTranslate);
 };

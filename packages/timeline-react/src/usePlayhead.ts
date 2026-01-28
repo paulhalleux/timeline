@@ -1,5 +1,5 @@
 import { Playable, PlayheadModule, ViewportPosition } from "@ptl/timeline-core";
-import { useTimeline } from "./TimelineProvider.tsx";
+import { useTimeline } from "./timeline/TimelineProvider.tsx";
 import { useComponent } from "@ptl/ecs-react";
 
 export const usePlayhead = () => {

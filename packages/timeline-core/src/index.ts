@@ -1,4 +1,4 @@
-export { Timeline, type TimelineOptions } from "./timeline";
+export { Timeline, type TimelineOptions, type TimelineApi } from "./timeline";
 export {
   Viewport,
   type TimelineViewportOptions,
@@ -10,6 +10,7 @@ export {
   createDefaultTickIntervalGenerator,
   type RulerOptions,
   type RulerState,
+  type RulerApi,
 } from "./modules/ruler-module";
 export {
   MinimapModule,

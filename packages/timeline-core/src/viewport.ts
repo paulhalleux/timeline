@@ -36,6 +36,7 @@ export interface ViewportApi {
   setContainer(container: HTMLElement | null): void;
   getContainer(): HTMLElement | null;
   setHeaderOffsetPx(offsetPx: number): void;
+  getHeaderOffsetPx(): number;
   setVisibleRange(visibleRange: number): void;
   isConnected(): boolean;
 }
@@ -96,6 +97,15 @@ export class Viewport implements ViewportApi {
       ...prev,
       headerOffsetPx: offsetPx,
     }));
+  }
+
+  /**
+   * Gets the current header offset in pixels.
+   *
+   * @returns The current header offset in pixels.
+   */
+  getHeaderOffsetPx(): number {
+    return this.store.select((state) => state.headerOffsetPx);
   }
 
   /**

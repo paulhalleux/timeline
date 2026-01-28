@@ -16,6 +16,11 @@ export type RulerOptions = {
   getTickInterval(timeline: TimelineApi): number;
 };
 
+export type RulerApi = {
+  getTickInterval(): number;
+  getTicks(): number[];
+};
+
 /**
  * Default tick interval generator that calculates the tick interval based on a minimum pixel width.
  * @param minIntervalWidth - The minimum pixel distance between ticks.
@@ -34,7 +39,7 @@ export const createDefaultTickIntervalGenerator =
  * RulerModule is responsible for calculating and managing the tick marks on the timeline ruler.
  * It computes tick positions based on the current view range and a specified minimum pixel distance between ticks.
  */
-export class RulerModule implements TimelineModule {
+export class RulerModule implements TimelineModule<RulerApi> {
   static id = "RulerModule";
 
   private readonly store: Store<RulerState>;
@@ -55,6 +60,8 @@ export class RulerModule implements TimelineModule {
     });
   }
 
+  // Lifecycle Methods
+
   attach(timeline: TimelineApi): void {
     this.timeline = timeline;
     this.unsubscribers.push(
@@ -69,14 +76,36 @@ export class RulerModule implements TimelineModule {
     this.timeline = undefined;
   }
 
-  subscribe(listener: (state: RulerState) => void): () => void {
-    return this.store.subscribe(listener);
+  // API Methods
+
+  /**
+   * Gets the store containing the ruler state.
+   * @returns The Store instance with RulerState.
+   */
+  getStore(): Store<RulerState> {
+    return this.store;
   }
 
-  getState(): RulerState {
-    return this.store.get();
+  /**
+   * Gets the current tick interval time.
+   * @returns The tick interval in time units.
+   */
+  getTickInterval(): number {
+    return this.store.get().prevIntervalTime;
   }
 
+  /**
+   * Gets the current tick positions.
+   * @returns An array of tick positions.
+   */
+  getTicks(): number[] {
+    return this.store.get().ticks;
+  }
+
+  /**
+   * Recomputes the tick positions based on the current timeline view and updates the store.
+   * @private
+   */
   private recompute(): void {
     if (!this.timeline) return;
 
