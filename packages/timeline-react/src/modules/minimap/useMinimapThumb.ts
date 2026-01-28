@@ -1,28 +1,25 @@
-import React, { useState } from "react";
-import { useTimeline } from "../../TimelineProvider.tsx";
+import React from "react";
 import { useMinimap } from "./useMinimap.ts";
 import { useMinimapContext } from "./MinimapProvider.tsx";
+import { shouldApplyHorizontalMouseEvent } from "../../utils/mouse-event.ts";
 
 type UseMinimapThumbArgs = {
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onMouseDown?: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onPointerDown?: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerMove?: (e: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerUp?: (e: React.PointerEvent<HTMLDivElement>) => void;
   style?: React.CSSProperties;
 };
 
 export const useMinimapThumb = (args: UseMinimapThumbArgs) => {
-  const timeline = useTimeline();
   const [state, api] = useMinimap();
-
   const { containerRef, containerSize } = useMinimapContext();
-
-  const [dragging, setDragging] = useState(false);
-  const [clientX, setClientX] = React.useState(0);
 
   const onMouseDown = React.useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       e.preventDefault();
-      setDragging(true);
-      setClientX(e.clientX);
+      e.stopPropagation();
       args.onMouseDown?.(e);
     },
     [args],
@@ -30,20 +27,35 @@ export const useMinimapThumb = (args: UseMinimapThumbArgs) => {
 
   const onClick = React.useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
+      e.preventDefault();
       e.stopPropagation();
       args.onClick?.(e);
     },
     [args],
   );
 
-  React.useEffect(() => {
-    const handleMouseUpGlobal = () => setDragging(false);
-    const handleMouseMoveGlobal = (e: MouseEvent) => {
-      if (!dragging) {
+  const onPointerDown = React.useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      e.currentTarget.setPointerCapture(e.pointerId);
+      args.onPointerDown?.(e);
+    },
+    [args],
+  );
+
+  const onPointerUp = React.useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+      args.onPointerUp?.(e);
+    },
+    [args],
+  );
+
+  const onPointerMove = React.useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+      if (!shouldApplyHorizontalMouseEvent(e)) {
         return;
       }
-
-      const deltaX = e.clientX - clientX;
 
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) {
@@ -51,28 +63,13 @@ export const useMinimapThumb = (args: UseMinimapThumbArgs) => {
       }
 
       const positionRatio =
-        (state.visibleStartRatio * rect.width + deltaX) / rect.width;
+        (state.visibleStartRatio * rect.width + e.movementX) / rect.width;
 
       api.setVisibleStartRatio(positionRatio);
-      setClientX(e.clientX);
-    };
-
-    window.addEventListener("mouseup", handleMouseUpGlobal);
-    window.addEventListener("mousemove", handleMouseMoveGlobal);
-
-    return () => {
-      window.removeEventListener("mouseup", handleMouseUpGlobal);
-      window.removeEventListener("mousemove", handleMouseMoveGlobal);
-    };
-  }, [
-    api,
-    clientX,
-    containerRef,
-    dragging,
-    state.visibleSizeRatio,
-    state.visibleStartRatio,
-    timeline,
-  ]);
+      args.onPointerMove?.(e);
+    },
+    [api, args, containerRef, state.visibleStartRatio],
+  );
 
   const style = React.useMemo<React.CSSProperties>(() => {
     if (containerSize.width === null) {
@@ -97,6 +94,9 @@ export const useMinimapThumb = (args: UseMinimapThumbArgs) => {
   return {
     onClick,
     onMouseDown,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
     style,
   };
 };

@@ -16,6 +16,7 @@ export const usePannerHandle = (args: UsePannerHandleArgs) => {
 
   const onPointerDown = React.useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
+      event.stopPropagation();
       startX.current = event.clientX;
       event.currentTarget.setPointerCapture(event.pointerId);
       args.onPointerDown?.(event);

@@ -31,7 +31,8 @@ export const Example3 = () => {
         computeTotalRange: (timeline) => {
           const current = timeline.getBounds().start;
           const overflow = 200000 - timeline.getVisibleRange();
-          return 200000 + (current > overflow ? current - overflow : 0);
+          const range = 200000 + (current > overflow ? current - overflow : 0);
+          return { range, overflow: Math.max(0, range - 200000) };
         },
       }),
     );
@@ -55,6 +56,12 @@ export const Example3 = () => {
     (callback) => timeline.getViewport().subscribe(callback),
     () => timeline.getZoomLevel(),
     () => timeline.getZoomLevel(),
+  );
+
+  const isOverflow = React.useSyncExternalStore(
+    (callback) => timeline.subscribe(callback),
+    () => timeline.getModule(MinimapModule).isOverflowing(),
+    () => timeline.getModule(MinimapModule).isOverflowing(),
   );
 
   return (
@@ -135,7 +142,45 @@ export const Example3 = () => {
                       background: "#c0c0c0",
                       borderRadius: 2,
                     }}
-                  />
+                  >
+                    {isOverflow && (
+                      <Panner.Root
+                        style={{
+                          height: "100%",
+                          width: "calc(100% - 20px)",
+                          marginLeft: "10px",
+                          position: "absolute",
+                        }}
+                        onPan={(delta) => {
+                          timeline.panByPx(delta * 50);
+                        }}
+                      >
+                        <Panner.Handle
+                          style={{
+                            height: "100%",
+                            width: "5px",
+                            background: "black",
+                          }}
+                        />
+                      </Panner.Root>
+                    )}
+                    <Minimap.ResizeHandle
+                      style={{
+                        height: "100%",
+                        width: "5px",
+                        background: "#aaa",
+                      }}
+                      position="left"
+                    />
+                    <Minimap.ResizeHandle
+                      style={{
+                        height: "100%",
+                        width: "5px",
+                        background: "#aaa",
+                      }}
+                      position="right"
+                    />
+                  </Minimap.Thumb>
                 </Minimap.Root>
               </div>
               <div

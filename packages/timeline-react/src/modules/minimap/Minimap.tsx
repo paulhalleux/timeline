@@ -2,6 +2,7 @@ import React from "react";
 import { useMinimapThumb } from "./useMinimapThumb.ts";
 import { useMinimapContainer } from "./useMinimapContainer.ts";
 import { MinimapContext } from "./MinimapProvider.tsx";
+import { useMinimapResizeHandle } from "./useMinimapResizeHandle.ts";
 
 export type MinimapRootProps = React.ComponentProps<"div"> & {
   zoomSensitivity?: number;
@@ -41,11 +42,17 @@ const MinimapThumb = ({
   style,
   onClick,
   onMouseDown,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
   ...rest
 }: MinimapThumbProps) => {
   const thumb = useMinimapThumb({
     onClick,
     onMouseDown,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
     style,
   });
 
@@ -56,7 +63,38 @@ const MinimapThumb = ({
   );
 };
 
+export type ResizeHandleProps = React.ComponentProps<"div"> & {
+  position?: "left" | "right";
+};
+
+const MinimapResizeHandle = ({
+  children,
+  style,
+  position = "left",
+  onMouseDown,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+  ...rest
+}: ResizeHandleProps) => {
+  const handleProps = useMinimapResizeHandle({
+    position,
+    style,
+    onMouseDown,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
+  });
+
+  return (
+    <div {...handleProps} {...rest}>
+      {children}
+    </div>
+  );
+};
+
 export const Minimap = {
   Root: MinimapRoot,
   Thumb: MinimapThumb,
+  ResizeHandle: MinimapResizeHandle,
 };

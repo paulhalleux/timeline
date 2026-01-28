@@ -11,11 +11,22 @@ export type MinimapState = {
 
   /** visible window size (0–1 ratio) */
   visibleSizeRatio: number;
+
+  /** whether the visible size ratio is overflowing the allowed range */
+  overflowAmount?: number;
 };
 
 export type MinimapOptions = {
   initialTotalRange?: number;
-  computeTotalRange?: (timeline: TimelineApi) => number;
+
+  /**
+   * Function to compute the total range represented by the minimap.
+   * @param timeline - The TimelineApi instance.
+   * @returns The total range value or an object containing range and overflow.
+   */
+  computeTotalRange?: (
+    timeline: TimelineApi,
+  ) => number | { range: number; overflow: number };
 };
 
 export type MinimapApi = {
@@ -24,6 +35,10 @@ export type MinimapApi = {
   setVisibleSizeRatio(visibleSizeRatio: number): void;
   moveCenterTo(leftDelta: number): void;
   extendVisibleRange(delta: number, side: "left" | "right"): void;
+  getMinSizeRatio(): number;
+  getMaxSizeRatio(): number;
+  isOverflowing(): boolean;
+  getOverflowAmount(): number;
   getStore(): Store<MinimapState>;
 };
 
@@ -77,6 +92,17 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
       totalRange,
     }));
     this.recompute();
+  }
+
+  /**
+   * Set the overflow amount of the minimap.
+   * @param overflowAmount - The overflow amount to set.
+   */
+  setOverflowAmount(overflowAmount: number | undefined): void {
+    this.store.update((prev) => ({
+      ...prev,
+      overflowAmount,
+    }));
   }
 
   /**
@@ -148,28 +174,96 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
 
     const { visibleSizeRatio, visibleStartRatio } = this.getStore().get();
     if (side === "right") {
-      this.setVisibleSizeRatio(visibleSizeRatio + delta);
-    } else {
-      if (
-        timeline.getVisibleRange() >= timeline.getOptions().maxVisibleRange ||
-        timeline.getVisibleRange() <= timeline.getOptions().minVisibleRange
-      ) {
-        return;
-      }
-
-      const newVisibleSizeRatio = visibleSizeRatio + delta;
-      const centerRatio = visibleStartRatio + visibleSizeRatio / 2;
-      const newVisibleStartRatio = Math.max(
-        0,
-        Math.min(
-          1 - newVisibleSizeRatio,
-          centerRatio - newVisibleSizeRatio / 2,
-        ),
+      this.setVisibleSizeRatio(
+        Math.min(visibleSizeRatio + delta, 1 - visibleStartRatio),
       );
+    } else {
+      let newVisibleSizeRatio = Math.max(0, visibleSizeRatio + delta);
+      let newVisibleStartRatio = Math.min(
+        1 - newVisibleSizeRatio,
+        visibleStartRatio + (visibleSizeRatio - newVisibleSizeRatio),
+      );
+
+      const minSizeRatio = this.getMinSizeRatio();
+      const maxSizeRatio = this.getMaxSizeRatio();
+
+      if (
+        newVisibleSizeRatio < minSizeRatio ||
+        newVisibleSizeRatio > maxSizeRatio
+      ) {
+        newVisibleSizeRatio = Math.max(
+          minSizeRatio,
+          Math.min(maxSizeRatio, newVisibleSizeRatio),
+        );
+        newVisibleStartRatio = Math.min(
+          1 - newVisibleSizeRatio,
+          visibleStartRatio + (visibleSizeRatio - newVisibleSizeRatio),
+        );
+      }
 
       this.setVisibleSizeRatio(newVisibleSizeRatio);
       this.setVisibleStartRatio(newVisibleStartRatio);
     }
+  }
+
+  /**
+   * Check if the visible size ratio is overflowing the allowed range.
+   * @returns True if overflowing, false otherwise.
+   */
+  isOverflowing(): boolean {
+    if (!this.timeline) {
+      return false;
+    }
+
+    const { totalRange, overflowAmount } = this.getStore().get();
+    if (overflowAmount !== undefined) {
+      return overflowAmount > 0;
+    }
+
+    return this.timeline.getBounds().end > totalRange;
+  }
+
+  /**
+   * Get the amount by which the visible size ratio overflows the allowed range.
+   * @returns The overflow amount (0 if not overflowing).
+   */
+  getOverflowAmount(): number {
+    if (!this.timeline) {
+      return 0;
+    }
+
+    const { totalRange, overflowAmount } = this.getStore().get();
+    if (overflowAmount !== undefined) {
+      return overflowAmount;
+    }
+
+    return Math.max(0, this.timeline.getBounds().end - totalRange);
+  }
+
+  /**
+   * Get the minimum size ratio allowed for the visible window.
+   * @returns The minimum size ratio (0–1).
+   */
+  getMinSizeRatio(): number {
+    if (!this.timeline) {
+      return 0;
+    }
+    const { minVisibleRange } = this.timeline.getOptions();
+    const { totalRange } = this.getStore().get();
+    return (1 / totalRange) * minVisibleRange;
+  }
+
+  /**
+   * Get the maximum size ratio allowed for the visible window.
+   * @returns The maximum size ratio (0–1).
+   */
+  getMaxSizeRatio(): number {
+    if (!this.timeline) {
+      return 1;
+    }
+    const { maxVisibleRange } = this.timeline.getOptions();
+    const { totalRange } = this.getStore().get();
+    return (1 / totalRange) * maxVisibleRange;
   }
 
   /**
@@ -203,8 +297,12 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
   private recomputeTotalRange(): void {
     if (!this.timeline || !this.options.computeTotalRange) return;
     const newTotalRange = this.options.computeTotalRange(this.timeline);
-    if (newTotalRange !== this.getStore().get().totalRange) {
-      this.setTotalRange(newTotalRange);
+    if (typeof newTotalRange === "object") {
+      this.setTotalRange(newTotalRange.range);
+      this.setOverflowAmount(newTotalRange.overflow);
+      return;
     }
+    this.setTotalRange(newTotalRange);
+    this.setOverflowAmount(undefined);
   }
 }
