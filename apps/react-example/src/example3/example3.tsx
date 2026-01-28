@@ -1,5 +1,10 @@
 import React from "react";
-import { MinimapModule, Timeline } from "@ptl/timeline-core";
+import {
+  MinimapModule,
+  Timeline,
+  PlayheadModule,
+  RulerModule,
+} from "@ptl/timeline-core";
 import {
   Minimap,
   Panner,
@@ -9,10 +14,8 @@ import {
   useTimelineStore,
   useTimelineTranslate,
 } from "@ptl/timeline-react";
-import { PlayheadModule, RulerModule } from "@ptl/timeline-core";
 import { Playhead } from "./Playhead.tsx";
 import { TimelineOverlay } from "./TimelineOverlay.tsx";
-// import { PanWidget } from "./PanWidget.tsx";
 
 export const Example3 = () => {
   const [timeline] = React.useState(() => {
@@ -98,33 +101,30 @@ export const Example3 = () => {
               Ruler
             </Ruler.Header>
             <Ruler.Ticks>
-              {({ unit, left, width }) => {
-                if (unit === 0) return null;
-                return (
+              {({ unit, left, width }) => (
+                <div
+                  style={{
+                    position: "absolute",
+                    width,
+                    left,
+                    height: "100%",
+                    borderLeft: "1px solid black",
+                    boxSizing: "border-box",
+                    fontSize: 10,
+                  }}
+                >
                   <div
                     style={{
-                      position: "absolute",
-                      width,
-                      left,
-                      height: "100%",
-                      borderLeft: "1px solid black",
-                      boxSizing: "border-box",
-                      fontSize: 10,
+                      padding: "0px 4px 1px",
+                      background: "black",
+                      color: "white",
+                      width: "max-content",
                     }}
                   >
-                    <div
-                      style={{
-                        padding: "0px 4px 1px",
-                        background: "black",
-                        color: "white",
-                        width: "max-content",
-                      }}
-                    >
-                      {unit}
-                    </div>
+                    {unit}
                   </div>
-                );
-              }}
+                </div>
+              )}
             </Ruler.Ticks>
           </Ruler.Root>
           <Viewport tracks={tracks} />
@@ -287,12 +287,11 @@ const Viewport = ({
         position: "relative",
       }}
     >
-      {tracks.map((track, index, self) => (
+      {tracks.map((track) => (
         <div
           key={track.id}
           style={{
-            borderBottom:
-              index === self.length - 1 ? undefined : "1px solid #ddd",
+            borderBottom: "1px solid #ccc",
             height: 40,
             display: "flex",
             overflow: "hidden",
@@ -348,15 +347,14 @@ const Item = React.memo(
         key={item.id}
         style={{
           position: "absolute",
-          left: left,
+          left: left + 1,
           width: width,
           height: "100%",
-          background: "#11becc",
-          border: "1px solid #10a0b1",
+          background: "white",
           borderWidth: "1px 1px 0px 0",
-          boxShadow:
-            "inset 1px 0 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(255, 255, 255, 0.2)",
-          borderRadius: 2,
+          outline: "1px solid black",
+          outlineOffset: -2,
+          borderRadius: 4,
           boxSizing: "border-box",
           display: "flex",
           alignItems: "center",

@@ -1,4 +1,4 @@
-import { Translate, useTimelineStore } from "../../timeline";
+import { Translate, useTimeline, useTimelineStore } from "../../timeline";
 import type { TimelineApi } from "@ptl/timeline-core";
 import { useRuler } from "./useRuler.ts";
 
@@ -46,6 +46,7 @@ export const RulerTicks = ({
   style,
   ...rest
 }: RulerTicksProps) => {
+  const timeline = useTimeline();
   const [{ prevIntervalTime, ticks }] = useRuler();
   const tickWidth = useTimelineStore((timeline) =>
     timeline.unitToPx(prevIntervalTime),
@@ -66,12 +67,12 @@ export const RulerTicks = ({
       {...rest}
     >
       {Tick &&
-        ticks.map((unit, index) => (
+        ticks.map((unit) => (
           <Tick
             key={unit}
             unit={unit}
             width={tickWidth}
-            left={tickWidth * index}
+            left={timeline.projectToChunk(unit)}
           />
         ))}
     </Translate>
