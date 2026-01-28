@@ -149,7 +149,11 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
       return;
     }
 
-    const { visibleSizeRatio, totalRange } = this.getStore().get();
+    const {
+      visibleSizeRatio,
+      totalRange,
+      overflowAmount = 0,
+    } = this.getStore().get();
     const normalizedLeftDelta = Math.max(
       visibleSizeRatio / 2,
       Math.min(1 - visibleSizeRatio / 2, leftDelta),
@@ -157,7 +161,7 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
 
     const visibleRange = timeline.getVisibleRange();
     timeline.setCurrentPosition(
-      totalRange * normalizedLeftDelta - visibleRange / 2,
+      (totalRange - overflowAmount) * normalizedLeftDelta - visibleRange / 2,
     );
   }
 
