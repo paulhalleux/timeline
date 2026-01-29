@@ -1,47 +1,21 @@
 import React from "react";
-import {
-  MinimapModule,
-  PlayheadModule,
-  RulerModule,
-  Timeline,
-} from "@ptl/timeline-core";
+import { MinimapModule } from "@ptl/timeline-core";
 import {
   Minimap,
   Panner,
   Ruler,
-  TimelineProvider,
+  Timeline,
+  useDragPanning,
   useTimeline,
   useTimelineStore,
   useTimelineTranslate,
 } from "@ptl/timeline-react";
+
+import styles from "./example.module.css";
 import { Playhead } from "./Playhead.tsx";
-import { TimelineOverlay } from "./TimelineOverlay.tsx";
 
 export const Example3 = () => {
-  const [timeline] = React.useState(() => {
-    const timeline = new Timeline({
-      minVisibleRange: 10000,
-      maxVisibleRange: 100000,
-      chunkSize: 10,
-      headerOffsetPx: 300,
-    });
-
-    timeline.registerModule(new RulerModule());
-    timeline.registerModule(new PlayheadModule());
-    timeline.registerModule(
-      new MinimapModule({
-        initialTotalRange: 200000,
-        computeTotalRange: (timeline) => {
-          const current = timeline.getBounds().start;
-          const overflow = 200000 - timeline.getVisibleRange();
-          const range = 200000 + (current > overflow ? current - overflow : 0);
-          return { range, overflow: Math.max(0, range - 200000) };
-        },
-      }),
-    );
-
-    return timeline;
-  });
+  const timeline = useTimeline();
 
   const tracks = React.useMemo(() => {
     return Array.from({ length: 5 }, (_, i) => ({
@@ -61,187 +35,172 @@ export const Example3 = () => {
     () => timeline.getModule(MinimapModule).isOverflowing(),
   );
 
+  const headerOffsetPx = React.useSyncExternalStore(
+    (callback) => timeline.subscribe(callback),
+    () => timeline.getViewport().getHeaderOffsetPx(),
+    () => timeline.getViewport().getHeaderOffsetPx(),
+  );
+
+  const dragPanning = useDragPanning<HTMLDivElement>();
+
   return (
-    <TimelineProvider timeline={timeline}>
-      <div
-        style={{
-          height: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          userSelect: "none",
-        }}
-      >
-        <div
-          ref={(el) => timeline.connect(el)}
-          style={{
-            height: "50%",
-            borderTop: "1px solid black",
-            marginTop: "auto",
-            overflow: "hidden",
-            position: "relative",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <TimelineOverlay>
-            <Playhead />
-          </TimelineOverlay>
-          <Ruler.Root
-            style={{
-              height: 40,
-              borderBottom: "1px solid black",
-              background: "#f0f0f0",
-            }}
-          >
-            <Ruler.Header
+    <div className={styles.container}>
+      <div className={styles.timelineContainer}>
+        <Timeline.Root>
+          <Timeline.Layers>
+            <Timeline.Overlay style={{ overflow: "hidden" }}>
+              <Playhead />
+            </Timeline.Overlay>
+            <Timeline.Viewport {...dragPanning}>
+              <Ruler.Root className={styles.ruler}>
+                <Ruler.Header className={styles.rulerHeader}>
+                  Ruler
+                </Ruler.Header>
+                <Ruler.Ticks>
+                  {({ unit, left, width }) => (
+                    <div
+                      className={styles.tickContainer}
+                      style={{ width, left }}
+                    >
+                      <div className={styles.tickLabel}>{unit}</div>
+                    </div>
+                  )}
+                </Ruler.Ticks>
+              </Ruler.Root>
+            </Timeline.Viewport>
+            <Timeline.Layer
+              layer={0}
               style={{
+                width: headerOffsetPx,
+                borderRight: "1px solid black",
                 background: "#f0f0f0",
               }}
-            >
-              Ruler
-            </Ruler.Header>
-            <Ruler.Ticks>
-              {({ unit, left, width }) => (
-                <div
-                  style={{
-                    position: "absolute",
-                    width,
-                    left,
-                    height: "100%",
-                    borderLeft: "1px solid black",
-                    boxSizing: "border-box",
-                    fontSize: 10,
-                  }}
-                >
-                  <div
-                    style={{
-                      padding: "0px 4px 1px",
-                      background: "black",
-                      color: "white",
-                      width: "max-content",
-                    }}
-                  >
-                    {unit}
-                  </div>
-                </div>
-              )}
-            </Ruler.Ticks>
-          </Ruler.Root>
-          <Viewport tracks={tracks} />
+            />
+          </Timeline.Layers>
           <div
             style={{
-              padding: "8px",
+              minHeight: 40,
               borderTop: "1px solid black",
-              background: "#f0f0f0",
               display: "flex",
               flexDirection: "column",
+              background: "#ccc",
             }}
           >
             <div
               style={{
+                padding: "8px",
+                borderTop: "1px solid black",
+                background: "#f0f0f0",
                 display: "flex",
-                alignItems: "center",
-                width: "100%",
-                gap: 8,
+                flexDirection: "column",
               }}
             >
               <div
                 style={{
-                  padding: 2,
-                  height: 24,
-                  border: "1px solid black",
-                  borderRadius: 4,
-                  flexGrow: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  width: "100%",
+                  gap: 8,
                 }}
               >
-                <Minimap.Root
+                <div
                   style={{
-                    height: "100%",
                     padding: 2,
-                    position: "relative",
+                    height: 24,
+                    border: "1px solid black",
+                    borderRadius: 4,
+                    flexGrow: 1,
                   }}
                 >
-                  <Minimap.Thumb
+                  <Minimap.Root
                     style={{
-                      border: "1px solid black",
-                      background: "#c0c0c0",
-                      borderRadius: 2,
+                      height: "100%",
+                      padding: 2,
+                      position: "relative",
                     }}
                   >
-                    {isOverflow && (
-                      <Panner.Root
-                        style={{
-                          height: "100%",
-                          width: "calc(100% - 20px)",
-                          marginLeft: "10px",
-                          position: "absolute",
-                        }}
-                        onPan={(delta) => {
-                          timeline.panByPx(delta * 50);
-                        }}
-                      >
-                        <Panner.Handle
+                    <Minimap.Thumb
+                      style={{
+                        border: "1px solid black",
+                        background: "#c0c0c0",
+                        borderRadius: 2,
+                      }}
+                    >
+                      {isOverflow && (
+                        <Panner.Root
                           style={{
                             height: "100%",
-                            width: "5px",
-                            background: "black",
+                            width: "calc(100% - 20px)",
+                            marginLeft: "10px",
+                            position: "absolute",
                           }}
-                        />
-                      </Panner.Root>
-                    )}
-                    <Minimap.ResizeHandle
-                      style={{
-                        height: "100%",
-                        width: "5px",
-                        background: "#aaa",
-                      }}
-                      position="left"
-                    />
-                    <Minimap.ResizeHandle
-                      style={{
-                        height: "100%",
-                        width: "5px",
-                        background: "#aaa",
-                      }}
-                      position="right"
-                    />
-                  </Minimap.Thumb>
-                </Minimap.Root>
-              </div>
-              <div
-                style={{
-                  padding: 2,
-                  height: 24,
-                  border: "1px solid black",
-                  borderRadius: 4,
-                  width: 240,
-                }}
-              >
-                <Panner.Root
+                          onPan={(delta) => {
+                            timeline.panByPx(delta * 50);
+                          }}
+                        >
+                          <Panner.Handle
+                            style={{
+                              height: "100%",
+                              width: "5px",
+                              background: "black",
+                            }}
+                          />
+                        </Panner.Root>
+                      )}
+                      <Minimap.ResizeHandle
+                        style={{
+                          height: "100%",
+                          width: "5px",
+                          background: "#aaa",
+                        }}
+                        position="left"
+                      />
+                      <Minimap.ResizeHandle
+                        style={{
+                          height: "100%",
+                          width: "5px",
+                          background: "#aaa",
+                        }}
+                        position="right"
+                      />
+                    </Minimap.Thumb>
+                  </Minimap.Root>
+                </div>
+                <div
                   style={{
-                    width: "100%",
-                    height: "100%",
-                  }}
-                  onPan={(delta) => {
-                    timeline.panByPx(delta * 100);
+                    padding: 2,
+                    height: 24,
+                    border: "1px solid black",
+                    borderRadius: 4,
+                    width: 240,
                   }}
                 >
-                  <Panner.Handle
+                  <Panner.Root
                     style={{
-                      background: "#c0c0c0",
-                      border: "1px solid black",
-                      borderRadius: 2,
+                      width: "100%",
                       height: "100%",
-                      width: 40,
                     }}
-                  />
-                </Panner.Root>
+                    onPan={(delta) => {
+                      timeline.panByPx(delta * 100);
+                    }}
+                  >
+                    <Panner.Handle
+                      style={{
+                        background: "#c0c0c0",
+                        border: "1px solid black",
+                        borderRadius: 2,
+                        height: "100%",
+                        width: 40,
+                      }}
+                    />
+                  </Panner.Root>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </Timeline.Root>
       </div>
-    </TimelineProvider>
+    </div>
   );
 };
 

@@ -1,0 +1,45 @@
+.root {
+  flex: 1;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+
+  --viewport-layer: 100;
+  --overlay-layer: 200;
+}
+
+.layers {
+  position: relative;
+  flex-grow: 1;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.viewport {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  z-index: var(--viewport-layer);
+  isolation: isolate;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  pointer-events: none;
+  z-index: var(--overlay-layer);
+  isolation: isolate;
+}
+
+.layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+}

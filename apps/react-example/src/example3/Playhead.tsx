@@ -17,7 +17,16 @@ export const Playhead = () => {
         zIndex: 205,
       }}
     >
-      {position.module.getPosition()}
+      <div
+        style={{
+          position: "absolute",
+          left: -7,
+          width: 15,
+          height: 10,
+          backgroundColor: "red",
+          clipPath: "polygon(0 0, 100% 0, 50% 100%)",
+        }}
+      />
     </div>
   );
 };
