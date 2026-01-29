@@ -20,6 +20,7 @@ export type RulerOptions = {
 export type RulerApi = {
   getTickInterval(): number;
   getTicks(): number[];
+  getTickOffset(tick: number): number;
 };
 
 /**
@@ -104,15 +105,25 @@ export class RulerModule implements TimelineModule<RulerApi> {
   }
 
   /**
+   * Calculates the pixel offset for a given tick value.
+   * @param tick - The tick value in time units.
+   * @returns The pixel offset for the tick.
+   */
+  getTickOffset(tick: number): number {
+    if (!this.timeline) return 0;
+    return this.timeline.projectToChunk(tick);
+  }
+
+  /**
    * Recomputes the tick positions based on the current timeline view and updates the store.
    * @private
    */
   private recompute(): void {
     if (!this.timeline) return;
 
-    const start = this.timeline.select((state) => state.chunkStart);
-    const end = start + this.timeline.getChunkRange();
     const interval = this.options.getTickInterval(this.timeline);
+    const start = this.timeline.getBounds().start - interval;
+    const end = start + this.timeline.getVisibleRange() + interval;
 
     this.store.set({
       prevIntervalTime: interval,

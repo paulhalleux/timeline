@@ -1,4 +1,4 @@
-import type { TimelineApi } from "@ptl/timeline-core";
+import { RulerModule, type TimelineApi } from "@ptl/timeline-core";
 import React from "react";
 
 import { Translate, useTimeline, useTimelineStore } from "../../timeline";
@@ -49,7 +49,7 @@ export const RulerTicks = ({
   ...rest
 }: RulerTicksProps) => {
   const timeline = useTimeline();
-  const [{ prevIntervalTime, ticks }] = useRuler();
+  const [{ prevIntervalTime, ticks }, api] = useRuler();
   const tickWidth = useTimelineStore((timeline) =>
     timeline.unitToPx(prevIntervalTime),
   );
@@ -70,15 +70,25 @@ export const RulerTicks = ({
     >
       {Tick &&
         ticks.map((unit) => (
-          <Tick
-            key={unit}
-            unit={unit}
-            width={tickWidth}
-            left={timeline.projectToChunk(unit)}
-          />
+          <RenderTick key={unit} unit={unit} width={tickWidth} Render={Tick} />
         ))}
     </Translate>
   );
+};
+
+const RenderTick = ({
+  unit,
+  width,
+  Render,
+}: {
+  unit: number;
+  width: number;
+  Render: Required<RulerTicksProps>["children"];
+}) => {
+  const left = useTimelineStore((timeline) =>
+    timeline.getModule(RulerModule).getTickOffset(unit),
+  );
+  return <Render key={unit} unit={unit} width={width} left={left} />;
 };
 
 export const Ruler = {
