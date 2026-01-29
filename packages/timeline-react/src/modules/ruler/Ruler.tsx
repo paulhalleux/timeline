@@ -1,5 +1,7 @@
-import { Translate, useTimeline, useTimelineStore } from "../../timeline";
 import type { TimelineApi } from "@ptl/timeline-core";
+import React from "react";
+
+import { Translate, useTimeline, useTimelineStore } from "../../timeline";
 import { useRuler } from "./useRuler.ts";
 
 type RulerRootProps = React.ComponentProps<"div">;

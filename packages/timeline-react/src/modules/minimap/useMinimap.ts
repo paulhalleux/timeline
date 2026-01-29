@@ -1,10 +1,9 @@
-import React from "react";
-
 import {
-  MinimapModule,
   type MinimapApi,
+  MinimapModule,
   type MinimapState,
 } from "@ptl/timeline-core";
+import React from "react";
 
 import { useTimeline } from "../../timeline";
 

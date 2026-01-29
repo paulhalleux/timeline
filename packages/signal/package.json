@@ -15,12 +15,14 @@
   "files": [
     "dist"
   ],
+  "dependencies": {
+    "es-toolkit": "^1.44.0"
+  },
   "devDependencies": {
+    "@ptl/eslint-config": "^1.0.0",
+    "eslint": "^9.39.2",
     "prettier": "^3.8.0",
     "tsdown": "^0.20.1",
     "typescript": "^5.9.3"
-  },
-  "dependencies": {
-    "es-toolkit": "^1.44.0"
   }
 }

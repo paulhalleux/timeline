@@ -1,5 +1,5 @@
+import { type Component, type Entity, type World } from "@ptl/ecs";
 import React from "react";
-import { type Component, type Entity, World } from "@ptl/ecs";
 
 /**
  * React hook to subscribe to a component's state on a specific entity within a world.

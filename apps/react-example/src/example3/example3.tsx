@@ -1,9 +1,9 @@
 import React from "react";
 import {
   MinimapModule,
-  Timeline,
   PlayheadModule,
   RulerModule,
+  Timeline,
 } from "@ptl/timeline-core";
 import {
   Minimap,

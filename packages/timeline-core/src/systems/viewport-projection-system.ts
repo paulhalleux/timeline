@@ -1,6 +1,7 @@
-import { TimelineApi } from "../timeline";
 import { createReactiveSystem, Query } from "@ptl/ecs";
+
 import { UnitPosition, ViewportPosition } from "../components";
+import { type TimelineApi } from "../timeline";
 
 export const createViewportProjectionSystem = (timeline: TimelineApi) => {
   const $mounted = timeline.$mounted.filter(Boolean);

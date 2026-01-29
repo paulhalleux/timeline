@@ -1,24 +1,23 @@
-export { Timeline, type TimelineOptions, type TimelineApi } from "./timeline";
+export * from "./components";
+export * from "./entities";
 export {
-  Viewport,
-  type TimelineViewportOptions,
-  type ViewportState,
-} from "./viewport";
-export type { TimelineModule } from "./timeline-module";
+  type MinimapApi,
+  MinimapModule,
+  type MinimapOptions,
+  type MinimapState,
+} from "./modules/minimap-module";
+export { type PlayheadApi, PlayheadModule } from "./modules/playhead-module";
 export {
-  RulerModule,
   createDefaultTickIntervalGenerator,
+  type RulerApi,
+  RulerModule,
   type RulerOptions,
   type RulerState,
-  type RulerApi,
 } from "./modules/ruler-module";
+export { Timeline, type TimelineApi, type TimelineOptions } from "./timeline";
+export type { TimelineModule } from "./timeline-module";
 export {
-  MinimapModule,
-  type MinimapState,
-  type MinimapOptions,
-  type MinimapApi,
-} from "./modules/minimap-module";
-export { PlayheadModule, type PlayheadApi } from "./modules/playhead-module";
-
-export * from "./entities";
-export * from "./components";
+  type TimelineViewportOptions,
+  Viewport,
+  type ViewportState,
+} from "./viewport";

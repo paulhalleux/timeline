@@ -1,6 +1,5 @@
+import { type Timeline } from "@ptl/timeline-core";
 import React from "react";
-
-import { Timeline } from "@ptl/timeline-core";
 
 export const TimelineContext = React.createContext<Timeline | null>(null);
 

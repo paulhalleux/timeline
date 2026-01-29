@@ -1,8 +1,9 @@
 import React from "react";
-import { useMinimapThumb } from "./useMinimapThumb.ts";
-import { useMinimapContainer } from "./useMinimapContainer.ts";
+
 import { MinimapContext } from "./MinimapProvider.tsx";
+import { useMinimapContainer } from "./useMinimapContainer.ts";
 import { useMinimapResizeHandle } from "./useMinimapResizeHandle.ts";
+import { useMinimapThumb } from "./useMinimapThumb.ts";
 
 export type MinimapRootProps = React.ComponentProps<"div"> & {
   zoomSensitivity?: number;

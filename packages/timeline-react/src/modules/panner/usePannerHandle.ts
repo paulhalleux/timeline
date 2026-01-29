@@ -1,6 +1,7 @@
 import React from "react";
-import { usePannerContext } from "./PannerProvider.tsx";
+
 import { useMeasure } from "../../utils/useMeasure.ts";
+import { usePannerContext } from "./PannerProvider.tsx";
 
 type UsePannerHandleArgs = {
   onPointerDown?: (event: React.PointerEvent<HTMLDivElement>) => void;

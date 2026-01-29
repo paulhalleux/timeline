@@ -1,3 +1,5 @@
+import React from "react";
+
 import { useTimelineTranslate } from "./useViewport.ts";
 
 type TranslateProps = React.ComponentProps<"div">;

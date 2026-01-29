@@ -1,6 +1,7 @@
-import { TimelineApi } from "../timeline";
-import { TimelineModule } from "../timeline-module";
 import { Store } from "@ptl/store";
+
+import { type TimelineApi } from "../timeline";
+import { type TimelineModule } from "../timeline-module";
 
 export type MinimapState = {
   /** total duration represented by the minimap */

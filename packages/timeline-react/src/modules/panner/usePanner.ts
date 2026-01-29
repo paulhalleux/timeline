@@ -1,4 +1,5 @@
 import React from "react";
+
 import { animateNumber } from "../../utils/animate-number.ts";
 
 type UsePannerArgs = {

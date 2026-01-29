@@ -1,9 +1,5 @@
 import { type Component } from "../component";
-import {
-  AppendOptionalComponents,
-  AppendRequiredComponents,
-  QueryBuilder,
-} from "./query-builder";
+import { AppendOptionalComponents, AppendRequiredComponents, QueryBuilder } from "./query-builder";
 
 /**
  * A static class providing methods to create query builders for various query expressions.

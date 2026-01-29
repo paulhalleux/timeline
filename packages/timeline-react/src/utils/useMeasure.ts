@@ -1,5 +1,16 @@
 import React from "react";
 
+/**
+ * A React hook that measures the dimensions of a DOM element using ResizeObserver.
+ * @returns A tuple containing:
+ * 1. A ref callback to be assigned to the target element.
+ * 2. A ref object pointing to the target element.
+ * 3. An object with the current width and height of the element.
+ * @template T - The type of the HTML element being measured.
+ * @example
+ * const [ref, elementRef, dimensions] = useMeasure<HTMLDivElement>();
+ * return <div ref={ref}>Width: {dimensions.width}, Height: {dimensions.height}</div>;
+ */
 export function useMeasure<T extends HTMLElement>(): [
   React.RefCallback<T>,
   React.RefObject<T | null>,

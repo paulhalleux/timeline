@@ -2,7 +2,7 @@ import { World } from "../world";
 import { ComponentsOf } from "../component";
 import { Entity } from "../entity";
 import { StructuralChange } from "../structural-change";
-import { Signal, SignalSubscriber } from "@ptl/signal";
+import { Signal, SignalSubscriber, WritableSignal } from "@ptl/signal";
 import { QueryBuilder, QueryComponents } from "./query-builder";
 import { collectQueryComponents, matchQuery, QueryExpr } from "./query-utils";
 
@@ -26,9 +26,7 @@ export type QueryInstanceListener = (
 /**
  * An instance of a query that can be used to retrieve entities matching the query.
  */
-export class QueryInstance<T extends QueryComponents> implements Signal<
-  Entity[]
-> {
+export class QueryInstance<T extends QueryComponents> implements Signal<Entity[]> {
   private entities: Entity[] = [];
   private diffListeners = new Set<QueryInstanceListener>();
   private entityListeners = new Set<SignalSubscriber<Entity[]>>();
@@ -175,5 +173,34 @@ export class QueryInstance<T extends QueryComponents> implements Signal<
    */
   private emit(diff: QueryDiff) {
     for (const l of this.diffListeners) l(diff, this.entities);
+  }
+
+  /**
+   * Creates a new signal that emits whenever the predicate returns true for the current entities
+   * @param predicate A function that takes the current entities and returns a boolean
+   * @returns A new {@link Signal} that emits void when the predicate is satisfied
+   */
+  filter(predicate: (value: Entity[]) => boolean): Signal<void> {
+    const filteredSignal = new WritableSignal<void>(undefined);
+
+    this.subscribe((newValue) => {
+      if (predicate(newValue)) {
+        filteredSignal.emit();
+      }
+    });
+
+    return filteredSignal;
+  }
+
+  /**
+   * Mapping is not supported for QueryInstance.
+   * @throws An error indicating that mapping is not supported.
+   */
+  map<U>(fn: (value: Entity[]) => U): Signal<U> {
+    const derivedSignal = new WritableSignal<U>(fn(this.get()));
+    this.subscribe((newValue) => {
+      derivedSignal.set(fn(newValue));
+    });
+    return derivedSignal;
   }
 }

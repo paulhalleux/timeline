@@ -99,7 +99,7 @@ export class WritableSignal<T> implements Signal<T> {
   }
 
   /** Emits the given value to all subscribers */
-  private emit(value: T): void {
+  emit(value: T): void {
     for (const l of this.listeners) l(value);
   }
 }

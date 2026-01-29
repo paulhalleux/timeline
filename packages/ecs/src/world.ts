@@ -1,12 +1,17 @@
-import { Component, ComponentStore } from "./component";
-import { System, ReactiveSystem } from "./system";
-import { Entity } from "./entity";
+import { isEqual } from "es-toolkit";
+
+import { type Component, type ComponentStore } from "./component";
+import { type Entity } from "./entity";
+import {
+  type QueryBuilder,
+  type QueryComponents,
+  QueryInstance,
+} from "./query";
 import {
   StructuralChangeEmitter,
-  StructuralChangeListener,
+  type StructuralChangeListener,
 } from "./structural-change";
-import { QueryBuilder, QueryComponents, QueryInstance } from "./query";
-import { isEqual } from "es-toolkit";
+import { type ReactiveSystem, type System } from "./system";
 
 export class World {
   private nextEntity: Entity = 0;
@@ -125,7 +130,7 @@ export class World {
     const store = this.components.get(entity)?.get(component.name);
     if (!store) return;
 
-    let previousValue = store.value;
+    const previousValue = store.value;
     store.value = updater(structuredClone(store.value));
     if (!isEqual(previousValue, store.value)) {
       store.listeners.forEach((listener) => listener(store.value));

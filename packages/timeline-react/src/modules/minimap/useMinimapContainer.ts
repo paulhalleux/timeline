@@ -1,7 +1,8 @@
 import React from "react";
+
 import { useTimeline } from "../../timeline";
-import { useMinimap } from "./useMinimap.ts";
 import { useMeasure } from "../../utils/useMeasure.ts";
+import { useMinimap } from "./useMinimap.ts";
 
 type UseMinimapContainerArgs = {
   zoomSensitivity?: number;

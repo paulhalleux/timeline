@@ -1,11 +1,12 @@
-import { Viewport, ViewportApi } from "./viewport";
-import { Store } from "@ptl/store";
-import type { TimelineState } from "./state";
-import { computeChunk } from "./chunk";
-import type { TimelineModule } from "./timeline-module";
 import { World } from "@ptl/ecs";
+import { type Signal, WritableSignal } from "@ptl/signal";
+import { Store } from "@ptl/store";
+
+import { computeChunk } from "./chunk";
+import type { TimelineState } from "./state";
 import { createViewportProjectionSystem } from "./systems/viewport-projection-system";
-import { Signal, WritableSignal } from "@ptl/signal";
+import type { TimelineModule } from "./timeline-module";
+import { Viewport, type ViewportApi } from "./viewport";
 
 export type TimelineOptions = {
   /**

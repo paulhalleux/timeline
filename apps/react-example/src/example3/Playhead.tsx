@@ -1,8 +1,8 @@
-import { usePlayhead, useViewport } from "@ptl/timeline-react";
+import { usePlayhead, useTimelineTranslate } from "@ptl/timeline-react";
 
 export const Playhead = () => {
   const position = usePlayhead();
-  const { translatePx } = useViewport();
+  const translatePx = useTimelineTranslate();
   return (
     <div
       style={{

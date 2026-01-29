@@ -1,5 +1,5 @@
+import { type QueryComponents, type QueryInstance } from "@ptl/ecs";
 import React from "react";
-import { type QueryComponents, QueryInstance } from "@ptl/ecs";
 
 /**
  * React hook to subscribe to a QueryInstance and get its current entities.

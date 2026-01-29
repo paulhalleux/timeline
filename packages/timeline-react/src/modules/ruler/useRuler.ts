@@ -1,9 +1,10 @@
 import {
-  RulerModule,
   type RulerApi,
+  RulerModule,
   type RulerState,
 } from "@ptl/timeline-core";
 import React from "react";
+
 import { useTimeline } from "../../timeline";
 
 export const useRuler = (): [RulerState, RulerApi] => {

@@ -1,6 +1,6 @@
 import { ComponentsOf } from "../component";
 import { World } from "../world";
-import { QueryComponents, QueryBuilder, QueryInstance } from "../query";
+import { QueryBuilder, QueryComponents, QueryInstance } from "../query";
 import { SystemBase } from "./";
 import { Entity } from "../entity";
 import { Signal } from "@ptl/signal";

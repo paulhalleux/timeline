@@ -1,4 +1,4 @@
-import { TimelineApi } from "./timeline";
+import { type TimelineApi } from "./timeline";
 
 /**
  * Interface representing a module that can be attached to the timeline.

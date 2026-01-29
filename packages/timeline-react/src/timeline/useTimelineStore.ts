@@ -1,6 +1,5 @@
+import { type Timeline } from "@ptl/timeline-core";
 import React from "react";
-
-import { Timeline } from "@ptl/timeline-core";
 
 import { useTimeline } from "./TimelineProvider.tsx";
 

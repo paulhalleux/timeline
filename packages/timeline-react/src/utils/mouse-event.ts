@@ -1,3 +1,5 @@
+import type React from "react";
+
 /**
  * Determines whether a horizontal mouse event should be applied based on its position
  * @param event - The mouse or pointer event to evaluate

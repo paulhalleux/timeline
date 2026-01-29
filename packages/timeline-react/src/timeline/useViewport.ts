@@ -1,8 +1,8 @@
+import { type Timeline, type TimelineApi } from "@ptl/timeline-core";
+import { isEqual } from "es-toolkit";
 import React from "react";
 
-import { isEqual } from "es-toolkit";
 import { useTimeline } from "./TimelineProvider.tsx";
-import { Timeline, type TimelineApi } from "@ptl/timeline-core";
 import { useTimelineStore } from "./useTimelineStore.ts";
 
 const selectViewport = (timeline: Timeline) => {

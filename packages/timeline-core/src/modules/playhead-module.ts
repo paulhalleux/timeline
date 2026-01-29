@@ -1,8 +1,9 @@
-import { TimelineApi } from "../timeline";
-import { createPlayhead, CreatePlayheadOptions } from "../entities";
-import { TimelineModule } from "../timeline-module";
-import { Entity } from "@ptl/ecs";
+import { type Entity } from "@ptl/ecs";
+
 import { Playable, UnitPosition } from "../components";
+import { createPlayhead, type CreatePlayheadOptions } from "../entities";
+import { type TimelineApi } from "../timeline";
+import { type TimelineModule } from "../timeline-module";
 
 export type PlayheadApi = {
   getEntity(): Entity | null;

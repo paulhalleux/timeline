@@ -1,7 +1,8 @@
 import React from "react";
-import { useMinimap } from "./useMinimap.ts";
-import { useMinimapContext } from "./MinimapProvider.tsx";
+
 import { shouldApplyHorizontalMouseEvent } from "../../utils/mouse-event.ts";
+import { useMinimapContext } from "./MinimapProvider.tsx";
+import { useMinimap } from "./useMinimap.ts";
 
 type UseMinimapThumbArgs = {
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;

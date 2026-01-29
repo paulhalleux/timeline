@@ -1,6 +1,7 @@
-import type { TimelineModule } from "../timeline-module";
-import { TimelineApi } from "../timeline";
 import { Store } from "@ptl/store";
+
+import { type TimelineApi } from "../timeline";
+import type { TimelineModule } from "../timeline-module";
 
 export type RulerState = {
   prevIntervalTime: number;
