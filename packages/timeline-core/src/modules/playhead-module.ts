@@ -65,7 +65,7 @@ export class PlayheadModule implements TimelineModule<PlayheadApi> {
     const world = this.timeline.getWorld();
     world.updateComponent(this.playheadEntity, UnitPosition, (value) => ({
       ...value,
-      unit,
+      unit: Math.max(0, unit),
     }));
   }
 

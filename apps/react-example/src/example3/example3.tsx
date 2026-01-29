@@ -1,8 +1,8 @@
-import React from "react";
 import { MinimapModule } from "@ptl/timeline-core";
 import {
   Minimap,
   Panner,
+  Playhead,
   Ruler,
   Timeline,
   useDragPanning,
@@ -10,9 +10,9 @@ import {
   useTimelineStore,
   useTimelineTranslate,
 } from "@ptl/timeline-react";
+import React from "react";
 
 import styles from "./example.module.css";
-import { Playhead } from "./Playhead.tsx";
 
 export const Example3 = () => {
   const timeline = useTimeline();
@@ -49,7 +49,19 @@ export const Example3 = () => {
         <Timeline.Root>
           <Timeline.Layers>
             <Timeline.Overlay style={{ overflow: "hidden" }}>
-              <Playhead />
+              <Playhead.Root>
+                <Playhead.Head
+                  style={{
+                    left: -6,
+                    width: 14,
+                    height: 10,
+                    backgroundColor: "red",
+                    clipPath: "polygon(0 0, 100% 0, 50% 100%)",
+                  }}
+                />
+                <Playhead.Bar style={{ background: "red" }} />
+                <Playhead.Handle />
+              </Playhead.Root>
             </Timeline.Overlay>
             <Timeline.Viewport {...dragPanning}>
               <Ruler.Root className={styles.ruler}>
@@ -70,131 +82,95 @@ export const Example3 = () => {
             </Timeline.Viewport>
             <Timeline.Layer
               layer={0}
+              className={styles.headersPlaceholder}
               style={{
                 width: headerOffsetPx,
-                borderRight: "1px solid black",
-                background: "#f0f0f0",
               }}
             />
           </Timeline.Layers>
-          <div
-            style={{
-              minHeight: 40,
-              borderTop: "1px solid black",
-              display: "flex",
-              flexDirection: "column",
-              background: "#ccc",
-            }}
-          >
+          <div className={styles.footer}>
             <div
               style={{
-                padding: "8px",
-                borderTop: "1px solid black",
-                background: "#f0f0f0",
                 display: "flex",
-                flexDirection: "column",
+                alignItems: "center",
+                width: "100%",
+                gap: 8,
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  width: "100%",
-                  gap: 8,
-                }}
-              >
-                <div
+              <div className={styles.widgetContainer}>
+                <Minimap.Root
                   style={{
-                    padding: 2,
-                    height: 24,
-                    border: "1px solid black",
-                    borderRadius: 4,
-                    flexGrow: 1,
+                    height: "100%",
+                    position: "relative",
                   }}
                 >
-                  <Minimap.Root
+                  <Minimap.Thumb
                     style={{
-                      height: "100%",
-                      padding: 2,
-                      position: "relative",
+                      border: "1px solid black",
+                      background: "#c0c0c0",
+                      borderRadius: 2,
                     }}
                   >
-                    <Minimap.Thumb
-                      style={{
-                        border: "1px solid black",
-                        background: "#c0c0c0",
-                        borderRadius: 2,
-                      }}
-                    >
-                      {isOverflow && (
-                        <Panner.Root
+                    {isOverflow && (
+                      <Panner.Root
+                        style={{
+                          height: "100%",
+                          width: "calc(100% - 20px)",
+                          marginLeft: "10px",
+                          position: "absolute",
+                        }}
+                        onPan={(delta) => {
+                          timeline.panByPx(delta * 50);
+                        }}
+                      >
+                        <Panner.Handle
                           style={{
                             height: "100%",
-                            width: "calc(100% - 20px)",
-                            marginLeft: "10px",
-                            position: "absolute",
+                            width: "5px",
+                            background: "black",
                           }}
-                          onPan={(delta) => {
-                            timeline.panByPx(delta * 50);
-                          }}
-                        >
-                          <Panner.Handle
-                            style={{
-                              height: "100%",
-                              width: "5px",
-                              background: "black",
-                            }}
-                          />
-                        </Panner.Root>
-                      )}
-                      <Minimap.ResizeHandle
-                        style={{
-                          height: "100%",
-                          width: "5px",
-                          background: "#aaa",
-                        }}
-                        position="left"
-                      />
-                      <Minimap.ResizeHandle
-                        style={{
-                          height: "100%",
-                          width: "5px",
-                          background: "#aaa",
-                        }}
-                        position="right"
-                      />
-                    </Minimap.Thumb>
-                  </Minimap.Root>
-                </div>
-                <div
+                        />
+                      </Panner.Root>
+                    )}
+                    <Minimap.ResizeHandle
+                      style={{
+                        height: "100%",
+                        width: "5px",
+                        background: "#aaa",
+                      }}
+                      position="left"
+                    />
+                    <Minimap.ResizeHandle
+                      style={{
+                        height: "100%",
+                        width: "5px",
+                        background: "#aaa",
+                      }}
+                      position="right"
+                    />
+                  </Minimap.Thumb>
+                </Minimap.Root>
+              </div>
+              <div className={styles.widgetContainer}>
+                <Panner.Root
                   style={{
-                    padding: 2,
-                    height: 24,
-                    border: "1px solid black",
-                    borderRadius: 4,
-                    width: 240,
+                    width: "100%",
+                    height: "100%",
+                  }}
+                  onPan={(delta) => {
+                    timeline.panByPx(delta * 100);
                   }}
                 >
-                  <Panner.Root
+                  <Panner.Handle
                     style={{
-                      width: "100%",
+                      background: "#c0c0c0",
+                      border: "1px solid black",
+                      borderRadius: 2,
                       height: "100%",
+                      width: 40,
                     }}
-                    onPan={(delta) => {
-                      timeline.panByPx(delta * 100);
-                    }}
-                  >
-                    <Panner.Handle
-                      style={{
-                        background: "#c0c0c0",
-                        border: "1px solid black",
-                        borderRadius: 2,
-                        height: "100%",
-                        width: 40,
-                      }}
-                    />
-                  </Panner.Root>
-                </div>
+                  />
+                </Panner.Root>
               </div>
             </div>
           </div>
@@ -306,7 +282,7 @@ const Item = React.memo(
         key={item.id}
         style={{
           position: "absolute",
-          left: left + 1,
+          left: left,
           width: width,
           height: "100%",
           background: "white",
