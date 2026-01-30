@@ -23,6 +23,7 @@
   width: 100%;
   z-index: var(--viewport-layer);
   isolation: isolate;
+  overflow: auto;
 }
 
 .overlay {

@@ -7,7 +7,16 @@ import { useRuler } from "./useRuler.ts";
 type RulerRootProps = React.ComponentProps<"div">;
 const RulerRoot = ({ children, style, ...rest }: RulerRootProps) => {
   return (
-    <div style={{ display: "flex", isolation: "isolate", ...style }} {...rest}>
+    <div
+      style={{
+        display: "flex",
+        isolation: "isolate",
+        flexShrink: 0,
+        overflow: "hidden",
+        ...style,
+      }}
+      {...rest}
+    >
       {children}
     </div>
   );

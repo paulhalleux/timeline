@@ -38,6 +38,7 @@ export interface ViewportApi {
   setHeaderOffsetPx(offsetPx: number): void;
   getHeaderOffsetPx(): number;
   setVisibleRange(visibleRange: number): void;
+  getWidth(): number;
   isConnected(): boolean;
 }
 
@@ -157,6 +158,15 @@ export class Viewport implements ViewportApi {
    */
   isConnected(): boolean {
     return this.container !== null;
+  }
+
+  /**
+   * Gets the current width of the timeline viewport in pixels.
+   *
+   * @returns The width of the timeline viewport in pixels.
+   */
+  getWidth(): number {
+    return this.store.select((state) => state.widthPx);
   }
 
   /**

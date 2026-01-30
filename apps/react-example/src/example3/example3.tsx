@@ -5,10 +5,10 @@ import {
   Playhead,
   Ruler,
   Timeline,
+  Track,
   useDragPanning,
   useTimeline,
-  useTimelineStore,
-  useTimelineTranslate,
+  ViewportItem,
 } from "@ptl/timeline-react";
 import React from "react";
 
@@ -18,13 +18,13 @@ export const Example3 = () => {
   const timeline = useTimeline();
 
   const tracks = React.useMemo(() => {
-    return Array.from({ length: 5 }, (_, i) => ({
+    return Array.from({ length: 25 }, (_, i) => ({
       id: `track-${i}`,
-      items: Array.from({ length: 20 }, (_, j) => ({
+      items: Array.from({ length: 10 }, (_, j) => ({
         id: `item-${i}-${j}`,
         start: j * 10000,
         end: j * 10000 + 10000,
-        content: `Item ${i}-${j}`,
+        content: `Item ${j}`,
       })),
     }));
   }, []);
@@ -79,6 +79,46 @@ export const Example3 = () => {
                   )}
                 </Ruler.Ticks>
               </Ruler.Root>
+              <div>
+                {tracks.map(({ id, items }) => (
+                  <Track.Root
+                    key={id}
+                    height={40}
+                    style={{ borderBottom: "1px solid #ccc" }}
+                  >
+                    <Track.Header
+                      style={{
+                        background: "#f0f0f0",
+                        borderRight: "1px solid black",
+                      }}
+                    >
+                      track-{id}
+                    </Track.Header>
+                    <Track.Content>
+                      {items.map((item) => (
+                        <ViewportItem
+                          key={item.id}
+                          start={item.start}
+                          end={item.end}
+                          style={{
+                            background: "#ebcb87",
+                            borderRadius: 2,
+                            border: "solid #cba676",
+                            borderWidth: "1px 0px",
+                            boxShadow:
+                              "inset 1px 0 0 rgba(255, 255, 255,0.3), inset -1px 0 0 rgba(0,0,0,0.2)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          {item.content}
+                        </ViewportItem>
+                      ))}
+                    </Track.Content>
+                  </Track.Root>
+                ))}
+              </div>
             </Timeline.Viewport>
             <Timeline.Layer
               layer={0}
@@ -179,125 +219,3 @@ export const Example3 = () => {
     </div>
   );
 };
-
-const Viewport = ({
-  tracks,
-}: {
-  tracks: Array<{
-    id: string;
-    items: Array<{ id: string; start: number; end: number; content: string }>;
-  }>;
-}) => {
-  const timeline = useTimeline();
-  const translatePx = useTimelineTranslate();
-
-  const [isDraggingViewport, setIsDraggingViewport] = React.useState(false);
-  React.useEffect(() => {
-    if (!isDraggingViewport) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      timeline.panByPx(-e.movementX);
-    };
-
-    const handleMouseUp = () => {
-      setIsDraggingViewport(false);
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isDraggingViewport, timeline]);
-
-  return (
-    <div
-      onMouseDown={() => setIsDraggingViewport(true)}
-      style={{
-        flex: "1",
-        overflowY: "auto",
-        width: "100%",
-        position: "relative",
-      }}
-    >
-      {tracks.map((track) => (
-        <div
-          key={track.id}
-          style={{
-            borderBottom: "1px solid #ccc",
-            height: 40,
-            display: "flex",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              width: "300px",
-              height: "100%",
-              borderRight: "1px solid black",
-              background: "#f0f0f0",
-              flexShrink: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 15,
-            }}
-          >
-            {track.id}
-          </div>
-          <div
-            style={{
-              position: "relative",
-              flexGrow: 1,
-              transform: `translateX(${-translatePx}px)`,
-            }}
-          >
-            {track.items.map((item) => (
-              <Item key={item.id} item={item} />
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const Item = React.memo(
-  ({
-    item,
-  }: {
-    item: { id: string; start: number; end: number; content: string };
-  }) => {
-    const left = useTimelineStore((timeline) =>
-      timeline.projectToChunk(item.start),
-    );
-    const width = useTimelineStore((timeline) =>
-      timeline.unitToPx(item.end - item.start),
-    );
-
-    return (
-      <div
-        key={item.id}
-        style={{
-          position: "absolute",
-          left: left,
-          width: width,
-          height: "100%",
-          background: "white",
-          borderWidth: "1px 1px 0px 0",
-          outline: "1px solid black",
-          outlineOffset: -2,
-          borderRadius: 4,
-          boxSizing: "border-box",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {item.content}
-      </div>
-    );
-  },
-);

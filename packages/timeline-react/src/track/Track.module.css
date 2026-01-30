@@ -1,0 +1,22 @@
+.root {
+  position: relative;
+  width: 100%;
+  display: flex;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.header {
+  position: relative;
+  height: 100%;
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+.content {
+  position: relative;
+  height: 100%;
+  flex-shrink: 0;
+  z-index: 10;
+  overflow: hidden;
+}
