@@ -14,15 +14,9 @@ import React from "react";
 export function useMeasure<T extends HTMLElement>(): [
   React.RefCallback<T>,
   React.RefObject<T | null>,
-  { width: number | null; height: number | null },
+  DOMRect | null,
 ] {
-  const [dimensions, setDimensions] = React.useState<{
-    width: number | null;
-    height: number | null;
-  }>({
-    width: null,
-    height: null,
-  });
+  const [rect, setRect] = React.useState<DOMRect | null>(null);
 
   const elementRef = React.useRef<T | null>(null);
   const previousObserver = React.useRef<ResizeObserver | null>(null);
@@ -39,10 +33,7 @@ export function useMeasure<T extends HTMLElement>(): [
       if (node?.nodeType === Node.ELEMENT_NODE) {
         const observer = new ResizeObserver(([entry]) => {
           if (entry && entry.borderBoxSize) {
-            const { inlineSize: width, blockSize: height } =
-              entry.borderBoxSize[0]!;
-
-            setDimensions({ width, height });
+            setRect(entry.contentRect);
           }
         });
 
@@ -53,5 +44,5 @@ export function useMeasure<T extends HTMLElement>(): [
     [],
   );
 
-  return [customRef, elementRef, dimensions];
+  return [customRef, elementRef, rect];
 }

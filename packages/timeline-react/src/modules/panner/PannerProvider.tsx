@@ -2,7 +2,7 @@ import React from "react";
 
 export type PannerContextType = {
   containerRef: React.RefObject<HTMLDivElement | null>;
-  containerSize: { width: number | null; height: number | null };
+  containerRect: DOMRect | null;
   delta: number;
   setDelta: (delta: number) => void;
 };

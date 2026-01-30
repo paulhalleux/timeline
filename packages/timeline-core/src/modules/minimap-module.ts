@@ -177,37 +177,29 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
       return;
     }
 
-    const { visibleSizeRatio, visibleStartRatio } = this.getStore().get();
+    const { visibleSizeRatio, visibleStartRatio, totalRange } =
+      this.getStore().get();
+    const { maxVisibleRange, minVisibleRange } = timeline.getOptions();
+
+    const maxSizeRatio = (1 / totalRange) * maxVisibleRange;
+    const minSizeRatio = (1 / totalRange) * minVisibleRange;
+
     if (side === "right") {
       this.setVisibleSizeRatio(
         Math.min(visibleSizeRatio + delta, 1 - visibleStartRatio),
       );
     } else {
-      let newVisibleSizeRatio = Math.max(0, visibleSizeRatio + delta);
-      let newVisibleStartRatio = Math.min(
-        1 - newVisibleSizeRatio,
-        visibleStartRatio + (visibleSizeRatio - newVisibleSizeRatio),
+      const newSizeRatio = Math.max(
+        Math.min(visibleSizeRatio + delta, maxSizeRatio),
+        minSizeRatio,
       );
-
-      const minSizeRatio = this.getMinSizeRatio();
-      const maxSizeRatio = this.getMaxSizeRatio();
-
-      if (
-        newVisibleSizeRatio < minSizeRatio ||
-        newVisibleSizeRatio > maxSizeRatio
-      ) {
-        newVisibleSizeRatio = Math.max(
-          minSizeRatio,
-          Math.min(maxSizeRatio, newVisibleSizeRatio),
-        );
-        newVisibleStartRatio = Math.min(
-          1 - newVisibleSizeRatio,
-          visibleStartRatio + (visibleSizeRatio - newVisibleSizeRatio),
-        );
-      }
-
-      this.setVisibleSizeRatio(newVisibleSizeRatio);
-      this.setVisibleStartRatio(newVisibleStartRatio);
+      const newStartRatio = Math.max(0, visibleStartRatio - delta);
+      const clampedStartRatio = Math.max(
+        0,
+        Math.min(1 - newSizeRatio, newStartRatio),
+      );
+      timeline.setCurrentPosition(totalRange * clampedStartRatio);
+      timeline.setVisibleRange(totalRange * newSizeRatio);
     }
   }
 

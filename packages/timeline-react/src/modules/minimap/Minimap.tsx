@@ -16,7 +16,7 @@ const MinimapRoot = ({
   zoomSensitivity,
   ...rest
 }: MinimapRootProps) => {
-  const { ref, containerRef, containerSize, ...containerProps } =
+  const { ref, containerRef, containerRect, ...containerProps } =
     useMinimapContainer({
       zoomSensitivity,
       onWheel,
@@ -26,8 +26,8 @@ const MinimapRoot = ({
   return (
     <MinimapContext.Provider
       value={React.useMemo(
-        () => ({ containerRef, containerSize }),
-        [containerRef, containerSize],
+        () => ({ containerRef, containerRect }),
+        [containerRef, containerRect],
       )}
     >
       <div ref={ref} {...containerProps} {...rest}>

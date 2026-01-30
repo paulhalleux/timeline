@@ -17,10 +17,10 @@ export const useMinimapResizeHandle = ({
   position,
   ...args
 }: UseMinimapResizeHandleArgs) => {
-  const { containerSize } = useMinimapContext();
+  const { containerRect } = useMinimapContext();
   const [, api] = useMinimap();
 
-  const containerWidth = containerSize.width ?? 0;
+  const containerWidth = containerRect?.width ?? 0;
 
   const onMouseDown = React.useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {

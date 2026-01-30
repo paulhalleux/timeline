@@ -11,8 +11,8 @@ type UsePannerHandleArgs = {
 };
 
 export const usePannerHandle = (args: UsePannerHandleArgs) => {
-  const [handleRef, , handleSize] = useMeasure<HTMLDivElement>();
-  const { setDelta, delta, containerSize, containerRef } = usePannerContext();
+  const [handleRef, , handleRect] = useMeasure<HTMLDivElement>();
+  const { setDelta, delta, containerRect, containerRef } = usePannerContext();
   const startX = React.useRef(0);
 
   const onPointerDown = React.useCallback(
@@ -54,9 +54,9 @@ export const usePannerHandle = (args: UsePannerHandleArgs) => {
     [args],
   );
 
-  const { width } = containerSize;
+  const { width } = containerRect ?? {};
   const deltaWidth =
-    ((width ?? 0) / 2) * delta - ((handleSize.width ?? 0) / 2) * delta;
+    ((width ?? 0) / 2) * delta - ((handleRect?.width ?? 0) / 2) * delta;
   const style: React.CSSProperties = {
     cursor: "grab",
     transform: "translateX(-50%)",

@@ -15,7 +15,7 @@ type UseMinimapThumbArgs = {
 
 export const useMinimapThumb = (args: UseMinimapThumbArgs) => {
   const [state, api] = useMinimap();
-  const { containerRef, containerSize } = useMinimapContext();
+  const { containerRef, containerRect } = useMinimapContext();
 
   const onMouseDown = React.useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -73,20 +73,20 @@ export const useMinimapThumb = (args: UseMinimapThumbArgs) => {
   );
 
   const style = React.useMemo<React.CSSProperties>(() => {
-    if (containerSize.width === null) {
+    if (containerRect?.width === undefined) {
       return {};
     }
 
     return {
       position: "absolute",
-      left: state.visibleStartRatio * containerSize.width,
-      width: state.visibleSizeRatio * containerSize.width,
+      left: state.visibleStartRatio * containerRect.width,
+      width: state.visibleSizeRatio * containerRect.width,
       top: 0,
       bottom: 0,
       ...args.style,
     };
   }, [
-    containerSize.width,
+    containerRect?.width,
     state.visibleStartRatio,
     state.visibleSizeRatio,
     args.style,

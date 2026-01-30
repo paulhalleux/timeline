@@ -17,7 +17,7 @@ export const useMinimapContainer = ({
   const timeline = useTimeline();
   const [state, api] = useMinimap();
 
-  const [ref, containerRef, containerSize] = useMeasure<HTMLDivElement>();
+  const [ref, containerRef, containerRect] = useMeasure<HTMLDivElement>();
 
   const onWheel = React.useCallback(
     (e: React.WheelEvent<HTMLDivElement>) => {
@@ -61,7 +61,7 @@ export const useMinimapContainer = ({
   return {
     ref,
     containerRef,
-    containerSize,
+    containerRect,
     onWheel,
     onClick,
   };

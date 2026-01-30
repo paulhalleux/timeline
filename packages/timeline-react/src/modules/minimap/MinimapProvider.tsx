@@ -2,7 +2,7 @@ import React from "react";
 
 export type MinimapContextType = {
   containerRef: React.RefObject<HTMLDivElement | null>;
-  containerSize: { width: number | null; height: number | null };
+  containerRect: DOMRect | null;
 };
 
 export const MinimapContext = React.createContext<MinimapContextType | null>(

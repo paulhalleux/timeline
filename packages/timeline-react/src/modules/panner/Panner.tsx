@@ -11,13 +11,13 @@ export type PannerRootProps = React.ComponentProps<"div"> & {
 
 const PannerRoot = ({ children, style, onPan, ...rest }: PannerRootProps) => {
   const { delta, setDelta } = usePanner({ onPan });
-  const [ref, containerRef, containerSize] = useMeasure<HTMLDivElement>();
+  const [ref, containerRef, containerRect] = useMeasure<HTMLDivElement>();
 
   return (
     <PannerContext.Provider
       value={React.useMemo(
-        () => ({ containerRef, containerSize, delta, setDelta }),
-        [containerRef, containerSize, delta, setDelta],
+        () => ({ containerRef, containerRect, delta, setDelta }),
+        [containerRef, containerRect, delta, setDelta],
       )}
     >
       <div ref={ref} style={{ ...style, position: "relative" }} {...rest}>
