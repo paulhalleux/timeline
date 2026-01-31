@@ -1,0 +1,27 @@
+{
+  "name": "@ptl/subtitle-kit",
+  "type": "module",
+  "version": "0.0.0",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "description": "",
+  "exports": {
+    "types": "./dist/index.d.mts",
+    "import": "./dist/index.mjs"
+  },
+  "scripts": {
+    "build": "tsdown src/index.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "@ptl/eslint-config": "^1.0.0",
+    "@types/node": "^25.1.0",
+    "eslint": "^9.39.2",
+    "prettier": "^3.8.0",
+    "tsdown": "^0.20.1",
+    "typescript": "^5.9.3"
+  }
+}
