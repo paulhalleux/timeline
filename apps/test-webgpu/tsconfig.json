@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    /* Language & runtime */
+    "target": "ES2022",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+
+    /* Strictness */
+    "strict": true,
+    "noImplicitAny": true,
+    "useUnknownInCatchVariables": true,
+
+    /* Output */
+    "noEmit": true,
+
+    /* Interop & ergonomics */
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+
+    /* WebGPU types */
+    "types": ["@webgpu/types"]
+  },
+  "include": ["src"]
+}
