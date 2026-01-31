@@ -112,13 +112,20 @@ export class PlayheadModule implements TimelineModule<PlayheadApi> {
    */
   play(delta: number): void {
     if (this.rafId !== null) return; // Already playing
+    let lastTime: number | null = null;
 
-    const step = () => {
-      this.moveForward(delta);
+    // move forward by ensuring that the delta is applied based on time elapsed
+    const step = (time: number) => {
+      if (lastTime !== null) {
+        const elapsed = time - lastTime;
+        const d = (1 / delta) * elapsed;
+        this.moveForward(d * delta);
+      }
+      lastTime = time;
       this.rafId = requestAnimationFrame(step);
     };
-
     this.rafId = requestAnimationFrame(step);
+
     this.setPlaying(true);
   }
 

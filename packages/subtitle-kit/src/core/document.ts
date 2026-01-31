@@ -18,8 +18,8 @@ export type SubtitleCue<Metadata extends Record<string, any>> = {
  * @template Metadata - The type of metadata associated with each subtitle cue.
  */
 export class SubtitleDocument<
-  Format extends SupportedFormats,
-  Metadata extends Record<string, any>,
+  Format extends SupportedFormats = SupportedFormats,
+  Metadata extends Record<string, any> = Record<string, any>,
 > {
   private cues: SubtitleCue<Metadata>[];
 
@@ -46,6 +46,40 @@ export class SubtitleDocument<
    */
   getFormat(): Format {
     return this.format;
+  }
+
+  /**
+   * Get the total duration of the subtitle document in milliseconds.
+   * @returns The total duration in milliseconds.
+   */
+  getDuration(): number {
+    if (this.cues.length === 0) return 0;
+    const lastCue = this.cues.reduce((prev, current) =>
+      current.end.milliseconds > prev.end.milliseconds ? current : prev,
+    );
+    return lastCue.end.milliseconds;
+  }
+
+  getAt(t: number): SubtitleCue<Metadata>[] {
+    let low = 0;
+    let high = this.cues.length - 1;
+    const result: SubtitleCue<Metadata>[] = [];
+
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const cue = this.cues[mid];
+
+      if (t < cue.start.milliseconds) {
+        high = mid - 1;
+      } else if (t > cue.end.milliseconds) {
+        low = mid + 1;
+      } else {
+        result.push(cue);
+        return result;
+      }
+    }
+
+    return result; // empty array if none
   }
 
   // Setters

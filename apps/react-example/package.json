@@ -12,6 +12,8 @@
   "dependencies": {
     "@ptl/timeline-core": "^0.0.0",
     "@ptl/timeline-react": "^0.0.0",
+    "@ptl/subtitle-kit": "^0.0.0",
+    "@ptl/signal-react": "^0.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

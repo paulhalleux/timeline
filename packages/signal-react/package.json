@@ -1,5 +1,5 @@
 {
-  "name": "@ptl/timeline-react",
+  "name": "@ptl/signal-react",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -23,10 +23,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@ptl/timeline-core": "^0.0.0",
-    "@ptl/signal-react": "^0.0.0",
-    "clsx": "^2.1.1",
-    "es-toolkit": "^1.44.0",
+    "@ptl/signal": "^0.0.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },

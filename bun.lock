@@ -12,6 +12,8 @@
       "name": "@ptl/react-example",
       "version": "0.0.0",
       "dependencies": {
+        "@ptl/signal-react": "^0.0.0",
+        "@ptl/subtitle-kit": "^0.0.0",
         "@ptl/timeline-core": "^0.0.0",
         "@ptl/timeline-react": "^0.0.0",
         "react": "^19.2.0",
@@ -62,6 +64,29 @@
         "typescript": "^5.9.3",
       },
     },
+    "packages/signal-react": {
+      "name": "@ptl/signal-react",
+      "version": "0.0.0",
+      "dependencies": {
+        "@ptl/signal": "^0.0.0",
+        "react": "^19.2.4",
+        "react-dom": "^19.2.4",
+      },
+      "devDependencies": {
+        "@ptl/eslint-config": "^1.0.0",
+        "@types/node": "^24.10.1",
+        "@types/react": "^19.2.10",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^5.1.1",
+        "eslint": "^9.39.1",
+        "eslint-plugin-react-refresh": "^0.4.24",
+        "globals": "^17.2.0",
+        "prettier": "^3.8.0",
+        "typescript": "~5.9.3",
+        "vite": "^7.2.4",
+        "vite-plugin-dts": "^4.5.4",
+      },
+    },
     "packages/store": {
       "name": "@ptl/store",
       "version": "0.0.0",
@@ -108,6 +133,7 @@
       "name": "@ptl/timeline-react",
       "version": "0.0.0",
       "dependencies": {
+        "@ptl/signal-react": "^0.0.0",
         "@ptl/timeline-core": "^0.0.0",
         "clsx": "^2.1.1",
         "es-toolkit": "^1.44.0",
@@ -438,6 +464,8 @@
     "@ptl/react-example": ["@ptl/react-example@workspace:apps/react-example"],
 
     "@ptl/signal": ["@ptl/signal@workspace:packages/signal"],
+
+    "@ptl/signal-react": ["@ptl/signal-react@workspace:packages/signal-react"],
 
     "@ptl/store": ["@ptl/store@workspace:packages/store"],
 
