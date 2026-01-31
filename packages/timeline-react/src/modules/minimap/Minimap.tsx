@@ -37,8 +37,11 @@ const MinimapRoot = ({
   );
 };
 
-export type MinimapThumbProps = React.ComponentProps<"div">;
+export type MinimapThumbProps = React.ComponentProps<"div"> & {
+  minWidth?: number;
+};
 const MinimapThumb = ({
+  minWidth,
   children,
   style,
   onClick,
@@ -49,6 +52,7 @@ const MinimapThumb = ({
   ...rest
 }: MinimapThumbProps) => {
   const thumb = useMinimapThumb({
+    minWidth,
     onClick,
     onMouseDown,
     onPointerDown,

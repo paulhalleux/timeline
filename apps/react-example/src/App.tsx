@@ -13,8 +13,8 @@ import { Example3 } from "./example-subtitle/example3.tsx";
 export const App = () => {
   const [timeline] = React.useState(() => {
     return new TimelineCore({
-      minVisibleRange: 50000,
-      maxVisibleRange: 1000000,
+      minVisibleRange: 25000,
+      maxVisibleRange: 500000,
       chunkSize: 10,
       headerOffsetPx: 300,
       modules: [

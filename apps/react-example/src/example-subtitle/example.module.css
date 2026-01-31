@@ -83,7 +83,8 @@
   }
 }
 
-.track {
+.track:not(:first-child) {
+  border-top: 1px solid black;
 }
 
 .trackHeader {

@@ -23,11 +23,15 @@ export class SubtitleDocument<
 > {
   private cues: SubtitleCue<Metadata>[];
 
+  private _startTime: number | null = null;
+  private _endTime: number | null = null;
+
   constructor(
     private readonly format: Format,
     cues: SubtitleCue<Metadata>[],
   ) {
     this.cues = cues;
+    this.invalidateCache();
   }
 
   // Getters
@@ -53,17 +57,41 @@ export class SubtitleDocument<
    * @returns The total duration in milliseconds.
    */
   getDuration(): number {
-    if (this.cues.length === 0) return 0;
-    const lastCue = this.cues.reduce((prev, current) =>
-      current.end.milliseconds > prev.end.milliseconds ? current : prev,
-    );
-    return lastCue.end.milliseconds;
+    return this.getEndTime() - this.getStartTime();
   }
 
-  getAt(t: number): SubtitleCue<Metadata>[] {
+  /**
+   * Get the start time of the subtitle document in milliseconds.
+   * @returns The start time in milliseconds.
+   */
+  getStartTime(): number {
+    if (this._startTime === null) {
+      this.invalidateCache();
+    }
+
+    return this._startTime ?? 0;
+  }
+
+  /**
+   * Get the end time of the subtitle document in milliseconds.
+   * @returns The end time in milliseconds.
+   */
+  getEndTime(): number {
+    if (this._endTime === null) {
+      this.invalidateCache();
+    }
+
+    return this._endTime ?? 0;
+  }
+
+  /**
+   * Get the cues that are active at a specific time.
+   * @param t - The time in milliseconds.
+   * @returns The cues active at the specified time. If multiple cues are active, first one is returned.
+   */
+  getFirstAt(t: number): SubtitleCue<Metadata> | null {
     let low = 0;
     let high = this.cues.length - 1;
-    const result: SubtitleCue<Metadata>[] = [];
 
     while (low <= high) {
       const mid = Math.floor((low + high) / 2);
@@ -74,12 +102,11 @@ export class SubtitleDocument<
       } else if (t > cue.end.milliseconds) {
         low = mid + 1;
       } else {
-        result.push(cue);
-        return result;
+        return cue;
       }
     }
 
-    return result; // empty array if none
+    return null;
   }
 
   // Setters
@@ -141,5 +168,20 @@ export class SubtitleDocument<
         index: this.cues.length,
       });
     }
+  }
+
+  // Private methods
+
+  private invalidateCache(): void {
+    if (this.cues.length === 0) {
+      this._startTime = 0;
+      this._endTime = 0;
+      return;
+    }
+
+    this._startTime = Math.min(
+      ...this.cues.map((cue) => cue.start.milliseconds),
+    );
+    this._endTime = Math.max(...this.cues.map((cue) => cue.end.milliseconds));
   }
 }

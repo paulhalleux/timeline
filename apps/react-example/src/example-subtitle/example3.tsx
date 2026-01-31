@@ -19,7 +19,7 @@ export const Example3 = () => {
   const timeline = useTimeline();
   const minimapModule = MinimapModule.for(timeline);
 
-  const [subtitle, setSubtitle] = React.useState<SubtitleDocument | null>(null);
+  const [subtitles, setSubtitles] = React.useState<SubtitleDocument[]>([]);
 
   const isOverflow = useSignal(
     minimapModule.getStore().map(() => minimapModule.isOverflowing()),
@@ -32,15 +32,14 @@ export const Example3 = () => {
   );
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    Array.from(e.target.files || []).forEach((file) => {
       const reader = new FileReader();
       reader.onload = (event) => {
         const text = event.target?.result;
         if (typeof text === "string") {
           try {
             const doc = SubtitleParser.parse("srt", text);
-            setSubtitle(doc);
+            setSubtitles((prev) => [...prev, doc]);
             MinimapModule.for(timeline).setTotalRange(doc.getDuration());
             console.log(doc.getDuration() / (1000 * 60));
           } catch (error) {
@@ -49,15 +48,14 @@ export const Example3 = () => {
         }
       };
       reader.readAsText(file);
-    }
+    });
   };
 
-  const { index, currentText, progress } = useSignalSelector(
+  const { currentText, progress } = useSignalSelector(
     ([{ position }]) => {
-      if (!subtitle) return { currentText: "", progress: 0, index: -1 };
-      const cue = subtitle.getAt(position)[0];
+      if (!subtitles[0]) return { currentText: "", progress: 0 };
+      const cue = subtitles[0].getFirstAt(position);
       return {
-        index: cue?.index ?? -1,
         currentText: cue ? cue.text : "",
         progress:
           Math.round(
@@ -76,7 +74,12 @@ export const Example3 = () => {
   return (
     <div className={styles.container}>
       <div className={styles.render}>
-        <input type="file" accept=".srt,.vtt" onChange={onFileChange} />
+        <input
+          type="file"
+          accept=".srt,.vtt"
+          onChange={onFileChange}
+          multiple
+        />
         <pre
           dangerouslySetInnerHTML={{ __html: currentText }}
           className={styles.view}
@@ -84,44 +87,18 @@ export const Example3 = () => {
             background: `linear-gradient(to right, #e0e0e0 ${progress * 100}%, #ffffff ${progress * 100}%)`,
           }}
         />
-        <div>
-          <button
-            onClick={() => {
-              if (index <= 0 || !subtitle) return;
-              const prevCue = subtitle.getCues()[index - 2];
-              timeline
-                .getModule(PlayheadModule)
-                .setPosition(prevCue.start.milliseconds + 1);
-            }}
-          >
-            Previous
-          </button>
-          <button
-            onClick={() => {
-              if (!subtitle) return;
-              const cues = subtitle.getCues();
-              if (index >= cues.length - 1) return;
-              const nextCue = cues[index];
-              timeline
-                .getModule(PlayheadModule)
-                .setPosition(nextCue.start.milliseconds + 1);
-            }}
-          >
-            Next
-          </button>
-          <button
-            onClick={() => {
-              const playhead = timeline.getModule(PlayheadModule);
-              if (playhead.getStore().select((s) => s.isPlaying)) {
-                playhead.pause();
-              } else {
-                playhead.play(1000 / 60);
-              }
-            }}
-          >
-            Play/Pause
-          </button>
-        </div>
+        <button
+          onClick={() => {
+            const playhead = timeline.getModule(PlayheadModule);
+            if (playhead.getStore().select((s) => s.isPlaying)) {
+              playhead.pause();
+            } else {
+              playhead.play(1000 / 60);
+            }
+          }}
+        >
+          Play/Pause
+        </button>
       </div>
       <div className={styles.timelineContainer}>
         <Timeline.Root>
@@ -159,8 +136,10 @@ export const Example3 = () => {
                   )}
                 </Ruler.Ticks>
               </Ruler.Root>
-              <div style={{ height: 40 }}>
-                <SubTitleTrack subtitle={subtitle} />
+              <div style={{ minHeight: 240 }}>
+                {subtitles.map((subtitle, i) => (
+                  <SubTitleTrack key={i} subtitle={subtitle} />
+                ))}
               </div>
             </Timeline.Viewport>
             <Timeline.Layer
@@ -188,11 +167,11 @@ export const Example3 = () => {
                   }}
                 >
                   <Minimap.Thumb
+                    minWidth={40}
                     style={{
                       border: "1px solid black",
                       background: "#c0c0c0",
                       borderRadius: 2,
-                      minWidth: 30,
                     }}
                   >
                     {isOverflow && (
@@ -316,9 +295,7 @@ const SubTitleTrack = React.memo(
               end={cue.end.milliseconds}
               className={styles.cue}
             >
-              <span key={cue.text} className={styles.text}>
-                {cue.text}
-              </span>
+              <span className={styles.text}>{cue.text}</span>
             </ViewportItem>
           ))}
         </Track.Content>

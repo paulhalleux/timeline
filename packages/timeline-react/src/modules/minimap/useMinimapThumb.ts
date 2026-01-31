@@ -5,6 +5,7 @@ import { useMinimapContext } from "./MinimapProvider.tsx";
 import { useMinimap } from "./useMinimap.ts";
 
 type UseMinimapThumbArgs = {
+  minWidth?: number;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onMouseDown?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onPointerDown?: (e: React.PointerEvent<HTMLDivElement>) => void;
@@ -13,7 +14,7 @@ type UseMinimapThumbArgs = {
   style?: React.CSSProperties;
 };
 
-export const useMinimapThumb = (args: UseMinimapThumbArgs) => {
+export const useMinimapThumb = ({ minWidth, ...args }: UseMinimapThumbArgs) => {
   const [state, api] = useMinimap();
   const { containerRef, containerRect } = useMinimapContext();
 
@@ -77,11 +78,9 @@ export const useMinimapThumb = (args: UseMinimapThumbArgs) => {
       return {};
     }
 
-    const minWidth =
-      typeof args.style?.minWidth === "number" ? args.style?.minWidth : 0;
-
     const width = state.visibleSizeRatio * containerRect.width;
-    const actualWidth = containerRect.width - Math.max(0, minWidth - width);
+    const actualWidth =
+      containerRect.width - Math.max(0, (minWidth ?? 0) - width);
 
     return {
       position: "absolute",
@@ -89,12 +88,14 @@ export const useMinimapThumb = (args: UseMinimapThumbArgs) => {
       width,
       top: 0,
       bottom: 0,
+      minWidth,
       ...args.style,
     };
   }, [
     containerRect?.width,
-    state.visibleStartRatio,
     state.visibleSizeRatio,
+    state.visibleStartRatio,
+    minWidth,
     args.style,
   ]);
 
