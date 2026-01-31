@@ -1,11 +1,5 @@
-import { useComponent } from "@ptl/ecs-react";
-import {
-  Playable,
-  type PlayheadApi,
-  PlayheadModule,
-  UnitPosition,
-  ViewportPosition,
-} from "@ptl/timeline-core";
+import { type PlayheadApi, PlayheadModule } from "@ptl/timeline-core";
+import { useSyncExternalStore } from "react";
 
 import { useTimeline } from "../../timeline";
 
@@ -19,29 +13,17 @@ export const usePlayhead = (): [PlayheadState, PlayheadApi] => {
   const timeline = useTimeline();
   const module = timeline.getModule(PlayheadModule);
 
-  const unitPosition = useComponent(
-    timeline.getWorld(),
-    module.getEntity() ?? -1,
-    UnitPosition,
-  );
-
-  const viewportPosition = useComponent(
-    timeline.getWorld(),
-    module.getEntity() ?? -1,
-    ViewportPosition,
-  );
-
-  const playing = useComponent(
-    timeline.getWorld(),
-    module.getEntity() ?? -1,
-    Playable,
+  const state = useSyncExternalStore(
+    (callback) => module.getStore().subscribe(callback),
+    () => module.getStore().get(),
+    () => module.getStore().get(),
   );
 
   return [
     {
-      leftPx: viewportPosition?.px ?? 0,
-      playing: playing?.isPlaying ?? false,
-      position: unitPosition?.unit ?? 0,
+      leftPx: timeline.projectToChunk(state.position),
+      playing: state.isPlaying,
+      position: state.position,
     },
     module,
   ];

@@ -1,5 +1,3 @@
-export * from "./components";
-export * from "./entities";
 export {
   type MinimapApi,
   MinimapModule,
@@ -14,6 +12,11 @@ export {
   type RulerOptions,
   type RulerState,
 } from "./modules/ruler-module";
+export {
+  type ViewportDragApi,
+  ViewportDragModule,
+  type ViewportDragState,
+} from "./modules/viewport-drag-module";
 export { Timeline, type TimelineApi, type TimelineOptions } from "./timeline";
 export type { TimelineModule } from "./timeline-module";
 export {

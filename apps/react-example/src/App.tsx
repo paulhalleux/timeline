@@ -1,12 +1,14 @@
-import { Example3 } from "./example3/example3.tsx";
-import { TimelineProvider } from "@ptl/timeline-react";
-import React from "react";
 import {
   MinimapModule,
   PlayheadModule,
   RulerModule,
   Timeline as TimelineCore,
+  ViewportDragModule,
 } from "@ptl/timeline-core";
+import { TimelineProvider } from "@ptl/timeline-react";
+import React from "react";
+
+import { Example3 } from "./example3/example3.tsx";
 
 export const App = () => {
   const [timeline] = React.useState(() => {
@@ -30,6 +32,7 @@ export const App = () => {
         },
       }),
     );
+    timeline.registerModule(new ViewportDragModule());
 
     return timeline;
   });

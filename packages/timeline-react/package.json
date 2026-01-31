@@ -23,8 +23,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@ptl/ecs": "^0.0.0",
-    "@ptl/ecs-react": "^0.0.0",
     "@ptl/timeline-core": "^0.0.0",
     "clsx": "^2.1.1",
     "es-toolkit": "^1.44.0",

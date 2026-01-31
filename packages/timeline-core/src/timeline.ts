@@ -1,11 +1,7 @@
-import { World } from "@ptl/ecs";
-import { type Signal, WritableSignal } from "@ptl/signal";
 import { Store } from "@ptl/store";
 
 import { computeChunk } from "./chunk";
-import { PointerManager, type PointerState } from "./pointer";
 import type { TimelineState } from "./state";
-import { createViewportProjectionSystem } from "./systems/viewport-projection-system";
 import type { TimelineModule } from "./timeline-module";
 import { Viewport, type ViewportApi } from "./viewport";
 
@@ -84,32 +80,13 @@ export interface TimelineApi {
   getVisibleRange(): number;
   getChunkRange(): number;
   setVisibleRange(visibleRange: number): void;
-
-  // ECS
-  getWorld(): World;
-
-  // Signals
-  $mounted: Signal<boolean>;
-  $pointer: Signal<PointerState>;
 }
 
 export class Timeline implements TimelineApi {
   private readonly store: Store<TimelineState>;
   private readonly viewport: Viewport;
-  private readonly world: World;
 
   private modules: TimelineModule[] = [];
-
-  public readonly $mounted = new WritableSignal(false);
-  public readonly $pointer = new PointerManager({
-    computeRelativePosition: (e, element) => {
-      const rect = element.getBoundingClientRect();
-      return {
-        x: e.clientX - rect.left - this.getViewport().getHeaderOffsetPx(),
-        y: e.clientY - rect.top,
-      };
-    },
-  });
 
   constructor(private readonly options: TimelineOptions) {
     this.store = new Store<TimelineState>({
@@ -124,9 +101,6 @@ export class Timeline implements TimelineApi {
       headerOffsetPx: options.headerOffsetPx ?? 0,
     });
 
-    this.world = new World();
-    this.world.addSystem(createViewportProjectionSystem(this));
-
     this.subscribeToViewportChanges();
   }
 
@@ -137,15 +111,6 @@ export class Timeline implements TimelineApi {
    */
   getOptions(): TimelineOptions {
     return this.options;
-  }
-
-  /**
-   * Gets the ECS world associated with the timeline.
-   *
-   * @returns The ECS world instance.
-   */
-  getWorld(): World {
-    return this.world;
   }
 
   /**
@@ -233,11 +198,6 @@ export class Timeline implements TimelineApi {
    */
   connect(element: HTMLElement | null): void {
     this.viewport.setContainer(element);
-    this.$mounted.set(!!element);
-
-    if (!element) {
-      this.$pointer.disconnect();
-    } else this.$pointer.connect(element);
   }
 
   /**
@@ -316,7 +276,7 @@ export class Timeline implements TimelineApi {
    * @returns The projected value in pixels.
    */
   projectToChunk(value: number): number {
-    if (!this.$mounted.get()) {
+    if (!this.getViewport().isConnected()) {
       return 0;
     }
 
@@ -332,7 +292,7 @@ export class Timeline implements TimelineApi {
    * @returns The projected value in timeline units.
    */
   projectToUnit(viewportPosition: number): number {
-    if (!this.$mounted.get()) {
+    if (!this.getViewport().isConnected()) {
       return 0;
     }
 

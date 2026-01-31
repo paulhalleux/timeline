@@ -6,7 +6,6 @@ import {
   Ruler,
   Timeline,
   Track,
-  useDragPanning,
   useTimeline,
   ViewportItem,
 } from "@ptl/timeline-react";
@@ -41,8 +40,6 @@ export const Example3 = () => {
     () => timeline.getViewport().getHeaderOffsetPx(),
   );
 
-  const dragPanning = useDragPanning<HTMLDivElement>();
-
   return (
     <div className={styles.container}>
       <div className={styles.timelineContainer}>
@@ -63,7 +60,7 @@ export const Example3 = () => {
                 <Playhead.Handle />
               </Playhead.Root>
             </Timeline.Overlay>
-            <Timeline.Viewport {...dragPanning}>
+            <Timeline.Viewport>
               <Ruler.Root className={styles.ruler}>
                 <Ruler.Header className={styles.rulerHeader}>
                   Ruler

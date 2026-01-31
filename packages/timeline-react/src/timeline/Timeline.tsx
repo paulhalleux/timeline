@@ -61,13 +61,14 @@ const TimelineViewport = ({
   ...rest
 }: TimelineViewportProps) => {
   const timeline = useTimeline();
+  const mounted = useTimelineStore((tl) => tl.getViewport().isConnected());
   return (
     <div
       ref={(el) => timeline.connect(el)}
       className={clsx(styles.viewport, className)}
       {...rest}
     >
-      {children}
+      {mounted ? children : null}
     </div>
   );
 };

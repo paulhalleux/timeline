@@ -24,6 +24,11 @@ export type ViewportState = {
    * @remarks This is subtracted from the total width to get the usable timeline width.
    */
   headerOffsetPx: number;
+
+  /**
+   * Indicates whether the viewport is connected to a container element
+   */
+  connected: boolean;
 };
 
 /**
@@ -58,6 +63,7 @@ export class Viewport implements ViewportApi {
       headerOffsetPx: options.headerOffsetPx ?? 0,
       widthPx: 0,
       pxPerUnit: 0,
+      connected: false,
     });
   }
 
@@ -77,6 +83,12 @@ export class Viewport implements ViewportApi {
     if (container) {
       this.connectContainer(container);
     }
+
+    this.container = container;
+    this.store.update((prev) => ({
+      ...prev,
+      connected: container !== null,
+    }));
   }
 
   /**
@@ -157,7 +169,7 @@ export class Viewport implements ViewportApi {
    * @returns True if the container is connected, false otherwise.
    */
   isConnected(): boolean {
-    return this.container !== null;
+    return this.store.select((state) => state.connected);
   }
 
   /**
@@ -205,5 +217,10 @@ export class Viewport implements ViewportApi {
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
     this.container = null;
+    this.store.update((prev) => ({
+      ...prev,
+      widthPx: 0,
+      pxPerUnit: 0,
+    }));
   }
 }
