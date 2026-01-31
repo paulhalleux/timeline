@@ -77,10 +77,16 @@ export const useMinimapThumb = (args: UseMinimapThumbArgs) => {
       return {};
     }
 
+    const minWidth =
+      typeof args.style?.minWidth === "number" ? args.style?.minWidth : 0;
+
+    const width = state.visibleSizeRatio * containerRect.width;
+    const actualWidth = containerRect.width - Math.max(0, minWidth - width);
+
     return {
       position: "absolute",
-      left: state.visibleStartRatio * containerRect.width,
-      width: state.visibleSizeRatio * containerRect.width,
+      left: state.visibleStartRatio * actualWidth,
+      width,
       top: 0,
       bottom: 0,
       ...args.style,

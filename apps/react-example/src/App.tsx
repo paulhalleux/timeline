@@ -22,13 +22,13 @@ export const App = () => {
         new PlayheadModule(),
         new MinimapModule({
           initialTotalRange: 2000000,
-          computeTotalRange: (timeline) => {
-            const current = timeline.getBounds().start;
-            const overflow = 2000000 - timeline.getVisibleRange();
-            const range =
-              2000000 + (current > overflow ? current - overflow : 0);
-            return { range, overflow: Math.max(0, range - 2000000) };
-          },
+          // computeTotalRange: (timeline) => {
+          //   const current = timeline.getBounds().start;
+          //   const overflow = 2000000 - timeline.getVisibleRange();
+          //   const range =
+          //     2000000 + (current > overflow ? current - overflow : 0);
+          //   return { range, overflow: Math.max(0, range - 2000000) };
+          // },
         }),
         new ViewportDragModule(),
       ],

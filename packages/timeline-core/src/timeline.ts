@@ -108,6 +108,8 @@ export class Timeline implements TimelineApi {
     this.viewport = new Viewport({
       visibleRange: options.visibleRange ?? options.maxVisibleRange,
       headerOffsetPx: options.headerOffsetPx ?? 0,
+      minVisibleRange: options.minVisibleRange,
+      maxVisibleRange: options.maxVisibleRange,
     });
 
     this.subscribeToViewportChanges();
@@ -242,8 +244,8 @@ export class Timeline implements TimelineApi {
    * @param centerPx optional pixel position to zoom around (mine is 0, max is viewport width, default is 0)
    */
   setZoom(value: number, centerPx?: number): void {
-    const min = this.options.minVisibleRange;
-    const max = this.options.maxVisibleRange;
+    const min = this.getViewport().getMinVisibleRange();
+    const max = this.getViewport().getMaxVisibleRange();
 
     const viewportWidthPx = this.viewport.select((s) => s.widthPx);
     const currentPos = this.store.select((s) => s.current);
@@ -361,10 +363,9 @@ export class Timeline implements TimelineApi {
    * @returns The zoom level as a normalized value between 0 and 1.
    */
   getZoomLevel(): number {
-    const min = this.options.minVisibleRange;
-    const max = this.options.maxVisibleRange;
+    const min = this.getViewport().getMinVisibleRange();
+    const max = this.getViewport().getMaxVisibleRange();
     const visibleRange = this.viewport.select((s) => s.visibleRange);
-
     return (max - visibleRange) / (max - min);
   }
 
@@ -410,8 +411,8 @@ export class Timeline implements TimelineApi {
    */
   setVisibleRange(visibleRange: number) {
     const clampedVisibleRange = Math.max(
-      this.options.minVisibleRange,
-      Math.min(this.options.maxVisibleRange, visibleRange),
+      this.getViewport().getMinVisibleRange(),
+      Math.min(this.getViewport().getMaxVisibleRange(), visibleRange),
     );
     this.viewport.setVisibleRange(clampedVisibleRange);
   }

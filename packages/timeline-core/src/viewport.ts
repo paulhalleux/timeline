@@ -29,6 +29,16 @@ export type ViewportState = {
    * Indicates whether the viewport is connected to a container element
    */
   connected: boolean;
+
+  /**
+   * Minimum visible range allowed
+   */
+  minVisibleRange: number;
+
+  /**
+   * Maximum visible range allowed
+   */
+  maxVisibleRange: number;
 };
 
 /**
@@ -42,6 +52,10 @@ export interface ViewportApi {
   getContainer(): HTMLElement | null;
   setHeaderOffsetPx(offsetPx: number): void;
   getHeaderOffsetPx(): number;
+  setMinVisibleRange(minVisibleRange: number): void;
+  setMaxVisibleRange(maxVisibleRange: number): void;
+  getMinVisibleRange(): number;
+  getMaxVisibleRange(): number;
   setVisibleRange(visibleRange: number): void;
   getWidth(): number;
   isConnected(): boolean;
@@ -50,6 +64,8 @@ export interface ViewportApi {
 export type TimelineViewportOptions = {
   visibleRange: number;
   headerOffsetPx?: number;
+  minVisibleRange?: number;
+  maxVisibleRange?: number;
 };
 
 export class Viewport implements ViewportApi {
@@ -64,6 +80,8 @@ export class Viewport implements ViewportApi {
       widthPx: 0,
       pxPerUnit: 0,
       connected: false,
+      minVisibleRange: options.minVisibleRange ?? 60 * 60,
+      maxVisibleRange: options.maxVisibleRange ?? 60 * 60 * 4,
     });
   }
 
@@ -132,6 +150,48 @@ export class Viewport implements ViewportApi {
       visibleRange: visibleRange,
       pxPerUnit: prev.widthPx > 0 ? prev.widthPx / visibleRange : 0,
     }));
+  }
+
+  /**
+   * Sets the minimum visible range allowed for the timeline viewport.
+   *
+   * @param minVisibleRange The minimum visible range in units.
+   */
+  setMinVisibleRange(minVisibleRange: number): void {
+    this.store.update((prev) => ({
+      ...prev,
+      minVisibleRange: minVisibleRange,
+    }));
+  }
+
+  /**
+   * Sets the maximum visible range allowed for the timeline viewport.
+   *
+   * @param maxVisibleRange The maximum visible range in units.
+   */
+  setMaxVisibleRange(maxVisibleRange: number): void {
+    this.store.update((prev) => ({
+      ...prev,
+      maxVisibleRange: maxVisibleRange,
+    }));
+  }
+
+  /**
+   * Gets the minimum visible range allowed for the timeline viewport.
+   *
+   * @returns The minimum visible range in units.
+   */
+  getMinVisibleRange(): number {
+    return this.store.select((state) => state.minVisibleRange);
+  }
+
+  /**
+   * Gets the maximum visible range allowed for the timeline viewport.
+   *
+   * @returns The maximum visible range in units.
+   */
+  getMaxVisibleRange(): number {
+    return this.store.select((state) => state.maxVisibleRange);
   }
 
   /**

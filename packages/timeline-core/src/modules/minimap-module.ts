@@ -189,7 +189,9 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
 
     const { visibleSizeRatio, visibleStartRatio, totalRange } =
       this.getStore().get();
-    const { maxVisibleRange, minVisibleRange } = timeline.getOptions();
+
+    const maxVisibleRange = timeline.getViewport().getMaxVisibleRange();
+    const minVisibleRange = timeline.getViewport().getMinVisibleRange();
 
     const maxSizeRatio = (1 / totalRange) * maxVisibleRange;
     const minSizeRatio = (1 / totalRange) * minVisibleRange;
@@ -255,7 +257,7 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
     if (!this.timeline) {
       return 0;
     }
-    const { minVisibleRange } = this.timeline.getOptions();
+    const minVisibleRange = this.timeline.getViewport().getMinVisibleRange();
     const { totalRange } = this.getStore().get();
     return (1 / totalRange) * minVisibleRange;
   }
@@ -268,7 +270,7 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
     if (!this.timeline) {
       return 1;
     }
-    const { maxVisibleRange } = this.timeline.getOptions();
+    const maxVisibleRange = this.timeline.getViewport().getMaxVisibleRange();
     const { totalRange } = this.getStore().get();
     return (1 / totalRange) * maxVisibleRange;
   }

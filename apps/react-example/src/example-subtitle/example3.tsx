@@ -41,6 +41,8 @@ export const Example3 = () => {
           try {
             const doc = SubtitleParser.parse("srt", text);
             setSubtitle(doc);
+            MinimapModule.for(timeline).setTotalRange(doc.getDuration());
+            console.log(doc.getDuration() / (1000 * 60));
           } catch (error) {
             console.error("Failed to parse subtitle file:", error);
           }
@@ -190,6 +192,7 @@ export const Example3 = () => {
                       border: "1px solid black",
                       background: "#c0c0c0",
                       borderRadius: 2,
+                      minWidth: 30,
                     }}
                   >
                     {isOverflow && (
