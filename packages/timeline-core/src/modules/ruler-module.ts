@@ -62,6 +62,16 @@ export class RulerModule implements TimelineModule<RulerApi> {
     });
   }
 
+  // Static Methods
+
+  /**
+   * Gets the ViewportDragModule instance from the given TimelineApi.
+   * @param timeline
+   */
+  static for(timeline: TimelineApi): RulerModule {
+    return timeline.getModule(this);
+  }
+
   // Lifecycle Methods
 
   attach(timeline: TimelineApi): void {

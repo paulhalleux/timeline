@@ -95,7 +95,7 @@ const RenderTick = ({
   Render: Required<RulerTicksProps>["children"];
 }) => {
   const left = useTimelineStore((timeline) =>
-    timeline.getModule(RulerModule).getTickOffset(unit),
+    RulerModule.for(timeline).getTickOffset(unit),
   );
   return <Render key={unit} unit={unit} width={width} left={left} />;
 };

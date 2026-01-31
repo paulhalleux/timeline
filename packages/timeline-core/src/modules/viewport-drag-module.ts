@@ -24,6 +24,16 @@ export class ViewportDragModule implements TimelineModule<ViewportDragApi> {
     });
   }
 
+  // Static Methods
+
+  /**
+   * Gets the ViewportDragModule instance from the given TimelineApi.
+   * @param timeline
+   */
+  static for(timeline: TimelineApi): ViewportDragModule {
+    return timeline.getModule(this);
+  }
+
   // Lifecycle Methods
 
   attach(timeline: TimelineApi): void {

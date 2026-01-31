@@ -11,14 +11,14 @@ type PlayheadState = {
 
 export const usePlayhead = (): [PlayheadState, PlayheadApi] => {
   const timeline = useTimeline();
-  const module = timeline.getModule(PlayheadModule);
+  const playhead = PlayheadModule.for(timeline);
 
-  const state = useSignal(module.getStore());
+  const state = useSignal(playhead.getStore());
   const leftPx = useSignalSelector(
     ([{ position }]) => {
       return timeline.projectToChunk(position);
     },
-    [module.getStore(), timeline.getViewport().getStore()] as const,
+    [playhead.getStore(), timeline.getViewport().getStore()] as const,
   );
 
   return [
@@ -27,11 +27,11 @@ export const usePlayhead = (): [PlayheadState, PlayheadApi] => {
       playing: state.isPlaying,
       position: state.position,
     },
-    module,
+    playhead,
   ];
 };
 
 export const usePlayheadApi = (): PlayheadApi => {
   const timeline = useTimeline();
-  return timeline.getModule(PlayheadModule);
+  return PlayheadModule.for(timeline);
 };

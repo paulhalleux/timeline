@@ -45,6 +45,11 @@ export type TimelineOptions = {
    * @remarks should be minimum 2
    */
   chunkSize?: number;
+
+  /**
+   * Initial modules to register with the timeline.
+   */
+  modules?: TimelineModule[];
 };
 
 export interface TimelineApi {
@@ -53,6 +58,10 @@ export interface TimelineApi {
   select<S>(selector: (state: TimelineState) => S): S;
   subscribe(listener: (selectedState: TimelineState) => void): () => void;
   getOptions(): TimelineOptions;
+  getModule<T extends TimelineModule>(moduleClass: {
+    new (...args: any[]): T;
+    id: string;
+  }): T;
 
   // Viewport related
   getViewport(): ViewportApi;
@@ -102,6 +111,9 @@ export class Timeline implements TimelineApi {
     });
 
     this.subscribeToViewportChanges();
+
+    // Register initial modules
+    options.modules?.forEach((module) => this.registerModule(module));
   }
 
   /**

@@ -5,7 +5,6 @@
 }
 
 .timelineContainer {
-  height: 40%;
   border-top: 1px solid black;
   margin-top: auto;
   flex-shrink: 0;
@@ -73,18 +72,18 @@
   gap: 16px;
 
   .view {
-    width: 60%;
-    min-height: 40px;
+    width: 500px;
+    min-height: 56px;
     background: white;
     border: 2px solid black;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 8px;
   }
 }
 
 .track {
-  border-bottom: 1px solid black;
 }
 
 .trackHeader {
@@ -118,4 +117,8 @@
     -webkit-box-orient: vertical;
     text-align: center;
   }
+}
+
+.cueActive {
+  background: deepskyblue;
 }

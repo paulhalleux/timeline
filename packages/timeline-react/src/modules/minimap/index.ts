@@ -1,2 +1,2 @@
 export { Minimap } from "./Minimap.tsx";
-export { useMinimap } from "./useMinimap.ts";
+export { useMinimap, useMinimapApi } from "./useMinimap.ts";

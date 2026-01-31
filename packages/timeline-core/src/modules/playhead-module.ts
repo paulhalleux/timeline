@@ -25,7 +25,7 @@ export type PlayheadApi = {
 export class PlayheadModule implements TimelineModule<PlayheadApi> {
   static id = "PlayheadModule";
 
-  private store: Store<PlayheadState>;
+  private readonly store: Store<PlayheadState>;
   private rafId: number | null = null;
 
   private unsubscribers: Array<() => void> = [];
@@ -36,6 +36,16 @@ export class PlayheadModule implements TimelineModule<PlayheadApi> {
       position: options.initialPosition ?? 0,
       isPlaying: false,
     });
+  }
+
+  // Static Methods
+
+  /**
+   * Gets the ViewportDragModule instance from the given TimelineApi.
+   * @param timeline
+   */
+  static for(timeline: TimelineApi): PlayheadModule {
+    return timeline.getModule(this);
   }
 
   // Lifecycle Methods

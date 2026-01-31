@@ -1,9 +1,9 @@
+import { useSignal } from "@ptl/signal-react";
 import {
   type MinimapApi,
   MinimapModule,
   type MinimapState,
 } from "@ptl/timeline-core";
-import React from "react";
 
 import { useTimeline } from "../../timeline";
 
@@ -14,13 +14,17 @@ import { useTimeline } from "../../timeline";
  */
 export const useMinimap = (): [MinimapState, MinimapApi] => {
   const timeline = useTimeline();
-  const minimap = timeline.getModule(MinimapModule);
-
-  const state = React.useSyncExternalStore(
-    (callback) => minimap.getStore().subscribe(callback),
-    () => minimap.getStore().get(),
-    () => minimap.getStore().get(),
-  );
-
+  const minimap = MinimapModule.for(timeline);
+  const state = useSignal(minimap.getStore());
   return [state, minimap];
+};
+
+/**
+ * Hook to access only the minimap API within the timeline.
+ *
+ * @returns The minimap API instance.
+ */
+export const useMinimapApi = (): MinimapApi => {
+  const timeline = useTimeline();
+  return MinimapModule.for(timeline);
 };

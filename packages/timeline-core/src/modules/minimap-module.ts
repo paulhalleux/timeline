@@ -58,6 +58,16 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
     });
   }
 
+  // Static Methods
+
+  /**
+   * Gets the ViewportDragModule instance from the given TimelineApi.
+   * @param timeline
+   */
+  static for(timeline: TimelineApi): MinimapModule {
+    return timeline.getModule(this);
+  }
+
   // Lifecycle Methods
 
   attach(timeline: TimelineApi): void {

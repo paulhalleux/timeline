@@ -1,21 +1,30 @@
+import { useSignal } from "@ptl/signal-react";
 import {
   type RulerApi,
   RulerModule,
   type RulerState,
 } from "@ptl/timeline-core";
-import React from "react";
 
 import { useTimeline } from "../../timeline";
 
+/**
+ * Hook to access the ruler module and its state within the timeline.
+ *
+ * @returns An array containing the ruler state and the ruler API.
+ */
 export const useRuler = (): [RulerState, RulerApi] => {
   const timeline = useTimeline();
-  const ruler = timeline.getModule(RulerModule);
-
-  const state = React.useSyncExternalStore(
-    (callback) => ruler.getStore().subscribe(callback),
-    () => ruler.getStore().get(),
-    () => ruler.getStore().get(),
-  );
-
+  const ruler = RulerModule.for(timeline);
+  const state = useSignal(ruler.getStore());
   return [state, ruler];
+};
+
+/**
+ * Hook to access only the ruler API within the timeline.
+ *
+ * @returns The ruler API instance.
+ */
+export const useRulerApi = (): RulerApi => {
+  const timeline = useTimeline();
+  return RulerModule.for(timeline);
 };

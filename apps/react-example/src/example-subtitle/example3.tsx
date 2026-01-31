@@ -1,4 +1,4 @@
-import { useSignalSelector } from "@ptl/signal-react";
+import { useSignal, useSignalSelector } from "@ptl/signal-react";
 import { type SubtitleDocument, SubtitleParser } from "@ptl/subtitle-kit";
 import { MinimapModule, PlayheadModule } from "@ptl/timeline-core";
 import {
@@ -17,18 +17,18 @@ import styles from "./example.module.css";
 
 export const Example3 = () => {
   const timeline = useTimeline();
+  const minimapModule = MinimapModule.for(timeline);
+
   const [subtitle, setSubtitle] = React.useState<SubtitleDocument | null>(null);
 
-  const isOverflow = React.useSyncExternalStore(
-    (callback) => timeline.subscribe(callback),
-    () => timeline.getModule(MinimapModule).isOverflowing(),
-    () => timeline.getModule(MinimapModule).isOverflowing(),
+  const isOverflow = useSignal(
+    minimapModule.getStore().map(() => minimapModule.isOverflowing()),
   );
-
-  const headerOffsetPx = React.useSyncExternalStore(
-    (callback) => timeline.subscribe(callback),
-    () => timeline.getViewport().getHeaderOffsetPx(),
-    () => timeline.getViewport().getHeaderOffsetPx(),
+  const headerOffsetPx = useSignal(
+    timeline
+      .getViewport()
+      .getStore()
+      .map((s) => s.headerOffsetPx),
   );
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,18 +50,22 @@ export const Example3 = () => {
     }
   };
 
-  const { currentText, progress } = useSignalSelector(
+  const { index, currentText, progress } = useSignalSelector(
     ([{ position }]) => {
-      if (!subtitle) return { currentText: "", progress: 0 };
+      if (!subtitle) return { currentText: "", progress: 0, index: -1 };
       const cue = subtitle.getAt(position)[0];
       return {
+        index: cue?.index ?? -1,
         currentText: cue ? cue.text : "",
         progress:
-          1 -
-          (cue
-            ? (cue.end.milliseconds - position) /
-              (cue.end.milliseconds - cue.start.milliseconds)
-            : 0),
+          Math.round(
+            (1 -
+              (cue
+                ? (cue.end.milliseconds - position) /
+                  (cue.end.milliseconds - cue.start.milliseconds)
+                : 0)) *
+              100,
+          ) / 100,
       };
     },
     [timeline.getModule(PlayheadModule).getStore()] as const,
@@ -78,18 +82,44 @@ export const Example3 = () => {
             background: `linear-gradient(to right, #e0e0e0 ${progress * 100}%, #ffffff ${progress * 100}%)`,
           }}
         />
-        <button
-          onClick={() => {
-            const playhead = timeline.getModule(PlayheadModule);
-            if (playhead.getStore().select((s) => s.isPlaying)) {
-              playhead.pause();
-            } else {
-              playhead.play(1000 / 60);
-            }
-          }}
-        >
-          Play/Pause
-        </button>
+        <div>
+          <button
+            onClick={() => {
+              if (index <= 0 || !subtitle) return;
+              const prevCue = subtitle.getCues()[index - 2];
+              timeline
+                .getModule(PlayheadModule)
+                .setPosition(prevCue.start.milliseconds + 1);
+            }}
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => {
+              if (!subtitle) return;
+              const cues = subtitle.getCues();
+              if (index >= cues.length - 1) return;
+              const nextCue = cues[index];
+              timeline
+                .getModule(PlayheadModule)
+                .setPosition(nextCue.start.milliseconds + 1);
+            }}
+          >
+            Next
+          </button>
+          <button
+            onClick={() => {
+              const playhead = timeline.getModule(PlayheadModule);
+              if (playhead.getStore().select((s) => s.isPlaying)) {
+                playhead.pause();
+              } else {
+                playhead.play(1000 / 60);
+              }
+            }}
+          >
+            Play/Pause
+          </button>
+        </div>
       </div>
       <div className={styles.timelineContainer}>
         <Timeline.Root>
@@ -127,7 +157,7 @@ export const Example3 = () => {
                   )}
                 </Ruler.Ticks>
               </Ruler.Root>
-              <div>
+              <div style={{ height: 40 }}>
                 <SubTitleTrack subtitle={subtitle} />
               </div>
             </Timeline.Viewport>

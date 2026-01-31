@@ -1,3 +1,4 @@
+import { useSignal } from "@ptl/signal-react";
 import { MinimapModule } from "@ptl/timeline-core";
 import {
   Minimap,
@@ -28,16 +29,15 @@ export const Example3 = () => {
     }));
   }, []);
 
-  const isOverflow = React.useSyncExternalStore(
-    (callback) => timeline.subscribe(callback),
-    () => timeline.getModule(MinimapModule).isOverflowing(),
-    () => timeline.getModule(MinimapModule).isOverflowing(),
+  const minimapModule = MinimapModule.for(timeline);
+  const isOverflow = useSignal(
+    minimapModule.getStore().map(() => minimapModule.isOverflowing()),
   );
-
-  const headerOffsetPx = React.useSyncExternalStore(
-    (callback) => timeline.subscribe(callback),
-    () => timeline.getViewport().getHeaderOffsetPx(),
-    () => timeline.getViewport().getHeaderOffsetPx(),
+  const headerOffsetPx = useSignal(
+    timeline
+      .getViewport()
+      .getStore()
+      .map((s) => s.headerOffsetPx),
   );
 
   return (
