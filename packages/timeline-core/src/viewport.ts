@@ -103,10 +103,9 @@ export class Viewport implements ViewportApi {
     }
 
     this.container = container;
-    this.store.update((prev) => ({
-      ...prev,
-      connected: container !== null,
-    }));
+    this.store.update((state) => {
+      state.connected = container !== null;
+    });
   }
 
   /**
@@ -124,10 +123,9 @@ export class Viewport implements ViewportApi {
    * @param offsetPx The offset in pixels to be set for the header.
    */
   setHeaderOffsetPx(offsetPx: number): void {
-    this.store.update((prev) => ({
-      ...prev,
-      headerOffsetPx: offsetPx,
-    }));
+    this.store.update((state) => {
+      state.headerOffsetPx = offsetPx;
+    });
   }
 
   /**
@@ -145,11 +143,10 @@ export class Viewport implements ViewportApi {
    * @param visibleRange The amount of units to be visible in the viewport.
    */
   setVisibleRange(visibleRange: number): void {
-    this.store.update((prev) => ({
-      ...prev,
-      visibleRange: visibleRange,
-      pxPerUnit: prev.widthPx > 0 ? prev.widthPx / visibleRange : 0,
-    }));
+    this.store.update((state) => {
+      state.visibleRange = visibleRange;
+      state.pxPerUnit = state.widthPx > 0 ? state.widthPx / visibleRange : 0;
+    });
   }
 
   /**
@@ -158,10 +155,9 @@ export class Viewport implements ViewportApi {
    * @param minVisibleRange The minimum visible range in units.
    */
   setMinVisibleRange(minVisibleRange: number): void {
-    this.store.update((prev) => ({
-      ...prev,
-      minVisibleRange: minVisibleRange,
-    }));
+    this.store.update((state) => {
+      state.minVisibleRange = minVisibleRange;
+    });
   }
 
   /**
@@ -170,10 +166,9 @@ export class Viewport implements ViewportApi {
    * @param maxVisibleRange The maximum visible range in units.
    */
   setMaxVisibleRange(maxVisibleRange: number): void {
-    this.store.update((prev) => ({
-      ...prev,
-      maxVisibleRange: maxVisibleRange,
-    }));
+    this.store.update((state) => {
+      state.maxVisibleRange = maxVisibleRange;
+    });
   }
 
   /**
@@ -256,11 +251,10 @@ export class Viewport implements ViewportApi {
       const widthPx = this.store.select((state) => state.widthPx);
       if (widthPx === width) return;
 
-      this.store.update((prev) => ({
-        ...prev,
-        widthPx: width,
-        pxPerUnit: width / prev.visibleRange,
-      }));
+      this.store.update((state) => {
+        state.widthPx = width;
+        state.pxPerUnit = width / state.visibleRange;
+      });
     };
 
     update();
@@ -277,10 +271,9 @@ export class Viewport implements ViewportApi {
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
     this.container = null;
-    this.store.update((prev) => ({
-      ...prev,
-      widthPx: 0,
-      pxPerUnit: 0,
-    }));
+    this.store.update((state) => {
+      state.widthPx = 0;
+      state.pxPerUnit = 0;
+    });
   }
 }

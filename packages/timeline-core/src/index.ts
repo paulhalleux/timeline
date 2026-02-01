@@ -13,6 +13,11 @@ export {
   type RulerState,
 } from "./modules/ruler-module";
 export {
+  type SelectionApi,
+  SelectionModule,
+  type SelectionState,
+} from "./modules/selection-module";
+export {
   type ViewportDragApi,
   ViewportDragModule,
   type ViewportDragState,

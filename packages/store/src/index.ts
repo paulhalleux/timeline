@@ -1,4 +1,7 @@
 import { WritableSignal } from "@ptl/signal";
+import { enableMapSet, produce, type WritableDraft } from "immer";
+
+enableMapSet();
 
 /**
  * A simple state management store that allows getting, setting, selecting,
@@ -16,8 +19,8 @@ export class Store<T> extends WritableSignal<T> {
    * Updates the state using an updater function.
    * @param updater - Function that receives the previous state and returns the new state.
    */
-  update(updater: (prev: T) => T): void {
-    const next = updater(this.get());
+  update(updater: (prev: WritableDraft<T>) => void): void {
+    const next = produce(this.get(), updater);
     this.set(next);
   }
 

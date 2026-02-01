@@ -6,6 +6,9 @@
     "apps/*",
     "configs/*"
   ],
+  "scripts": {
+    "build": "lerna run build"
+  },
   "devDependencies": {
     "lerna": "^9.0.3"
   },

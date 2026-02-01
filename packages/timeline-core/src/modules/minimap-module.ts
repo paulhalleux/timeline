@@ -98,10 +98,9 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
    * @param totalRange - The total range value to set.
    */
   setTotalRange(totalRange: number): void {
-    this.store.update((prev) => ({
-      ...prev,
-      totalRange,
-    }));
+    this.store.update((state) => {
+      state.totalRange = totalRange;
+    });
     this.recompute();
   }
 
@@ -110,10 +109,9 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
    * @param overflowAmount - The overflow amount to set.
    */
   setOverflowAmount(overflowAmount: number | undefined): void {
-    this.store.update((prev) => ({
-      ...prev,
-      overflowAmount,
-    }));
+    this.store.update((state) => {
+      state.overflowAmount = overflowAmount;
+    });
   }
 
   /**
@@ -289,14 +287,13 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
     const visibleSizeRatio = (1 / totalRange) * visibleRange;
     const visibleStartRatio = (1 / totalRange) * current;
 
-    this.getStore().update((prev) => ({
-      ...prev,
-      visibleStartRatio: Math.max(
+    this.getStore().update((state) => {
+      state.visibleStartRatio = Math.max(
         0,
         Math.min(1 - visibleSizeRatio, visibleStartRatio),
-      ),
-      visibleSizeRatio,
-    }));
+      );
+      state.visibleSizeRatio = visibleSizeRatio;
+    });
   }
 
   /**

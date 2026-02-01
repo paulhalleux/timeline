@@ -120,6 +120,7 @@
   }
 }
 
-.cueActive {
-  background: deepskyblue;
+.cueSelected {
+  background: oklab(from lightblue calc(l - 0.1) a b);
+  border-color: oklab(from lightblue calc(l - 0.5) a b);
 }

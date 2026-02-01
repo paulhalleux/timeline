@@ -2,6 +2,7 @@ import {
   MinimapModule,
   PlayheadModule,
   RulerModule,
+  SelectionModule,
   Timeline as TimelineCore,
   ViewportDragModule,
 } from "@ptl/timeline-core";
@@ -31,6 +32,7 @@ export const App = () => {
           // },
         }),
         new ViewportDragModule(),
+        new SelectionModule(),
       ],
     });
   });

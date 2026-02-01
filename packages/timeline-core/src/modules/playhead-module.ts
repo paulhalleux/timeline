@@ -83,10 +83,9 @@ export class PlayheadModule implements TimelineModule<PlayheadApi> {
    */
   setPosition(unit: number): void {
     if (!this.timeline) return;
-    this.store.update((prev) => ({
-      ...prev,
-      position: Math.max(0, unit),
-    }));
+    this.store.update((state) => {
+      state.position = Math.max(0, unit);
+    });
   }
 
   /**
@@ -157,9 +156,8 @@ export class PlayheadModule implements TimelineModule<PlayheadApi> {
    */
   private setPlaying(isPlaying: boolean): void {
     if (!this.timeline) return;
-    this.store.update((prev) => ({
-      ...prev,
-      isPlaying,
-    }));
+    this.store.update((state) => {
+      state.isPlaying = isPlaying;
+    });
   }
 }

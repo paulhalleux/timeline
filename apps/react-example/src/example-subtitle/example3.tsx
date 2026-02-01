@@ -1,6 +1,10 @@
 import { useSignal, useSignalSelector } from "@ptl/signal-react";
 import { type SubtitleDocument, SubtitleParser } from "@ptl/subtitle-kit";
-import { MinimapModule, PlayheadModule } from "@ptl/timeline-core";
+import {
+  MinimapModule,
+  PlayheadModule,
+  SelectionModule,
+} from "@ptl/timeline-core";
 import {
   Minimap,
   Panner,
@@ -254,6 +258,11 @@ ExamplePanner.displayName = "ExamplePanner";
 const SubTitleTrack = React.memo(
   ({ subtitle }: { subtitle: SubtitleDocument | null }) => {
     const timeline = useTimeline();
+    const selectionModule = SelectionModule.for(timeline);
+
+    const selectedIds = useSignal(
+      selectionModule.getStore().map((s) => s.selectedIds),
+    );
 
     const visibleCues = useSignalSelector(
       ([current, visibleRange]) => {
@@ -286,7 +295,14 @@ const SubTitleTrack = React.memo(
               key={cue.start.raw}
               start={cue.start.milliseconds}
               end={cue.end.milliseconds}
-              className={styles.cue}
+              className={`${styles.cue} ${
+                selectedIds.has(cue.start.raw) ? styles.cueSelected : ""
+              }`}
+              onClick={() => {
+                if (selectedIds.has(cue.start.raw)) {
+                  selectionModule.deselect(cue.start.raw);
+                } else selectionModule.select(cue.start.raw);
+              }}
             >
               <span className={styles.text}>{cue.text}</span>
             </ViewportItem>

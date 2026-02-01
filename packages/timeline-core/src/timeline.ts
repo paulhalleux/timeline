@@ -230,12 +230,11 @@ export class Timeline implements TimelineApi {
       ((this.options.chunkSize ?? 2) - 1) * viewportWidthPx,
     );
 
-    this.store.update((prev) => ({
-      ...prev,
-      current: normalizedPosition,
-      chunkIndex: index,
-      chunkStart: start,
-    }));
+    this.store.update((state) => {
+      state.current = normalizedPosition;
+      state.chunkIndex = index;
+      state.chunkStart = start;
+    });
   }
 
   /**
@@ -432,12 +431,11 @@ export class Timeline implements TimelineApi {
         (chunkSize - 1) * widthPx,
       );
 
-      this.store.update((prev) => ({
-        ...prev,
-        chunkIndex: index,
-        chunkStart: start,
-        chunkDuration: visibleRange * chunkSize,
-      }));
+      this.store.update((state) => {
+        state.chunkIndex = index;
+        state.chunkStart = start;
+        state.chunkDuration = visibleRange * chunkSize;
+      });
     });
   }
 }
