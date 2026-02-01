@@ -40,8 +40,7 @@ export const Example3 = () => {
           try {
             const doc = SubtitleParser.parse("srt", text);
             setSubtitles((prev) => [...prev, doc]);
-            MinimapModule.for(timeline).setTotalRange(doc.getDuration());
-            console.log(doc.getDuration() / (1000 * 60));
+            MinimapModule.for(timeline).setTotalRange(doc.getEndTime());
           } catch (error) {
             console.error("Failed to parse subtitle file:", error);
           }
@@ -261,13 +260,7 @@ const SubTitleTrack = React.memo(
         if (!subtitle) {
           return [];
         }
-
-        return subtitle.getCues().filter((cue) => {
-          return (
-            cue.end.milliseconds >= current &&
-            cue.start.milliseconds <= current + visibleRange
-          );
-        });
+        return binaryFilterCues(subtitle, current, current + visibleRange);
       },
       [
         timeline.getStore().map((s) => s.current),
@@ -305,3 +298,32 @@ const SubTitleTrack = React.memo(
 );
 
 SubTitleTrack.displayName = "SubTitleTrack";
+
+const binaryFilterCues = (
+  subtitle: SubtitleDocument,
+  from: number,
+  to: number,
+) => {
+  const cues = subtitle.getCues();
+  let left = 0;
+  let right = cues.length - 1;
+
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2);
+    if (cues[mid].end.milliseconds < from) {
+      left = mid + 1;
+    } else {
+      right = mid - 1;
+    }
+  }
+
+  const result: typeof cues = [];
+  for (let i = left; i < cues.length; i++) {
+    if (cues[i].start.milliseconds > to) {
+      break;
+    }
+    result.push(cues[i]);
+  }
+
+  return result;
+};

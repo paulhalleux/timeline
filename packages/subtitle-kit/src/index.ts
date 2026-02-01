@@ -4,3 +4,4 @@ export {
   SubtitleParser,
   type SupportedFormats,
 } from "./formats/SubtitleParser";
+export { TimestampParser } from "./utils/timestamp";
