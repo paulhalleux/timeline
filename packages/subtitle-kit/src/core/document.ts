@@ -184,4 +184,32 @@ export class SubtitleDocument<
     );
     this._endTime = Math.max(...this.cues.map((cue) => cue.end.milliseconds));
   }
+
+  static fromTextTrack<Metadata extends Record<string, any>>(
+    format: SupportedFormats,
+    textTrack: TextTrack,
+  ): SubtitleDocument<typeof format, Metadata> {
+    const cues: SubtitleCue<Metadata>[] = [];
+    if (!textTrack.cues) {
+      return new SubtitleDocument(format, cues);
+    }
+
+    for (let i = 0; i < textTrack.cues.length; i++) {
+      const cue = textTrack.cues[i];
+      cues.push({
+        index: i,
+        start: { milliseconds: cue.startTime * 1000, raw: "" },
+        end: { milliseconds: cue.endTime * 1000, raw: "" },
+        text: getTextFromCue(cue),
+      });
+    }
+    return new SubtitleDocument(format, cues);
+  }
 }
+
+const getTextFromCue = (cue: TextTrackCue): string => {
+  if (cue instanceof VTTCue) {
+    return cue.text;
+  }
+  return "";
+};

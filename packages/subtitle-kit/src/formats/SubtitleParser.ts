@@ -1,6 +1,7 @@
 import { SrtFormat } from "./srt";
+import { VttFormat } from "./vtt";
 
-export type SupportedFormats = "srt" /* | "vtt" | "ass"*/;
+export type SupportedFormats = "srt" | "vtt" /* | "ass"*/;
 export const SubtitleParser = {
   /**
    * Parses subtitle content based on the specified format.
@@ -13,8 +14,8 @@ export const SubtitleParser = {
     switch (format) {
       case "srt":
         return SrtFormat.parse(input);
-      // case "vtt":
-      //   return VttFormat.parse(input);
+      case "vtt":
+        return VttFormat.parse(input);
       // case "ass":
       //   return AssFormat.parse(input);
       default:
@@ -33,8 +34,8 @@ export const SubtitleParser = {
     switch (format) {
       case "srt":
         return SrtFormat.stringify(doc);
-      // case "vtt":
-      //   return VttFormat.stringify(doc);
+      case "vtt":
+        return VttFormat.stringify(doc);
       // case "ass":
       //   return AssFormat.stringify(doc);
       default:

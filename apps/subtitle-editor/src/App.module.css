@@ -1,0 +1,65 @@
+:root {
+  --color-bg: #19191e;
+  --color-bg-surface: #212126;
+  --color-border: #33333a;
+  --color-text: #ffffff;
+  --tl-color-bg: var(--color-bg-surface);
+  --tl-color-border: var(--color-border);
+
+  --border-radius: 0.3rem;
+  --gap: 0.5rem;
+}
+
+.container {
+  height: 100vh;
+  display: flex;
+  gap: var(--gap);
+  padding: var(--gap);
+  flex-direction: column;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+.menu {
+  height: 32px;
+  background-color: var(--color-bg-surface);
+  border-radius: var(--border-radius);
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  gap: var(--gap);
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.panel {
+  background-color: var(--color-bg-surface);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  container-type: size;
+}
+
+.canvasContent {
+  aspect-ratio: var(--aspect-ratio, 21 / 9);
+  width: min(100cqw, calc(100cqh * var(--aspect-ratio, 21 / 9)));
+  height: min(100cqh, calc(100cqw * calc(1 / var(--aspect-ratio, 21 / 9))));
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
