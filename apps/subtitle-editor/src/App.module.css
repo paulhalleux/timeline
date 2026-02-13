@@ -1,10 +1,15 @@
 :root {
   --color-bg: #19191e;
   --color-bg-surface: #212126;
+  --color-bg-secondary: #28282c;
   --color-border: #33333a;
   --color-text: #ffffff;
+  --color-text-secondary: #9999a1;
+  --color-primary: #4a62ff;
+  --color-warning: #ff4a4a;
   --tl-color-bg: var(--color-bg-surface);
   --tl-color-border: var(--color-border);
+  --playhead-color: var(--color-primary);
 
   --border-radius: 0.3rem;
   --gap: 0.5rem;
@@ -20,12 +25,7 @@
   color: var(--color-text);
 }
 
-.menu {
-  height: 32px;
-  background-color: var(--color-bg-surface);
-  border-radius: var(--border-radius);
-}
-
+/* Layout */
 .row {
   display: flex;
   flex-direction: row;
@@ -42,8 +42,29 @@
   background-color: var(--color-bg-surface);
   border-radius: var(--border-radius);
   overflow: hidden;
+  border: 1px solid var(--color-border);
 }
 
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+/* Menu */
+.menu {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 4px;
+  gap: 4px;
+}
+
+
+/* Canvas */
 .canvas {
   position: relative;
   width: 100%;
@@ -62,4 +83,31 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.video {
+  height: 100%;
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 16px;
+  gap: 16px;
+}
+
+.timeDisplay {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.mediaInfo {
+  font-size: 11px;
+  color: var(--color-text-secondary);
 }

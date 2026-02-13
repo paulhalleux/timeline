@@ -1,49 +1,44 @@
 import * as ResizablePanels from "react-resizable-panels";
 import styles from "./App.module.css";
-import { createSubtitleEditor, SubtitleEditorContext } from "./store.ts";
+import { SubtitleEditorProvider } from "./store";
 import * as React from "react";
 import { Menu } from "./Menu.tsx";
 import { Canvas } from "./Canvas.tsx";
 import { Controls } from "./Controls.tsx";
-import { TimelinePanel } from "./Timeline.tsx";
+import { TimelinePanel } from "./components/timeline/Timeline.tsx";
+import { SubtitleList } from "./components/subtitle-list";
 import { useTimeline } from "@ptl/timeline-react";
 
+/** Minimum width/height for canvas panel */
 export const CANVAS_MIN_SIZE = 600;
+/** Minimum width/height for side panels */
 export const PANEL_MIN_SIZE = 320;
+/** Fixed height for menu/control bars */
 export const BAR_HEIGHT = 32;
 
-export const App = () => {
-  const timeline = useTimeline()
-  const [editor] = React.useState(() => {
-    return createSubtitleEditor(timeline);
-  });
+/**
+ * Main application component with resizable panel layout.
+ */
+export const App: React.FC = () => {
+  const timeline = useTimeline();
 
   return (
-    <SubtitleEditorContext value={editor}>
+    <SubtitleEditorProvider timeline={timeline}>
       <div className={styles.container}>
         <ResizablePanels.Group orientation="vertical" className={styles.col}>
           <Menu />
           <ResizablePanels.Panel>
-            <ResizablePanels.Group
-              orientation="vertical"
-              className={styles.col}
-            >
+            <ResizablePanels.Group orientation="vertical" className={styles.col}>
               <ResizablePanels.Panel minSize={PANEL_MIN_SIZE}>
-                <ResizablePanels.Group
-                  orientation="horizontal"
-                  className={styles.row}
-                >
+                <ResizablePanels.Group orientation="horizontal" className={styles.row}>
                   <ResizablePanels.Panel
                     minSize={PANEL_MIN_SIZE}
                     className={styles.panel}
                   >
-                    List
+                    <SubtitleList />
                   </ResizablePanels.Panel>
                   <ResizablePanels.Panel minSize={CANVAS_MIN_SIZE}>
-                    <ResizablePanels.Group
-                      orientation="vertical"
-                      className={styles.col}
-                    >
+                    <ResizablePanels.Group orientation="vertical" className={styles.col}>
                       <Canvas />
                       <Controls />
                     </ResizablePanels.Group>
@@ -52,15 +47,16 @@ export const App = () => {
                     minSize={PANEL_MIN_SIZE}
                     className={styles.panel}
                   >
-                    Edit
+                    {/* TODO: Edit panel */}
+                    <div className={styles.placeholder}>Edit Panel</div>
                   </ResizablePanels.Panel>
                 </ResizablePanels.Group>
               </ResizablePanels.Panel>
               <TimelinePanel />
             </ResizablePanels.Group>
-          </ResizablePanels.Panel>{" "}
+          </ResizablePanels.Panel>
         </ResizablePanels.Group>
       </div>
-    </SubtitleEditorContext>
+    </SubtitleEditorProvider>
   );
 };

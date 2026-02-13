@@ -1,14 +1,28 @@
-import styles from "./App.module.css";
+import * as React from "react";
 import * as ResizablePanels from "react-resizable-panels";
-import { BAR_HEIGHT } from "./App.tsx";
 import { useSignalSelector } from "@ptl/signal-react";
-import { useSubtitleEditor } from "./store.ts";
+import { PlayheadModule } from "@ptl/timeline-core";
+import { useTimeline } from "@ptl/timeline-react";
+import { useSubtitleEditor } from "./store";
+import { BAR_HEIGHT } from "./App.tsx";
+import styles from "./App.module.css";
+import { formatTime } from "./utils/format.ts";
 
-export const Controls = () => {
-  const ctx = useSubtitleEditor();
-  const media = useSignalSelector(([state]) => state.media, [
-    ctx.store,
-  ] as const);
+/**
+ * Playback controls component.
+ */
+export const Controls: React.FC = () => {
+  const { store } = useSubtitleEditor();
+  const timeline = useTimeline();
+
+  const media = useSignalSelector(([state]) => state.media, [store] as const);
+  const playhead = PlayheadModule.for(timeline);
+  const position = useSignalSelector(
+    ([state]) => state.position,
+    [playhead.getStore()] as const
+  );
+
+  const duration = media?.metadata.duration ?? 0;
 
   return (
     <ResizablePanels.Panel
@@ -17,7 +31,16 @@ export const Controls = () => {
       disabled
       className={styles.panel}
     >
-      {JSON.stringify(media?.subtitles)}
+      <div className={styles.controls}>
+        <span className={styles.timeDisplay}>
+          {formatTime(position)} / {formatTime(duration * 1000)}
+        </span>
+        {media && (
+          <span className={styles.mediaInfo}>
+            {media.metadata.width}×{media.metadata.height}
+          </span>
+        )}
+      </div>
     </ResizablePanels.Panel>
   );
 };
