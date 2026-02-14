@@ -12,6 +12,7 @@ import {
   useTracks,
 } from "../../core";
 import { formatTime } from "../../utils/format.ts";
+import { highlightText } from "../../utils/highlight.tsx";
 import { Button, List, SearchBar, Tabs } from "../ui";
 import { EmptyState } from "../ui/EmptyState/EmptyState.tsx";
 import styles from "./SubtitleList.module.css";
@@ -44,7 +45,9 @@ const CueListItem: React.FC<CueListItemProps> = ({
       <List.Meta>
         {formatTime(start)} → {formatTime(end)}
       </List.Meta>
-      <List.Text>{List.highlightText(text, searchQuery)}</List.Text>
+      <List.Text>
+        {highlightText(text, searchQuery, styles.highlight)}
+      </List.Text>
     </List.Item>
   );
 };
@@ -130,7 +133,7 @@ const SubtitleTrackContent: React.FC<SubtitleTrackContentProps> = ({
   }
 
   return (
-    <List.Container ref={listRef} className={styles.cueList}>
+    <List.Container ref={listRef}>
       {filteredCues.map((cue, index) => {
         const startMs = cue.start.milliseconds;
         const endMs = cue.end.milliseconds;
@@ -197,48 +200,46 @@ export const SubtitleList: React.FC = () => {
   const cueCount = activeTrack?.document.getCues().length ?? 0;
 
   return (
-    <div className={styles.container}>
-      <Tabs.Root value={activeTrackId ?? ""} onValueChange={handleTabChange}>
-        <Tabs.List>
-          {tracks.map((track) => (
-            <Tabs.Trigger
-              key={track.id}
-              value={track.id}
-              icon={<CaptionsIcon size={14} />}
-              onClose={() => handleCloseTab(track.id)}
-            >
-              {track.label}
-            </Tabs.Trigger>
-          ))}
-        </Tabs.List>
-        <div className={styles.toolbar}>
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder={`Search ${cueCount} cues...`}
-          />
-          <Button
-            variant="icon"
-            active={autoScrollEnabled}
-            onClick={handleToggleAutoScroll}
-            title={
-              autoScrollEnabled ? "Auto-scroll enabled" : "Auto-scroll disabled"
-            }
-            aria-pressed={autoScrollEnabled}
-          >
-            <ArrowDownIcon size={16} />
-          </Button>
-        </div>
+    <Tabs.Root value={activeTrackId ?? ""} onValueChange={handleTabChange}>
+      <Tabs.List>
         {tracks.map((track) => (
-          <Tabs.Content key={track.id} value={track.id}>
-            <SubtitleTrackContent
-              track={track}
-              searchQuery={searchQuery}
-              autoScroll={autoScrollEnabled}
-            />
-          </Tabs.Content>
+          <Tabs.Trigger
+            key={track.id}
+            value={track.id}
+            icon={<CaptionsIcon size={14} />}
+            onClose={() => handleCloseTab(track.id)}
+          >
+            {track.label}
+          </Tabs.Trigger>
         ))}
-      </Tabs.Root>
-    </div>
+      </Tabs.List>
+      <div className={styles.toolbar}>
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder={`Search ${cueCount} cues...`}
+        />
+        <Button
+          variant="icon"
+          active={autoScrollEnabled}
+          onClick={handleToggleAutoScroll}
+          title={
+            autoScrollEnabled ? "Auto-scroll enabled" : "Auto-scroll disabled"
+          }
+          aria-pressed={autoScrollEnabled}
+        >
+          <ArrowDownIcon size={16} />
+        </Button>
+      </div>
+      {tracks.map((track) => (
+        <Tabs.Content key={track.id} value={track.id}>
+          <SubtitleTrackContent
+            track={track}
+            searchQuery={searchQuery}
+            autoScroll={autoScrollEnabled}
+          />
+        </Tabs.Content>
+      ))}
+    </Tabs.Root>
   );
 };

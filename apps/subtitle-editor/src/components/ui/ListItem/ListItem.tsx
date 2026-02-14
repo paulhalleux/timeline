@@ -1,33 +1,6 @@
 import * as React from "react";
+
 import styles from "./ListItem.module.css";
-
-// ============================================================================
-// Utility: Highlight matching text
-// ============================================================================
-
-export const highlightText = (
-  text: string,
-  query: string,
-  highlightClass: string = styles.highlight,
-): React.ReactNode => {
-  if (!query.trim()) return text;
-
-  const regex = new RegExp(
-    `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-    "gi",
-  );
-  const parts = text.split(regex);
-
-  return parts.map((part, i) =>
-    regex.test(part) ? (
-      <mark key={i} className={highlightClass}>
-        {part}
-      </mark>
-    ) : (
-      part
-    ),
-  );
-};
 
 // ============================================================================
 // ListContainer
@@ -187,28 +160,6 @@ export const ListItemIcon: React.FC<ListItemIconProps> = ({
 };
 
 // ============================================================================
-// TypeBadge - For marker types, etc.
-// ============================================================================
-
-export interface TypeBadgeProps {
-  type: string;
-  children?: React.ReactNode;
-  className?: string;
-}
-
-export const TypeBadge: React.FC<TypeBadgeProps> = ({
-  type,
-  children,
-  className,
-}) => {
-  return (
-    <span className={`${styles.typeBadge} ${className ?? ""}`} data-type={type}>
-      {children ?? type}
-    </span>
-  );
-};
-
-// ============================================================================
 // Compound Export
 // ============================================================================
 
@@ -219,6 +170,4 @@ export const List = {
   Text: ListItemText,
   Secondary: ListItemSecondary,
   Icon: ListItemIcon,
-  TypeBadge: TypeBadge,
-  highlightText,
 };

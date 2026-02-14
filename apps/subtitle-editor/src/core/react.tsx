@@ -202,9 +202,10 @@ export const usePlayback = (): PlaybackModuleState => {
  * Hook to get current playback time in milliseconds.
  */
 export const useCurrentTime = (): number => {
-  const editor = useEditor();
-  return useSignalSelector(([state]) => state.currentTime, [
-    editor.playback.getStore(),
+  const timeline = useTimeline();
+  const playhead = PlayheadModule.for(timeline);
+  return useSignalSelector(([state]) => state.position, [
+    playhead.getStore(),
   ] as const);
 };
 
@@ -361,7 +362,7 @@ export const useVideoConnection = (
       video.removeEventListener("ratechange", handleRateChange);
       editor.disconnectPlaybackController();
     };
-  }, [editor, videoRef]);
+  }, [editor, playhead, videoRef]);
 };
 
 // ============================================================================
@@ -481,5 +482,5 @@ export const useEditorKeyboardShortcuts = (
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [editor, enabled, seekAmount]);
+  }, [editor, enabled, playhead, seekAmount]);
 };

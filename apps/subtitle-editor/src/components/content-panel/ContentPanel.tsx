@@ -1,11 +1,11 @@
-import * as React from "react";
 import { BookmarkIcon, CaptionsIcon, SettingsIcon } from "lucide-react";
+import * as React from "react";
 
 import { useMarkers, useTracks } from "../../core";
-import { type ToolbarItem, VerticalToolbar } from "../ui";
-import { SubtitleList } from "../subtitle-list";
 import { MarkerList } from "../marker-list";
-import styles from "./SidePanel.module.css";
+import { SubtitleList } from "../subtitle-list";
+import { type ToolbarItem, VerticalToolbar } from "../ui";
+import styles from "./ContentPanel.module.css";
 
 // ============================================================================
 // Panel Types
@@ -14,10 +14,10 @@ import styles from "./SidePanel.module.css";
 type PanelId = "subtitles" | "markers" | "settings";
 
 // ============================================================================
-// SidePanel
+// ContentPanel
 // ============================================================================
 
-export const SidePanel: React.FC = () => {
+export const ContentPanel: React.FC = () => {
   const [activePanel, setActivePanel] = React.useState<PanelId>("subtitles");
 
   const tracks = useTracks();
@@ -43,7 +43,6 @@ export const SidePanel: React.FC = () => {
       id: "settings",
       icon: <SettingsIcon size={18} />,
       label: "Settings",
-      disabled: true, // Not implemented yet
     },
   ];
 
@@ -55,9 +54,10 @@ export const SidePanel: React.FC = () => {
     <div className={styles.container}>
       <VerticalToolbar
         items={toolbarItems}
+        bottomItems={bottomItems}
         activeId={activePanel}
         onItemClick={handleItemClick}
-        bottomItems={bottomItems}
+        position="left"
       />
       <div className={styles.content}>
         {activePanel === "subtitles" && <SubtitleList />}

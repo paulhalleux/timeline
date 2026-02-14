@@ -160,3 +160,20 @@
 .variant-icon.active:hover:not(:disabled) {
   background-color: oklab(from var(--color-primary) l a b / 0.2);
 }
+
+/* Danger */
+.variant-danger {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--color-danger);
+}
+
+.variant-danger:hover:not(:disabled) {
+  background-color: oklab(from var(--color-danger) l a b / 0.1);
+  color: var(--color-danger);
+}
+
+.variant-danger.active {
+  background-color: oklab(from var(--color-danger) l a b / 0.15);
+}
+

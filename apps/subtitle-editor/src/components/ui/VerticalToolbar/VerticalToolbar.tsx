@@ -30,6 +30,8 @@ export interface VerticalToolbarProps {
   bottomItems?: ToolbarItem[];
   /** Additional class name */
   className?: string;
+  /** position: "left" | "right" (default: "left") */
+  position?: "left" | "right";
 }
 
 // ============================================================================
@@ -94,10 +96,13 @@ export const VerticalToolbar: React.FC<VerticalToolbarProps> = ({
   activeId,
   onItemClick,
   bottomItems,
+  position,
   className,
 }) => {
   return (
-    <div className={`${styles.toolbar} ${className ?? ""}`}>
+    <div
+      className={`${styles.toolbar} ${className ?? ""} ${position === "right" ? styles.right : styles.left}`}
+    >
       {items.map((item) => (
         <ToolbarButton
           key={item.id}

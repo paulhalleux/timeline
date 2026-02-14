@@ -6,7 +6,7 @@ import styles from "./Button.module.css";
  * Button Variants & Sizes
  * ========================================================================== */
 
-export type ButtonVariant = "default" | "ghost" | "primary" | "icon";
+export type ButtonVariant = "default" | "ghost" | "primary" | "icon" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
 
 /* ============================================================================

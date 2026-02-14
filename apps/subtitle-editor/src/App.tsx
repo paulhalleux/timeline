@@ -2,12 +2,14 @@ import * as React from "react";
 import * as ResizablePanels from "react-resizable-panels";
 
 import styles from "./App.module.css";
-import { Canvas } from "./Canvas.tsx";
-import { SidePanel } from "./components/side-panel";
+import { Canvas } from "./components/canvas-panel/Canvas.tsx";
+import { ContentPanel } from "./components/content-panel";
+import { Controls } from "./components/controls-panel/Controls.tsx";
+import { Edit } from "./components/edit-panel/Edit.tsx";
+import { Menu } from "./components/menu-panel/Menu.tsx";
 import { TimelinePanel } from "./components/timeline/Timeline.tsx";
-import { Controls } from "./Controls.tsx";
+import { Panel } from "./components/ui";
 import { EditorProvider, useEditorKeyboardShortcuts } from "./core";
-import { Menu } from "./Menu.tsx";
 
 /** Minimum width/height for canvas panel */
 export const CANVAS_MIN_SIZE = 600;
@@ -15,6 +17,8 @@ export const CANVAS_MIN_SIZE = 600;
 export const PANEL_MIN_SIZE = 320;
 /** Fixed height for menu/control bars */
 export const BAR_HEIGHT = 32;
+/** Default size for side panels */
+export const DEFAULT_SIDE_PANEL_SIZE = 400;
 
 /**
  * Inner app content with keyboard shortcuts enabled.
@@ -26,7 +30,9 @@ const AppContent: React.FC = () => {
   return (
     <div className={styles.container}>
       <ResizablePanels.Group orientation="vertical" className={styles.col}>
-        <Menu />
+        <Panel defaultSize={BAR_HEIGHT} minSize={BAR_HEIGHT} disabled>
+          <Menu />
+        </Panel>
         <ResizablePanels.Panel>
           <ResizablePanels.Group orientation="vertical" className={styles.col}>
             <ResizablePanels.Panel minSize={PANEL_MIN_SIZE}>
@@ -34,31 +40,41 @@ const AppContent: React.FC = () => {
                 orientation="horizontal"
                 className={styles.row}
               >
-                <ResizablePanels.Panel
+                <Panel
                   minSize={PANEL_MIN_SIZE}
-                  className={styles.panel}
+                  defaultSize={DEFAULT_SIDE_PANEL_SIZE}
                 >
-                  <SidePanel />
-                </ResizablePanels.Panel>
+                  <ContentPanel />
+                </Panel>
                 <ResizablePanels.Panel minSize={CANVAS_MIN_SIZE}>
                   <ResizablePanels.Group
                     orientation="vertical"
                     className={styles.col}
                   >
-                    <Canvas />
-                    <Controls />
+                    <Panel minSize={PANEL_MIN_SIZE}>
+                      <Canvas />
+                    </Panel>
+                    <Panel
+                      defaultSize={BAR_HEIGHT}
+                      minSize={BAR_HEIGHT}
+                      maxSize={BAR_HEIGHT}
+                      disabled
+                    >
+                      <Controls />
+                    </Panel>
                   </ResizablePanels.Group>
                 </ResizablePanels.Panel>
-                <ResizablePanels.Panel
+                <Panel
                   minSize={PANEL_MIN_SIZE}
-                  className={styles.panel}
+                  defaultSize={DEFAULT_SIDE_PANEL_SIZE}
                 >
-                  {/* TODO: Edit panel */}
-                  <div className={styles.placeholder}>Edit Panel</div>
-                </ResizablePanels.Panel>
+                  <Edit />
+                </Panel>
               </ResizablePanels.Group>
             </ResizablePanels.Panel>
-            <TimelinePanel />
+            <Panel minSize={PANEL_MIN_SIZE}>
+              <TimelinePanel />
+            </Panel>
           </ResizablePanels.Group>
         </ResizablePanels.Panel>
       </ResizablePanels.Group>

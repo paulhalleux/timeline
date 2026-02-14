@@ -1,0 +1,27 @@
+.controls {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 var(--space-1);
+  gap: var(--space-1);
+  width: 100%;
+}
+
+.controlsSeparator {
+  width: 1px;
+  height: 16px;
+  background-color: var(--color-border);
+}
+
+.timeDisplay {
+  font-family: monospace;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  min-width: 140px;
+}
+
+.mediaInfo {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-left: auto;
+}

@@ -163,6 +163,112 @@ export class TrackModule {
     this.update(trackId, { isDirty });
   }
 
+  // ---------------------------------------------------------------------------
+  // Cue Operations
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Gets a cue by index from a track.
+   */
+  getCue(trackId: EntityId, cueIndex: number) {
+    const track = this.get(trackId);
+    if (!track) return undefined;
+    return track.document.getCues().find((c) => c.index === cueIndex);
+  }
+
+  /**
+   * Updates a cue in a track.
+   */
+  updateCue(
+    trackId: EntityId,
+    cueIndex: number,
+    updates: {
+      text?: string;
+      startMs?: number;
+      endMs?: number;
+    },
+  ): void {
+    const track = this.get(trackId);
+    if (!track) return;
+
+    const cueUpdates: Record<string, unknown> = {};
+
+    if (updates.text !== undefined) {
+      cueUpdates.text = updates.text;
+    }
+
+    if (updates.startMs !== undefined) {
+      cueUpdates.start = {
+        raw: this.formatTimestamp(updates.startMs),
+        milliseconds: updates.startMs,
+      };
+    }
+
+    if (updates.endMs !== undefined) {
+      cueUpdates.end = {
+        raw: this.formatTimestamp(updates.endMs),
+        milliseconds: updates.endMs,
+      };
+    }
+
+    track.document.update(cueIndex, cueUpdates);
+    this.markDirty(trackId);
+
+    // Trigger store update to notify subscribers
+    this.store.set({ tracks: [...this.getState().tracks] });
+  }
+
+  /**
+   * Formats milliseconds to a timestamp string (HH:MM:SS.mmm).
+   */
+  private formatTimestamp(ms: number): string {
+    const hours = Math.floor(ms / 3600000);
+    const minutes = Math.floor((ms % 3600000) / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    const millis = ms % 1000;
+
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${millis.toString().padStart(3, "0")}`;
+  }
+
+  /**
+   * Deletes a cue from a track.
+   */
+  deleteCue(trackId: EntityId, cueIndex: number): void {
+    const track = this.get(trackId);
+    if (!track) return;
+
+    track.document.remove(cueIndex);
+    this.markDirty(trackId);
+
+    // Trigger store update
+    this.store.set({ tracks: [...this.getState().tracks] });
+  }
+
+  /**
+   * Inserts a new cue into a track.
+   */
+  insertCue(
+    trackId: EntityId,
+    startMs: number,
+    endMs: number,
+    text: string,
+    atIndex?: number,
+  ): void {
+    const track = this.get(trackId);
+    if (!track) return;
+
+    track.document.insert({
+      start: { raw: this.formatTimestamp(startMs), milliseconds: startMs },
+      end: { raw: this.formatTimestamp(endMs), milliseconds: endMs },
+      text,
+      index: atIndex,
+    });
+    this.markDirty(trackId);
+
+    // Trigger store update
+    this.store.set({ tracks: [...this.getState().tracks] });
+  }
+
   /**
    * Exports a track to its original format.
    */

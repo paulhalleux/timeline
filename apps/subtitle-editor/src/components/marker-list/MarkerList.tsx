@@ -1,4 +1,3 @@
-import * as React from "react";
 import {
   BookmarkIcon,
   CircleDotIcon,
@@ -6,6 +5,7 @@ import {
   MessageSquareIcon,
   Trash2Icon,
 } from "lucide-react";
+import * as React from "react";
 
 import {
   type MarkerType,
@@ -16,6 +16,7 @@ import {
   useMarkerSelection,
 } from "../../core";
 import { formatTime } from "../../utils/format";
+import { highlightText } from "../../utils/highlight.tsx";
 import { Button, List, SearchBar } from "../ui";
 import { EmptyState } from "../ui/EmptyState/EmptyState";
 import styles from "./MarkerList.module.css";
@@ -41,7 +42,6 @@ interface MarkerListItemProps {
   isActive: boolean;
   searchQuery: string;
   onClick: (e: React.MouseEvent) => void;
-  itemRef?: React.Ref<HTMLButtonElement>;
 }
 
 const MarkerListItem: React.FC<MarkerListItemProps> = ({
@@ -50,7 +50,6 @@ const MarkerListItem: React.FC<MarkerListItemProps> = ({
   isActive,
   searchQuery,
   onClick,
-  itemRef,
 }) => {
   return (
     <List.Item
@@ -58,18 +57,14 @@ const MarkerListItem: React.FC<MarkerListItemProps> = ({
       isSelected={isSelected}
       variant="row"
       onClick={onClick}
-      itemRef={itemRef}
     >
       <List.Icon>{MARKER_ICONS[marker.type]}</List.Icon>
       <List.Meta>{formatTime(marker.time)}</List.Meta>
       <List.Text>
-        {marker.label ? (
-          List.highlightText(marker.label, searchQuery)
-        ) : (
-          <span style={{ opacity: 0.5 }}>{marker.type}</span>
-        )}
+        {marker.label
+          ? highlightText(marker.label, searchQuery, styles.highlight)
+          : null}
       </List.Text>
-      <List.TypeBadge type={marker.type} />
     </List.Item>
   );
 };
@@ -86,17 +81,12 @@ export const MarkerList: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = React.useState("");
 
-  const listRef = React.useRef<HTMLDivElement>(null);
-  const activeItemRef = React.useRef<HTMLButtonElement>(null);
-
   // Filter markers based on search query
   const filteredMarkers = React.useMemo(() => {
     if (!searchQuery.trim()) return markers;
     const query = searchQuery.toLowerCase();
-    return markers.filter(
-      (marker) =>
-        marker.type.toLowerCase().includes(query) ||
-        marker.label?.toLowerCase().includes(query),
+    return markers.filter((marker) =>
+      marker.label?.toLowerCase().includes(query),
     );
   }, [markers, searchQuery]);
 
@@ -105,7 +95,7 @@ export const MarkerList: React.FC = () => {
     if (filteredMarkers.length === 0) return null;
 
     // Find marker that is exactly at current time or the most recent one before
-    const TOLERANCE = 500; // 500ms tolerance
+    const TOLERANCE = 250;
     for (let i = filteredMarkers.length - 1; i >= 0; i--) {
       const marker = filteredMarkers[i];
       if (Math.abs(marker.time - currentTime) < TOLERANCE) {
@@ -125,7 +115,6 @@ export const MarkerList: React.FC = () => {
         editor.markers.select(marker.id);
       }
 
-      // Seek to marker time
       editor.playback.seek(marker.time);
     },
     [editor],
@@ -157,8 +146,8 @@ export const MarkerList: React.FC = () => {
         />
         {hasSelection && (
           <Button
-            variant="ghost"
-            size="sm"
+            variant="default"
+            size="md"
             onClick={handleDeleteSelected}
             title="Delete selected markers"
           >
@@ -175,7 +164,7 @@ export const MarkerList: React.FC = () => {
           description={`No markers found for "${searchQuery}".`}
         />
       ) : (
-        <List.Container ref={listRef}>
+        <List.Container>
           {filteredMarkers.map((marker) => {
             const isSelected = selectedIds.has(marker.id);
             const isActive = marker.id === activeMarkerId;
@@ -188,7 +177,6 @@ export const MarkerList: React.FC = () => {
                 isActive={isActive}
                 searchQuery={searchQuery}
                 onClick={(e) => handleMarkerClick(marker, e)}
-                itemRef={isActive ? activeItemRef : undefined}
               />
             );
           })}
