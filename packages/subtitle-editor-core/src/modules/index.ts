@@ -27,6 +27,13 @@ export {
   type SelectionModuleState,
 } from "./selection-module";
 export {
+  SnappingModule,
+  type SnappingModuleApi,
+  type SnappingModuleOptions,
+  type SnappingModuleState,
+  type SnapResult,
+} from "./snapping-module";
+export {
   TrackModule,
   type TrackModuleApi,
   type TrackModuleState,

@@ -460,7 +460,6 @@ export const useEditorKeyboardShortcuts = (
         case "ArrowUp":
           if (e.shiftKey) {
             e.preventDefault();
-            console.log("Go to previous cue");
             editor.goToPreviousCue();
           }
           break;

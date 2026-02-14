@@ -8,6 +8,7 @@ import {
   type PlaybackController,
   PlaybackModule,
   SelectionModule,
+  SnappingModule,
   TrackModule,
 } from "./modules";
 import type {
@@ -126,6 +127,7 @@ export class SubtitleEditor
   private readonly _markers: MarkerModule;
   private readonly _selection: SelectionModule;
   private readonly _playback: PlaybackModule;
+  private readonly _snapping: SnappingModule;
   private readonly _history: HistoryModule | null;
 
   constructor(options: EditorOptions = {}) {
@@ -139,12 +141,14 @@ export class SubtitleEditor
     const markers = new MarkerModule({ history });
     const selection = new SelectionModule();
     const playback = new PlaybackModule();
+    const snapping = new SnappingModule();
 
     const builtInModules: EditorModule[] = [
       tracks,
       markers,
       selection,
       playback,
+      snapping,
     ];
 
     if (history) {
@@ -160,6 +164,7 @@ export class SubtitleEditor
     this._markers = markers;
     this._selection = selection;
     this._playback = playback;
+    this._snapping = snapping;
     this._history = history;
 
     this.options = mergedOptions;

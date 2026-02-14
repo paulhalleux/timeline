@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { useMarkers, useTracks } from "../../core";
 import { EmptyState } from "../ui/EmptyState/EmptyState.tsx";
+import { SnapIndicator } from "./SnapIndicator.tsx";
 import { SubtitleTrackComponent } from "./SubtitleTrack.tsx";
 import styles from "./TimelineComponents.module.css";
 import { TimelineFooter } from "./TimelineFooter.tsx";
@@ -32,6 +33,7 @@ export const TimelinePanel: React.FC = () => {
         {!isEmpty && (
           <Timeline.Overlay style={{ overflow: "hidden" }}>
             <TimelinePlayhead />
+            <SnapIndicator />
             <Translate style={{ width: "100%", height: "100%" }}>
               {markers.map((marker) => (
                 <TimelineMarkerItem key={marker.id} marker={marker} />

@@ -1,11 +1,12 @@
 import { useSignal } from "@ptl/signal-react";
 import { PlaybackModule, SelectionModule } from "@ptl/subtitle-editor-core";
 import type { SubtitleCue } from "@ptl/subtitle-kit";
-import { Track, ViewportItem } from "@ptl/timeline-react";
+import { Track } from "@ptl/timeline-react";
 import { CornerDownLeftIcon, CornerDownRightIcon } from "lucide-react";
 import * as React from "react";
 
 import { type SubtitleTrack, useEditor, useSelectedCues } from "../../core";
+import { DraggableCue } from "./DraggableCue";
 import styles from "./TimelineComponents.module.css";
 
 interface SubtitleTrackComponentProps {
@@ -50,10 +51,10 @@ export const SubtitleTrackComponent: React.FC<SubtitleTrackComponentProps> = ({
           const isSelected = selectedCues.has(cue.index);
 
           return (
-            <ViewportItem
+            <DraggableCue
               key={`${track.id}-${cue.index}`}
-              start={cue.start.milliseconds}
-              end={cue.end.milliseconds}
+              trackId={track.id}
+              cue={cue}
               className={`${styles.cue} ${isSelected ? styles.cueSelected : ""}`}
               onClick={(e) => handleCueClick(cue, e)}
             >
@@ -77,7 +78,7 @@ export const SubtitleTrackComponent: React.FC<SubtitleTrackComponentProps> = ({
                   </React.Fragment>
                 ))}
               </span>
-            </ViewportItem>
+            </DraggableCue>
           );
         })}
       </Track.Content>

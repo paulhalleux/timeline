@@ -1,0 +1,53 @@
+.cue {
+  position: absolute;
+  display: flex;
+  align-items: stretch;
+  user-select: none;
+}
+
+.cue.dragging {
+  opacity: 0.8;
+  z-index: 10;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  cursor: grab;
+  overflow: hidden;
+  padding: 0 var(--space-2);
+}
+
+.content:active {
+  cursor: grabbing;
+}
+
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: ew-resize;
+  z-index: 1;
+  opacity: 0;
+  background: var(--color-primary);
+  transition: opacity var(--transition-fast);
+}
+
+.resizeHandle[data-position="left"] {
+  left: 0;
+}
+
+.resizeHandle[data-position="right"] {
+  right: 0;
+}
+
+.cue:hover .resizeHandle {
+  opacity: 0.5;
+}
+
+.resizeHandle:hover {
+  opacity: 1 !important;
+}
+
