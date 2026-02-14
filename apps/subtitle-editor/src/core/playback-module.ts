@@ -171,10 +171,8 @@ export class PlaybackModule {
    * Seeks to a specific time in milliseconds.
    */
   seek(timeMs: number): void {
-    const { duration } = this.getState();
-    const clampedTime = clamp(timeMs, 0, duration);
+    const clampedTime = clamp(timeMs, 0, Infinity);
     this.controller?.seek(clampedTime);
-    // Optimistically update state
     this.update({ currentTime: clampedTime });
   }
 

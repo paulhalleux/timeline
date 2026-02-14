@@ -1,0 +1,31 @@
+.timeField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.timeInput {
+  width: 100%;
+  padding: var(--space-2);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-family: monospace;
+  font-size: var(--font-size-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.timeInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px oklab(from var(--color-primary) l a b / 0.2);
+}
+
+.timeInputError {
+  border-color: var(--color-danger);
+}
+
+.timeInputError:focus {
+  box-shadow: 0 0 0 2px oklab(from var(--color-danger) l a b / 0.2);
+}

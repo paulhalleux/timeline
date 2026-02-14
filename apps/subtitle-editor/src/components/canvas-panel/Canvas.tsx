@@ -1,38 +1,26 @@
-import { SubtitleParser } from "@ptl/subtitle-kit";
+import { useSignal } from "@ptl/signal-react";
+import { type SubtitleDocument, SubtitleParser } from "@ptl/subtitle-kit";
 import * as React from "react";
 
 import { useMedia, useTracks, useVideoConnection } from "../../core";
 import styles from "./Canvas.module.css";
 
-/**
- * Converts subtitle tracks to video track sources.
- */
 const useSubtitleSources = () => {
   const tracks = useTracks();
-
   return React.useMemo(() => {
     return tracks.map(({ id, label, document }) => ({
       id,
       label,
-      src: URL.createObjectURL(
-        new Blob([SubtitleParser.stringify("vtt", document)], {
-          type: "text/plain",
-        }),
-      ),
+      document,
     }));
   }, [tracks]);
 };
 
-/**
- * Video canvas component with subtitle overlay.
- */
 export const Canvas: React.FC = () => {
-  const videoRef = React.useRef<HTMLVideoElement>(null!);
   const media = useMedia();
   const subtitleSources = useSubtitleSources();
 
-  // Connect video element to the editor's playback module
-  useVideoConnection(videoRef);
+  const videoRef = useVideoConnection();
 
   const aspectRatio = media?.metadata.aspectRatio ?? 21 / 9;
 
@@ -44,11 +32,39 @@ export const Canvas: React.FC = () => {
       >
         <video ref={videoRef} controls className={styles.video}>
           {media?.url && <source src={media.url} type="video/mp4" />}
-          {subtitleSources.map(({ id, label, src }) => (
-            <track key={id} label={label} kind="subtitles" src={src} />
+          {subtitleSources.map(({ id, label, document }) => (
+            <SubtitleTrack key={id} id={id} label={label} document={document} />
           ))}
         </video>
       </div>
     </div>
   );
+};
+
+const SubtitleTrack: React.FC<{
+  id: string;
+  label: string;
+  document: SubtitleDocument;
+}> = ({ label, document }) => {
+  const src = useSignal(
+    document.getCuesSignal().map(() => {
+      return URL.createObjectURL(
+        new Blob([SubtitleParser.stringify(document.getFormat(), document)], {
+          type: "text/plain",
+        }),
+      );
+    }),
+  );
+
+  const prevSrcRef = React.useRef<string | null>(null);
+
+  // eslint-disable-next-line react-hooks/refs
+  if (prevSrcRef.current && prevSrcRef.current !== src) {
+    // eslint-disable-next-line react-hooks/refs
+    URL.revokeObjectURL(prevSrcRef.current);
+    // eslint-disable-next-line react-hooks/refs
+    prevSrcRef.current = src;
+  }
+
+  return <track key={src} label={label} kind="subtitles" src={src} />;
 };

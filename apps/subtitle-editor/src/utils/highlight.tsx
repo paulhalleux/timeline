@@ -12,8 +12,8 @@ export const highlightText = (
   text: string,
   query: string,
   highlightClass: string,
-): React.ReactNode => {
-  if (!query.trim()) return text;
+): React.ReactNode[] => {
+  if (!query.trim()) return [text];
 
   const regex = new RegExp(
     `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,

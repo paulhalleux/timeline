@@ -1,7 +1,12 @@
-import { useSignalSelector } from "@ptl/signal-react";
+import { useSignal, useSignalSelector } from "@ptl/signal-react";
 import { PlayheadModule } from "@ptl/timeline-core";
 import { useTimeline } from "@ptl/timeline-react";
-import { ArrowDownIcon, CaptionsIcon } from "lucide-react";
+import {
+  ArrowDownIcon,
+  CaptionsIcon,
+  CornerDownLeftIcon,
+  CornerDownRightIcon,
+} from "lucide-react";
 import * as React from "react";
 
 import {
@@ -13,13 +18,9 @@ import {
 } from "../../core";
 import { formatTime } from "../../utils/format.ts";
 import { highlightText } from "../../utils/highlight.tsx";
-import { Button, List, SearchBar, Tabs } from "../ui";
+import { Button, List, Panel, SearchBar, Tabs } from "../ui";
 import { EmptyState } from "../ui/EmptyState/EmptyState.tsx";
 import styles from "./SubtitleList.module.css";
-
-/* ============================================================================
- * CueListItem - Uses generic List component
- * ========================================================================== */
 
 interface CueListItemProps {
   start: number;
@@ -46,7 +47,18 @@ const CueListItem: React.FC<CueListItemProps> = ({
         {formatTime(start)} → {formatTime(end)}
       </List.Meta>
       <List.Text>
-        {highlightText(text, searchQuery, styles.highlight)}
+        {text.split("\n").map((line, index) => (
+          <React.Fragment key={index}>
+            {highlightText(line, searchQuery, styles.highlight)}
+            {index < text.split("\n").length - 1 && (
+              <>
+                <CornerDownLeftIcon size={12} className={styles.newlineIcon} />
+                <br />
+                <CornerDownRightIcon size={12} className={styles.newlineIcon} />
+              </>
+            )}
+          </React.Fragment>
+        ))}
       </List.Text>
     </List.Item>
   );
@@ -80,7 +92,7 @@ const SubtitleTrackContent: React.FC<SubtitleTrackContentProps> = ({
     playhead.getStore(),
   ] as const);
 
-  const cues = track.document.getCues();
+  const cues = useSignal(track.document.getCuesSignal());
 
   // Filter cues based on search query
   const filteredCues = React.useMemo(() => {
@@ -213,7 +225,7 @@ export const SubtitleList: React.FC = () => {
           </Tabs.Trigger>
         ))}
       </Tabs.List>
-      <div className={styles.toolbar}>
+      <Panel.Header>
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
@@ -221,6 +233,7 @@ export const SubtitleList: React.FC = () => {
         />
         <Button
           variant="icon"
+          size="sm"
           active={autoScrollEnabled}
           onClick={handleToggleAutoScroll}
           title={
@@ -228,9 +241,9 @@ export const SubtitleList: React.FC = () => {
           }
           aria-pressed={autoScrollEnabled}
         >
-          <ArrowDownIcon size={16} />
+          <ArrowDownIcon size={14} />
         </Button>
-      </div>
+      </Panel.Header>
       {tracks.map((track) => (
         <Tabs.Content key={track.id} value={track.id}>
           <SubtitleTrackContent

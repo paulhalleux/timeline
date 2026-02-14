@@ -15,7 +15,9 @@
   "files": [
     "dist"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "@ptl/signal": "^0.0.0"
+  },
   "devDependencies": {
     "@ptl/eslint-config": "^1.0.0",
     "@types/node": "^25.1.0",

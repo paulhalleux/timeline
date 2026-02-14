@@ -26,38 +26,31 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   iconEnd?: React.ReactNode;
 }
 
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      variant = "default",
-      size = "md",
-      active = false,
-      iconStart,
-      iconEnd,
-      className,
-      children,
-      ...props
-    },
-    ref,
-  ) => {
-    const classNames = [
-      styles.button,
-      styles[`variant-${variant}`],
-      styles[`size-${size}`],
-      active ? styles.active : "",
-      className ?? "",
-    ]
-      .filter(Boolean)
-      .join(" ");
+export const Button: React.FC<ButtonProps> = ({
+  variant = "default",
+  size = "md",
+  active = false,
+  iconStart,
+  iconEnd,
+  className,
+  children,
+  ...props
+}) => {
+  const classNames = [
+    styles.button,
+    styles[`variant-${variant}`],
+    styles[`size-${size}`],
+    active ? styles.active : "",
+    className ?? "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
-    return (
-      <button ref={ref} className={classNames} data-active={active} {...props}>
-        {iconStart && <span className={styles.icon}>{iconStart}</span>}
-        {children && <span className={styles.label}>{children}</span>}
-        {iconEnd && <span className={styles.icon}>{iconEnd}</span>}
-      </button>
-    );
-  },
-);
-
-Button.displayName = "Button";
+  return (
+    <button className={classNames} data-active={active} {...props}>
+      {iconStart && <span className={styles.icon}>{iconStart}</span>}
+      {children && <span className={styles.label}>{children}</span>}
+      {iconEnd && <span className={styles.icon}>{iconEnd}</span>}
+    </button>
+  );
+};

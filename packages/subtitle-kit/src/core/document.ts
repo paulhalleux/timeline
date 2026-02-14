@@ -1,3 +1,5 @@
+import { type Signal, WritableSignal } from "@ptl/signal";
+
 import { type SupportedFormats } from "../formats/SubtitleParser";
 import { type Timestamp } from "./timestamp";
 
@@ -21,7 +23,7 @@ export class SubtitleDocument<
   Format extends SupportedFormats = SupportedFormats,
   Metadata extends Record<string, any> = Record<string, any>,
 > {
-  private cues: SubtitleCue<Metadata>[];
+  private readonly cues: WritableSignal<SubtitleCue<Metadata>[]>;
 
   private _startTime: number | null = null;
   private _endTime: number | null = null;
@@ -30,18 +32,26 @@ export class SubtitleDocument<
     private readonly format: Format,
     cues: SubtitleCue<Metadata>[],
   ) {
-    this.cues = cues;
+    this.cues = new WritableSignal(cues);
     this.invalidateCache();
   }
 
   // Getters
 
   /**
+   * Get the signal containing the cues of the subtitle document.
+   * @returns The signal containing the cues of the subtitle document.
+   */
+  getCuesSignal(): Signal<SubtitleCue<Metadata>[]> {
+    return this.cues;
+  }
+
+  /**
    * Get the cues of the subtitle document.
    * @returns The cues of the subtitle document.
    */
   getCues(): SubtitleCue<Metadata>[] {
-    return this.cues;
+    return this.cues.get();
   }
 
   /**
@@ -91,11 +101,11 @@ export class SubtitleDocument<
    */
   getFirstAt(t: number): SubtitleCue<Metadata> | null {
     let low = 0;
-    let high = this.cues.length - 1;
+    let high = this.cues.get().length - 1;
 
     while (low <= high) {
       const mid = Math.floor((low + high) / 2);
-      const cue = this.cues[mid];
+      const cue = this.cues.get()[mid];
 
       if (t < cue.start.milliseconds) {
         high = mid - 1;
@@ -116,7 +126,7 @@ export class SubtitleDocument<
    * @param cues - The new cues to set.
    */
   setCues(cues: SubtitleCue<Metadata>[]): void {
-    this.cues = cues;
+    this.cues.set(cues);
   }
 
   /**
@@ -128,10 +138,12 @@ export class SubtitleDocument<
     index: number,
     newCue: Partial<Omit<SubtitleCue<Metadata>, "index">>,
   ): void {
-    const cue = this.cues.find((c) => c.index === index);
-    if (cue) {
-      Object.assign(cue, newCue);
-    }
+    const cue = this.cues.get().find((c) => c.index === index);
+    if (!cue) return;
+    const updatedCue = { ...cue, ...newCue, index };
+    this.cues.set(
+      this.cues.get().map((c) => (c.index === index ? updatedCue : c)),
+    );
   }
 
   /**
@@ -139,10 +151,17 @@ export class SubtitleDocument<
    * @param index - The index of the cue to remove.
    */
   remove(index: number): void {
-    this.cues = this.cues.filter((c) => c.index !== index);
-    this.cues.forEach((cue) => {
-      if (cue.index > index) cue.index = cue.index - 1;
-    });
+    this.cues.set(
+      this.cues
+        .get()
+        .filter((c) => c.index !== index)
+        .map((cue) => {
+          if (cue.index > index) {
+            return { ...cue, index: cue.index - 1 };
+          }
+          return cue;
+        }),
+    );
   }
 
   /**
@@ -150,39 +169,44 @@ export class SubtitleDocument<
    * @param cue - The cue to insert.
    */
   insert(cue: Omit<SubtitleCue<Metadata>, "index"> & { index?: number }): void {
+    const newCues = structuredClone(this.cues.get());
     if (
       cue.index !== undefined &&
       cue.index >= 0 &&
-      cue.index <= this.cues.length
+      cue.index <= newCues.length
     ) {
-      this.cues.forEach((c) => {
+      newCues.forEach((c) => {
         if (cue.index && c.index >= cue.index) c.index = c.index + 1;
       });
-      this.cues.splice(cue.index - 1, 0, {
+      newCues.splice(cue.index - 1, 0, {
         ...cue,
         index: cue.index,
       });
     } else {
-      this.cues.push({
+      newCues.push({
         ...cue,
-        index: this.cues.length,
+        index: newCues.length,
       });
     }
+    this.cues.set(newCues);
   }
 
   // Private methods
 
   private invalidateCache(): void {
-    if (this.cues.length === 0) {
+    if (this.cues.get().length === 0) {
       this._startTime = 0;
       this._endTime = 0;
       return;
     }
 
     this._startTime = Math.min(
-      ...this.cues.map((cue) => cue.start.milliseconds),
+      ...this.cues.get().map((cue) => cue.start.milliseconds),
     );
-    this._endTime = Math.max(...this.cues.map((cue) => cue.end.milliseconds));
+
+    this._endTime = Math.max(
+      ...this.cues.get().map((cue) => cue.end.milliseconds),
+    );
   }
 
   static fromTextTrack<Metadata extends Record<string, any>>(

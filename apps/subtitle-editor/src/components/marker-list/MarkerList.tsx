@@ -147,11 +147,11 @@ export const MarkerList: React.FC = () => {
         {hasSelection && (
           <Button
             variant="default"
-            size="md"
+            size="sm"
             onClick={handleDeleteSelected}
             title="Delete selected markers"
           >
-            <Trash2Icon size={14} />
+            <Trash2Icon size={12} />
             <span>{selectedIds.size}</span>
           </Button>
         )}

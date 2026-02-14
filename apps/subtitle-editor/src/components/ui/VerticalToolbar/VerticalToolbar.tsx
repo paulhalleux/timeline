@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { Tooltip } from "../Tooltip/Tooltip.tsx";
 import styles from "./VerticalToolbar.module.css";
 
 // ============================================================================
@@ -42,31 +43,34 @@ interface ToolbarButtonProps {
   item: ToolbarItem;
   isActive: boolean;
   onClick: () => void;
+  tooltipPlacement: "left" | "right";
 }
 
 const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   item,
   isActive,
   onClick,
+  tooltipPlacement,
 }) => {
   return (
     <div className={styles.toolbarItemWrapper}>
-      <button
-        className={styles.toolbarItem}
-        data-active={isActive}
-        onClick={onClick}
-        disabled={item.disabled}
-        aria-label={item.label}
-        aria-pressed={isActive}
-      >
-        {item.icon}
-      </button>
+      <Tooltip content={item.label} placement={tooltipPlacement} delay="short">
+        <button
+          className={styles.toolbarItem}
+          data-active={isActive}
+          onClick={onClick}
+          disabled={item.disabled}
+          aria-label={item.label}
+          aria-pressed={isActive}
+        >
+          {item.icon}
+        </button>
+      </Tooltip>
       {item.badge !== undefined && item.badge > 0 && (
         <span className={styles.badge}>
           {item.badge > 99 ? "99+" : item.badge}
         </span>
       )}
-      <span className={styles.tooltip}>{item.label}</span>
     </div>
   );
 };
@@ -96,9 +100,12 @@ export const VerticalToolbar: React.FC<VerticalToolbarProps> = ({
   activeId,
   onItemClick,
   bottomItems,
-  position,
+  position = "left",
   className,
 }) => {
+  // Tooltip appears on the opposite side of the toolbar
+  const tooltipPlacement = position === "right" ? "left" : "right";
+
   return (
     <div
       className={`${styles.toolbar} ${className ?? ""} ${position === "right" ? styles.right : styles.left}`}
@@ -109,6 +116,7 @@ export const VerticalToolbar: React.FC<VerticalToolbarProps> = ({
           item={item}
           isActive={activeId === item.id}
           onClick={() => onItemClick(item.id)}
+          tooltipPlacement={tooltipPlacement}
         />
       ))}
 
@@ -122,6 +130,7 @@ export const VerticalToolbar: React.FC<VerticalToolbarProps> = ({
               item={item}
               isActive={activeId === item.id}
               onClick={() => onItemClick(item.id)}
+              tooltipPlacement={tooltipPlacement}
             />
           ))}
         </>

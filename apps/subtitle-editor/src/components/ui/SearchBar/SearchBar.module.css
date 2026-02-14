@@ -1,14 +1,13 @@
-/* SearchBar Component Styles */
-
 .searchBar {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .searchIcon {
   position: absolute;
-  left: var(--space-3);
+  left: var(--space-2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -18,8 +17,8 @@
 
 .searchInput {
   width: 100%;
-  height: var(--height-md);
-  padding: 0 var(--height-md) 0 var(--height-md);
+  height: var(--height-sm);
+  padding: 0 var(--height-sm) 0 var(--height-sm);
   background-color: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -45,8 +44,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--height-sm);
-  height: var(--height-sm);
+  width: calc(var(--height-sm) * 0.60);
+  height: calc(var(--height-sm) * 0.60);
   padding: 0;
   border: none;
   background: transparent;

@@ -1,5 +1,5 @@
 import { useSignal, useSignalSelector } from "@ptl/signal-react";
-import { PlayheadModule } from "@ptl/timeline-core";
+import { PlayheadModule, type TimelineApi } from "@ptl/timeline-core";
 import { useTimeline } from "@ptl/timeline-react";
 import * as React from "react";
 
@@ -13,6 +13,7 @@ import type {
   SubtitleTrack,
   TimelineMarker,
 } from "./types";
+import { clamp } from "./utils.ts";
 
 // ============================================================================
 // Context
@@ -202,10 +203,9 @@ export const usePlayback = (): PlaybackModuleState => {
  * Hook to get current playback time in milliseconds.
  */
 export const useCurrentTime = (): number => {
-  const timeline = useTimeline();
-  const playhead = PlayheadModule.for(timeline);
-  return useSignalSelector(([state]) => state.position, [
-    playhead.getStore(),
+  const editor = useEditor();
+  return useSignalSelector(([state]) => state.currentTime, [
+    editor.playback.getStore(),
   ] as const);
 };
 
@@ -262,11 +262,14 @@ export const useMedia = () => {
  */
 export const createVideoController = (
   video: HTMLVideoElement,
+  timeline: TimelineApi,
 ): PlaybackController => ({
   play: () => video.play(),
   pause: () => video.pause(),
   seek: (timeMs) => {
-    video.currentTime = timeMs / 1000;
+    const playhead = PlayheadModule.for(timeline);
+    playhead.setPosition(timeMs);
+    // video.currentTime = timeMs / 1000;
   },
   setVolume: (volume) => {
     video.volume = volume;
@@ -282,33 +285,34 @@ export const createVideoController = (
 /**
  * Hook to connect a video element to the editor.
  */
-export const useVideoConnection = (
-  videoRef: React.RefObject<HTMLVideoElement>,
-) => {
+export const useVideoConnection = () => {
   const editor = useEditor();
   const timeline = useTimeline();
   const playhead = PlayheadModule.for(timeline);
 
   const blockTimeUpdateEvent = React.useRef(false);
+  const [videoRef, setVideoRef] = React.useState<HTMLVideoElement | null>(null);
 
   React.useEffect(() => {
-    return playhead.getStore().subscribe(() => {
-      const video = videoRef.current;
-      if (!video) return;
-
-      const currentTime = playhead.getPosition();
-      if (Math.abs(video.currentTime * 1000 - currentTime) > 500) {
-        blockTimeUpdateEvent.current = true;
-        video.currentTime = currentTime / 1000;
+    return playhead.getStore().subscribe(({ position }) => {
+      if (!videoRef) return;
+      const normalizedPosition = Math.round(position);
+      blockTimeUpdateEvent.current = true;
+      if (!isNaN(videoRef.duration)) {
+        videoRef.currentTime = clamp(
+          normalizedPosition / 1000,
+          0,
+          videoRef.duration,
+        );
       }
+      editor.playback.setCurrentTime(normalizedPosition);
     });
-  }, [playhead, videoRef]);
+  }, [editor.playback, playhead, videoRef]);
 
   React.useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    if (!videoRef) return;
 
-    const controller = createVideoController(video);
+    const controller = createVideoController(videoRef, timeline);
     editor.connectPlaybackController(controller);
 
     // Event handlers
@@ -317,8 +321,8 @@ export const useVideoConnection = (
         blockTimeUpdateEvent.current = false;
         return;
       }
-      editor.playback.setCurrentTime(video.currentTime * 1000);
-      playhead.setPosition(video.currentTime * 1000);
+      editor.playback.setCurrentTime(videoRef.currentTime * 1000);
+      playhead.setPosition(videoRef.currentTime * 1000);
     };
 
     const handlePlay = () => {
@@ -331,38 +335,42 @@ export const useVideoConnection = (
 
     const handleVolumeChange = () => {
       editor.playback.update({
-        volume: video.volume,
-        isMuted: video.muted,
+        volume: videoRef.volume,
+        isMuted: videoRef.muted,
       });
     };
 
     const handleDurationChange = () => {
-      editor.playback.setDuration(video.duration * 1000);
+      editor.playback.setDuration(videoRef.duration * 1000);
     };
 
     const handleRateChange = () => {
       editor.playback.update({
-        playbackRate: video.playbackRate,
+        playbackRate: videoRef.playbackRate,
       });
     };
 
-    video.addEventListener("timeupdate", handleTimeUpdate);
-    video.addEventListener("play", handlePlay);
-    video.addEventListener("pause", handlePause);
-    video.addEventListener("volumechange", handleVolumeChange);
-    video.addEventListener("durationchange", handleDurationChange);
-    video.addEventListener("ratechange", handleRateChange);
+    videoRef.addEventListener("timeupdate", handleTimeUpdate);
+    videoRef.addEventListener("play", handlePlay);
+    videoRef.addEventListener("pause", handlePause);
+    videoRef.addEventListener("volumechange", handleVolumeChange);
+    videoRef.addEventListener("durationchange", handleDurationChange);
+    videoRef.addEventListener("ratechange", handleRateChange);
 
     return () => {
-      video.removeEventListener("timeupdate", handleTimeUpdate);
-      video.removeEventListener("play", handlePlay);
-      video.removeEventListener("pause", handlePause);
-      video.removeEventListener("volumechange", handleVolumeChange);
-      video.removeEventListener("durationchange", handleDurationChange);
-      video.removeEventListener("ratechange", handleRateChange);
+      videoRef.removeEventListener("timeupdate", handleTimeUpdate);
+      videoRef.removeEventListener("play", handlePlay);
+      videoRef.removeEventListener("pause", handlePause);
+      videoRef.removeEventListener("volumechange", handleVolumeChange);
+      videoRef.removeEventListener("durationchange", handleDurationChange);
+      videoRef.removeEventListener("ratechange", handleRateChange);
       editor.disconnectPlaybackController();
     };
-  }, [editor, playhead, videoRef]);
+  }, [editor, playhead, timeline, videoRef]);
+
+  return (node: HTMLVideoElement | null) => {
+    setVideoRef(node);
+  };
 };
 
 // ============================================================================
