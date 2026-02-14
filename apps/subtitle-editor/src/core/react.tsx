@@ -1,19 +1,23 @@
 import { useSignal, useSignalSelector } from "@ptl/signal-react";
+import {
+  clamp,
+  type EditorOptions,
+  type EntityId,
+  MarkerModule,
+  type MarkerType,
+  type PlaybackController,
+  PlaybackModule,
+  type PlaybackModuleState,
+  SelectionModule,
+  type SelectionModuleState,
+  SubtitleEditor,
+  type SubtitleTrack,
+  type TimelineMarker,
+  TrackModule,
+} from "@ptl/subtitle-editor-core";
 import { PlayheadModule, type TimelineApi } from "@ptl/timeline-core";
 import { useTimeline } from "@ptl/timeline-react";
 import * as React from "react";
-
-import type { EditorOptions } from "./editor";
-import { type PlaybackController, SubtitleEditor } from "./editor";
-import type { PlaybackModuleState } from "./playback-module";
-import type { SelectionModuleState } from "./selection-module";
-import type {
-  EntityId,
-  MarkerType,
-  SubtitleTrack,
-  TimelineMarker,
-} from "./types";
-import { clamp } from "./utils.ts";
 
 // ============================================================================
 // Context
@@ -38,13 +42,6 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({
   children,
 }) => {
   const [editor] = React.useState(() => new SubtitleEditor(options));
-
-  React.useEffect(() => {
-    return () => {
-      editor.destroy();
-    };
-  }, [editor]);
-
   return (
     <EditorContext.Provider value={editor}>{children}</EditorContext.Provider>
   );
@@ -75,8 +72,9 @@ export const useEditor = (): SubtitleEditor => {
  */
 export const useTracks = (): SubtitleTrack[] => {
   const editor = useEditor();
+  const tracks = TrackModule.for(editor);
   return useSignalSelector(([state]) => state.tracks, [
-    editor.tracks.getStore(),
+    tracks.getStore(),
   ] as const);
 };
 
@@ -93,9 +91,10 @@ export const useTrack = (trackId: EntityId): SubtitleTrack | undefined => {
  */
 export const useActiveTrack = (): SubtitleTrack | undefined => {
   const editor = useEditor();
+  const selection = SelectionModule.for(editor);
   const tracks = useTracks();
   const activeTrackId = useSignalSelector(([state]) => state.activeTrackId, [
-    editor.selection.getStore(),
+    selection.getStore(),
   ] as const);
   return activeTrackId ? tracks.find((t) => t.id === activeTrackId) : undefined;
 };
@@ -109,8 +108,9 @@ export const useActiveTrack = (): SubtitleTrack | undefined => {
  */
 export const useMarkers = (): TimelineMarker[] => {
   const editor = useEditor();
+  const markers = MarkerModule.for(editor);
   return useSignalSelector(([state]) => state.markers, [
-    editor.markers.getStore(),
+    markers.getStore(),
   ] as const);
 };
 
@@ -119,8 +119,9 @@ export const useMarkers = (): TimelineMarker[] => {
  */
 export const useMarkerSelection = (): Set<EntityId> => {
   const editor = useEditor();
+  const markers = MarkerModule.for(editor);
   return useSignalSelector(([state]) => state.selectedMarkerIds, [
-    editor.markers.getStore(),
+    markers.getStore(),
   ] as const);
 };
 
@@ -152,7 +153,8 @@ export const useMarkersByType = (type: MarkerType): TimelineMarker[] => {
  */
 export const useSelection = (): SelectionModuleState => {
   const editor = useEditor();
-  return useSignal(editor.selection.getStore());
+  const selection = SelectionModule.for(editor);
+  return useSignal(selection.getStore());
 };
 
 /**
@@ -160,8 +162,9 @@ export const useSelection = (): SelectionModuleState => {
  */
 export const useActiveTrackId = (): EntityId | null => {
   const editor = useEditor();
+  const selection = SelectionModule.for(editor);
   return useSignalSelector(([state]) => state.activeTrackId, [
-    editor.selection.getStore(),
+    selection.getStore(),
   ] as const);
 };
 
@@ -170,9 +173,10 @@ export const useActiveTrackId = (): EntityId | null => {
  */
 export const useSelectedCues = (trackId: EntityId): Set<number> => {
   const editor = useEditor();
+  const selection = SelectionModule.for(editor);
   return useSignalSelector(
     ([state]) => state.selectedCues.get(trackId) ?? new Set(),
-    [editor.selection.getStore()] as const,
+    [selection.getStore()] as const,
   );
 };
 
@@ -196,7 +200,8 @@ export const useIsCueSelected = (
  */
 export const usePlayback = (): PlaybackModuleState => {
   const editor = useEditor();
-  return useSignal(editor.playback.getStore());
+  const playback = PlaybackModule.for(editor);
+  return useSignal(playback.getStore());
 };
 
 /**
@@ -204,8 +209,9 @@ export const usePlayback = (): PlaybackModuleState => {
  */
 export const useCurrentTime = (): number => {
   const editor = useEditor();
+  const playback = PlaybackModule.for(editor);
   return useSignalSelector(([state]) => state.currentTime, [
-    editor.playback.getStore(),
+    playback.getStore(),
   ] as const);
 };
 
@@ -214,8 +220,9 @@ export const useCurrentTime = (): number => {
  */
 export const useIsPlaying = (): boolean => {
   const editor = useEditor();
+  const playback = PlaybackModule.for(editor);
   return useSignalSelector(([state]) => state.isPlaying, [
-    editor.playback.getStore(),
+    playback.getStore(),
   ] as const);
 };
 
@@ -224,8 +231,9 @@ export const useIsPlaying = (): boolean => {
  */
 export const useVolume = (): number => {
   const editor = useEditor();
+  const playback = PlaybackModule.for(editor);
   return useSignalSelector(([state]) => state.volume, [
-    editor.playback.getStore(),
+    playback.getStore(),
   ] as const);
 };
 
@@ -234,8 +242,9 @@ export const useVolume = (): number => {
  */
 export const useIsMuted = (): boolean => {
   const editor = useEditor();
+  const playback = PlaybackModule.for(editor);
   return useSignalSelector(([state]) => state.isMuted, [
-    editor.playback.getStore(),
+    playback.getStore(),
   ] as const);
 };
 
@@ -287,6 +296,7 @@ export const createVideoController = (
  */
 export const useVideoConnection = () => {
   const editor = useEditor();
+  const playback = PlaybackModule.for(editor);
   const timeline = useTimeline();
   const playhead = PlayheadModule.for(timeline);
 
@@ -305,9 +315,9 @@ export const useVideoConnection = () => {
           videoRef.duration,
         );
       }
-      editor.playback.setCurrentTime(normalizedPosition);
+      playback.setCurrentTime(normalizedPosition);
     });
-  }, [editor.playback, playhead, videoRef]);
+  }, [playback, playhead, videoRef]);
 
   React.useEffect(() => {
     if (!videoRef) return;
@@ -321,31 +331,31 @@ export const useVideoConnection = () => {
         blockTimeUpdateEvent.current = false;
         return;
       }
-      editor.playback.setCurrentTime(videoRef.currentTime * 1000);
+      playback.setCurrentTime(videoRef.currentTime * 1000);
       playhead.setPosition(videoRef.currentTime * 1000);
     };
 
     const handlePlay = () => {
-      editor.playback.setIsPlaying(true);
+      playback.setIsPlaying(true);
     };
 
     const handlePause = () => {
-      editor.playback.setIsPlaying(false);
+      playback.setIsPlaying(false);
     };
 
     const handleVolumeChange = () => {
-      editor.playback.update({
+      playback.update({
         volume: videoRef.volume,
         isMuted: videoRef.muted,
       });
     };
 
     const handleDurationChange = () => {
-      editor.playback.setDuration(videoRef.duration * 1000);
+      playback.setDuration(videoRef.duration * 1000);
     };
 
     const handleRateChange = () => {
-      editor.playback.update({
+      playback.update({
         playbackRate: videoRef.playbackRate,
       });
     };
@@ -366,7 +376,7 @@ export const useVideoConnection = () => {
       videoRef.removeEventListener("ratechange", handleRateChange);
       editor.disconnectPlaybackController();
     };
-  }, [editor, playhead, timeline, videoRef]);
+  }, [editor, playback, playhead, timeline, videoRef]);
 
   return (node: HTMLVideoElement | null) => {
     setVideoRef(node);
@@ -392,6 +402,8 @@ export const useEditorKeyboardShortcuts = (
 ) => {
   const { enabled = true, seekAmount = 5000 } = options;
   const editor = useEditor();
+  const playback = PlaybackModule.for(editor);
+  const markers = MarkerModule.for(editor);
   const timeline = useTimeline();
   const playhead = PlayheadModule.for(timeline);
 
@@ -410,7 +422,7 @@ export const useEditorKeyboardShortcuts = (
       // Playback controls
       if (e.code === "Space") {
         e.preventDefault();
-        editor.playback.togglePlayPause();
+        playback.togglePlayPause();
         return;
       }
 
@@ -436,19 +448,19 @@ export const useEditorKeyboardShortcuts = (
         }
       }
 
-      // Navigation and controls
       switch (e.code) {
         case "ArrowLeft":
           e.preventDefault();
-          editor.playback.seekBackward(seekAmount);
+          playback.seekBackward(seekAmount);
           break;
         case "ArrowRight":
           e.preventDefault();
-          editor.playback.seekForward(seekAmount);
+          playback.seekForward(seekAmount);
           break;
         case "ArrowUp":
           if (e.shiftKey) {
             e.preventDefault();
+            console.log("Go to previous cue");
             editor.goToPreviousCue();
           }
           break;
@@ -460,7 +472,7 @@ export const useEditorKeyboardShortcuts = (
           break;
         case "KeyM":
           e.preventDefault();
-          editor.playback.toggleMute();
+          playback.toggleMute();
           break;
         case "BracketLeft":
           e.preventDefault();
@@ -472,17 +484,33 @@ export const useEditorKeyboardShortcuts = (
           break;
         case "Home":
           e.preventDefault();
-          editor.playback.seekToStart();
+          playback.seekToStart();
           break;
         case "End":
           e.preventDefault();
-          editor.playback.seekToEnd();
+          playback.seekToEnd();
           break;
         case "Delete":
         case "Backspace":
-          if (editor.markers.getSelected().length > 0) {
+          if (markers.getSelected().length > 0) {
             e.preventDefault();
-            editor.markers.removeSelected();
+            markers.removeSelected();
+          }
+          break;
+        case "KeyW":
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            if (e.shiftKey) {
+              editor.redo();
+            } else {
+              editor.undo();
+            }
+          }
+          break;
+        case "KeyY":
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            editor.redo();
           }
           break;
       }
@@ -490,5 +518,5 @@ export const useEditorKeyboardShortcuts = (
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [editor, enabled, playhead, seekAmount]);
+  }, [editor, enabled, markers, playback, playhead, seekAmount]);
 };

@@ -1,4 +1,5 @@
 import { useSignal, useSignalSelector } from "@ptl/signal-react";
+import { SelectionModule } from "@ptl/subtitle-editor-core";
 import { PlayheadModule } from "@ptl/timeline-core";
 import { useTimeline } from "@ptl/timeline-react";
 import {
@@ -174,6 +175,7 @@ const SubtitleTrackContent: React.FC<SubtitleTrackContentProps> = ({
 
 export const SubtitleList: React.FC = () => {
   const editor = useEditor();
+  const selectionModule = SelectionModule.for(editor);
   const tracks = useTracks();
   const activeTrack = useActiveTrack();
   const activeTrackId = useActiveTrackId();
@@ -185,10 +187,10 @@ export const SubtitleList: React.FC = () => {
   // Clear search when switching tabs
   const handleTabChange = React.useCallback(
     (tabId: string) => {
-      editor.selection.setActiveTrack(tabId);
+      selectionModule.setActiveTrack(tabId);
       setSearchQuery("");
     },
-    [editor],
+    [selectionModule],
   );
 
   const handleToggleAutoScroll = React.useCallback(() => {

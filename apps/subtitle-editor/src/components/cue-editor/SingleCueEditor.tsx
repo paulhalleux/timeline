@@ -1,4 +1,5 @@
 import { useSignal } from "@ptl/signal-react";
+import { SelectionModule, TrackModule } from "@ptl/subtitle-editor-core";
 import { clsx } from "clsx";
 import { CopyIcon, TextIcon, Trash2Icon } from "lucide-react";
 import React from "react";
@@ -20,6 +21,8 @@ export const SingleCueEditor: React.FC<SingleCueEditorProps> = ({
   cueIndex,
 }) => {
   const editor = useEditor();
+  const tracksModule = TrackModule.for(editor);
+  const selectionModule = SelectionModule.for(editor);
   const tracks = useTracks();
   const track = tracks.find((t) => t.id === trackId);
   const cue = useSignal(
@@ -46,32 +49,32 @@ export const SingleCueEditor: React.FC<SingleCueEditorProps> = ({
   const cps = duration > 0 ? (charCount / duration) * 1000 : 0;
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    editor.tracks.updateCue(trackId, cueIndex, { text: e.target.value });
+    tracksModule.updateCue(trackId, cueIndex, { text: e.target.value });
   };
 
   const handleStartChange = (startMs: number) => {
     // Ensure start is before end
     if (startMs < cue.end.milliseconds) {
-      editor.tracks.updateCue(trackId, cueIndex, { startMs });
+      tracksModule.updateCue(trackId, cueIndex, { startMs });
     }
   };
 
   const handleEndChange = (endMs: number) => {
     // Ensure end is after start
     if (endMs > cue.start.milliseconds) {
-      editor.tracks.updateCue(trackId, cueIndex, { endMs });
+      tracksModule.updateCue(trackId, cueIndex, { endMs });
     }
   };
 
   const handleDeleteCue = () => {
     if (confirm("Are you sure you want to delete this cue?")) {
-      editor.tracks.deleteCue(trackId, cueIndex);
-      editor.selection.clearCueSelection(trackId);
+      tracksModule.deleteCue(trackId, cueIndex);
+      selectionModule.clearCueSelection(trackId);
     }
   };
 
   const handleDuplicateCue = () => {
-    editor.tracks.insertCue(
+    tracksModule.insertCue(
       trackId,
       cue.end.milliseconds,
       cue.end.milliseconds + duration,
@@ -84,7 +87,7 @@ export const SingleCueEditor: React.FC<SingleCueEditorProps> = ({
     const newStart = cue.start.milliseconds + deltaMs;
     const newEnd = cue.end.milliseconds + deltaMs;
     if (newStart >= 0 && newEnd > newStart) {
-      editor.tracks.updateCue(trackId, cueIndex, {
+      tracksModule.updateCue(trackId, cueIndex, {
         startMs: newStart,
         endMs: newEnd,
       });

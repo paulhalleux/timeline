@@ -1,18 +1,22 @@
-import { Store } from "@ptl/store";
+import { Core, type CoreApi } from "@ptl/modular-core";
+import { type SubtitleCue } from "@ptl/subtitle-kit";
 
-import { MarkerModule } from "./marker-module";
-import { type PlaybackController, PlaybackModule } from "./playback-module";
-import { SelectionModule } from "./selection-module";
-import { TrackModule } from "./track-module";
+import type { EditorModule } from "./editor-module";
+import {
+  HistoryModule,
+  MarkerModule,
+  type PlaybackController,
+  PlaybackModule,
+  SelectionModule,
+  TrackModule,
+} from "./modules";
 import type {
-  EditorEvent,
-  EditorEventHandler,
-  EditorEventType,
   EntityId,
   LoadedMedia,
   MarkerType,
+  SubtitleTrack,
   VideoMetadata,
-} from "./types";
+} from "./types"; // Re-export PlaybackController for convenience
 
 // Re-export PlaybackController for convenience
 export type { PlaybackController };
@@ -37,11 +41,70 @@ const createInitialState = (): EditorState => ({
 export interface EditorOptions {
   /** Whether to auto-select newly loaded tracks */
   autoSelectNewTracks?: boolean;
+  /** Whether to enable history/undo-redo (default: true) */
+  enableHistory?: boolean;
+  /** Maximum history stack size (default: 100) */
+  maxHistorySize?: number;
+  /** Additional modules to register */
+  modules?: EditorModule[];
 }
 
-const defaultOptions: Required<EditorOptions> = {
+const defaultOptions: Required<Omit<EditorOptions, "modules">> = {
   autoSelectNewTracks: true,
+  enableHistory: true,
+  maxHistorySize: 100,
 };
+
+// ============================================================================
+// Subtitle Editor API
+// ============================================================================
+
+export interface SubtitleEditorApi extends CoreApi<EditorState> {
+  // Options
+  getOptions(): EditorOptions;
+
+  // Media
+  loadMedia(file: File): Promise<LoadedMedia>;
+  getMedia(): LoadedMedia | null;
+  unloadMedia(): void;
+
+  // Playback Controller
+  connectPlaybackController(controller: PlaybackController): void;
+  disconnectPlaybackController(): void;
+
+  // Track Convenience Methods
+  loadSubtitleFile(file: File): Promise<EntityId>;
+  removeTrack(trackId: EntityId): void;
+  getActiveTrack(): SubtitleTrack | undefined;
+
+  // Marker Convenience Methods
+  addMarkerAtCurrentTime(
+    type?: MarkerType,
+    label?: string,
+  ): ReturnType<MarkerModule["add"]>;
+  addMarkerAtTime(
+    time: number,
+    type?: MarkerType,
+    label?: string,
+  ): ReturnType<MarkerModule["add"]>;
+  goToNextMarker(): void;
+  goToPreviousMarker(): void;
+
+  // Cue Navigation
+  goToCue(trackId: EntityId, cueIndex: number): void;
+  goToNextCue(): void;
+  goToPreviousCue(): void;
+  getCurrentCue(trackId?: EntityId): SubtitleCue<any> | null;
+
+  // History/Undo-Redo
+  undo(): boolean;
+  redo(): boolean;
+  canUndo(): boolean;
+  canRedo(): boolean;
+
+  // Lifecycle
+  reset(): void;
+}
 
 // ============================================================================
 // Subtitle Editor
@@ -49,64 +112,66 @@ const defaultOptions: Required<EditorOptions> = {
 
 /**
  * The main subtitle editor class.
+ * Extends Core to provide module management and state.
  * Composes modules for tracks, markers, selection, and playback.
  * This class is UI-framework agnostic.
  */
-export class SubtitleEditor {
-  private store: Store<EditorState>;
-  private options: Required<EditorOptions>;
+export class SubtitleEditor
+  extends Core<EditorState>
+  implements SubtitleEditorApi
+{
+  private readonly options: Required<Omit<EditorOptions, "modules">>;
 
-  // Modules
-  readonly tracks: TrackModule;
-  readonly markers: MarkerModule;
-  readonly selection: SelectionModule;
-  readonly playback: PlaybackModule;
-
-  // Event handlers
-  private eventHandlers: Map<EditorEventType, Set<EditorEventHandler>>;
+  private readonly _tracks: TrackModule;
+  private readonly _markers: MarkerModule;
+  private readonly _selection: SelectionModule;
+  private readonly _playback: PlaybackModule;
+  private readonly _history: HistoryModule | null;
 
   constructor(options: EditorOptions = {}) {
-    this.options = { ...defaultOptions, ...options };
-    this.store = new Store<EditorState>(createInitialState());
-    this.eventHandlers = new Map();
+    const mergedOptions = { ...defaultOptions, ...options };
 
-    // Initialize modules
-    this.tracks = new TrackModule();
-    this.markers = new MarkerModule();
-    this.selection = new SelectionModule();
-    this.playback = new PlaybackModule();
+    const history = mergedOptions.enableHistory
+      ? new HistoryModule({ maxHistorySize: mergedOptions.maxHistorySize })
+      : null;
 
-    // Setup internal subscriptions
-    this.setupSubscriptions();
-  }
+    const tracks = new TrackModule({ history });
+    const markers = new MarkerModule({ history });
+    const selection = new SelectionModule();
+    const playback = new PlaybackModule();
 
-  // ---------------------------------------------------------------------------
-  // Store Access
-  // ---------------------------------------------------------------------------
+    const builtInModules: EditorModule[] = [
+      tracks,
+      markers,
+      selection,
+      playback,
+    ];
 
-  getStore(): Store<EditorState> {
-    return this.store;
-  }
+    if (history) {
+      builtInModules.push(history);
+    }
 
-  getState(): EditorState {
-    return this.store.get();
-  }
-
-  // ---------------------------------------------------------------------------
-  // Internal Subscriptions
-  // ---------------------------------------------------------------------------
-
-  private setupSubscriptions(): void {
-    // When a track is removed, update selection
-    this.tracks.getStore().subscribe(({ tracks }) => {
-      const activeTrackId = this.selection.getActiveTrackId();
-      if (activeTrackId && !tracks.find((t) => t.id === activeTrackId)) {
-        // Active track was removed, select another
-        const newActiveId = tracks.length > 0 ? tracks[0].id : null;
-        this.selection.setActiveTrack(newActiveId);
-        this.selection.onTrackRemoved(activeTrackId);
-      }
+    super({
+      initialState: createInitialState(),
+      modules: [...builtInModules, ...(options.modules ?? [])],
     });
+
+    this._tracks = tracks;
+    this._markers = markers;
+    this._selection = selection;
+    this._playback = playback;
+    this._history = history;
+
+    this.options = mergedOptions;
+    super.setup();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Options
+  // ---------------------------------------------------------------------------
+
+  getOptions(): EditorOptions {
+    return this.options;
   }
 
   // ---------------------------------------------------------------------------
@@ -141,8 +206,7 @@ export class SubtitleEditor {
         };
 
         this.store.set({ media });
-        this.playback.setDuration(video.duration * 1000);
-        this.emit("media:loaded", media);
+        this._playback.setDuration(video.duration * 1000);
         resolve(media);
       };
 
@@ -171,8 +235,7 @@ export class SubtitleEditor {
       URL.revokeObjectURL(media.url);
     }
     this.store.set({ media: null });
-    this.playback.reset();
-    this.emit("media:unloaded", null);
+    this._playback.reset();
   }
 
   // ---------------------------------------------------------------------------
@@ -183,14 +246,14 @@ export class SubtitleEditor {
    * Connects a playback controller (typically a video element wrapper).
    */
   connectPlaybackController(controller: PlaybackController): void {
-    this.playback.connect(controller);
+    this._playback.connect(controller);
   }
 
   /**
    * Disconnects the playback controller.
    */
   disconnectPlaybackController(): void {
-    this.playback.disconnect();
+    this._playback.disconnect();
   }
 
   // ---------------------------------------------------------------------------
@@ -201,13 +264,12 @@ export class SubtitleEditor {
    * Loads a subtitle file.
    */
   async loadSubtitleFile(file: File): Promise<EntityId> {
-    const track = await this.tracks.loadFile(file);
+    const track = await this._tracks.loadFile(file);
 
     if (this.options.autoSelectNewTracks) {
-      this.selection.setActiveTrack(track.id);
+      this._selection.setActiveTrack(track.id);
     }
 
-    this.emit("track:added", track);
     return track.id;
   }
 
@@ -215,18 +277,15 @@ export class SubtitleEditor {
    * Removes a track.
    */
   removeTrack(trackId: EntityId): void {
-    const track = this.tracks.remove(trackId);
-    if (track) {
-      this.emit("track:removed", track);
-    }
+    this._tracks.remove(trackId);
   }
 
   /**
    * Gets the currently active track.
    */
-  getActiveTrack() {
-    const activeId = this.selection.getActiveTrackId();
-    return activeId ? this.tracks.get(activeId) : undefined;
+  getActiveTrack(): SubtitleTrack | undefined {
+    const activeId = this._selection.getActiveTrackId();
+    return activeId ? this._tracks.get(activeId) : undefined;
   }
 
   // ---------------------------------------------------------------------------
@@ -237,29 +296,25 @@ export class SubtitleEditor {
    * Adds a marker at the current playback time.
    */
   addMarkerAtCurrentTime(type: MarkerType = "bookmark", label?: string) {
-    const time = this.playback.getCurrentTime();
-    const marker = this.markers.add(time, type, label);
-    this.emit("marker:added", marker);
-    return marker;
+    const time = this._playback.getCurrentTime();
+    return this._markers.add(time, type, label);
   }
 
   /**
    * Adds a marker at a specific time.
    */
   addMarkerAtTime(time: number, type: MarkerType = "bookmark", label?: string) {
-    const marker = this.markers.add(time, type, label);
-    this.emit("marker:added", marker);
-    return marker;
+    return this._markers.add(time, type, label);
   }
 
   /**
    * Navigates to the next marker.
    */
   goToNextMarker(): void {
-    const currentTime = this.playback.getCurrentTime();
-    const next = this.markers.getNearest(currentTime, "after");
+    const currentTime = this._playback.getCurrentTime();
+    const next = this._markers.getNearest(currentTime, "after");
     if (next) {
-      this.playback.seek(next.time);
+      this._playback.seek(next.time);
     }
   }
 
@@ -267,10 +322,10 @@ export class SubtitleEditor {
    * Navigates to the previous marker.
    */
   goToPreviousMarker(): void {
-    const currentTime = this.playback.getCurrentTime();
-    const prev = this.markers.getNearest(currentTime, "before");
+    const currentTime = this._playback.getCurrentTime();
+    const prev = this._markers.getNearest(currentTime, "before");
     if (prev) {
-      this.playback.seek(prev.time);
+      this._playback.seek(prev.time);
     }
   }
 
@@ -282,14 +337,14 @@ export class SubtitleEditor {
    * Selects and navigates to a cue.
    */
   goToCue(trackId: EntityId, cueIndex: number): void {
-    const track = this.tracks.get(trackId);
+    const track = this._tracks.get(trackId);
     if (!track) return;
 
-    const cue = track.document.getCues()[cueIndex];
+    const cue = track.document.getCueByIndex(cueIndex);
     if (!cue) return;
 
-    this.selection.selectCue(trackId, cueIndex);
-    this.playback.seek(cue.start.milliseconds);
+    this._selection.selectCue(trackId, cueIndex);
+    this._playback.seek(cue.start.milliseconds);
   }
 
   /**
@@ -299,7 +354,7 @@ export class SubtitleEditor {
     const track = this.getActiveTrack();
     if (!track) return;
 
-    const currentTime = this.playback.getCurrentTime();
+    const currentTime = this._playback.getCurrentTime();
     const cues = track.document.getCues();
     const nextCue = cues.find((c) => c.start.milliseconds > currentTime);
 
@@ -315,12 +370,12 @@ export class SubtitleEditor {
     const track = this.getActiveTrack();
     if (!track) return;
 
-    const currentTime = this.playback.getCurrentTime();
+    const currentTime = this._playback.getCurrentTime();
     const cues = track.document.getCues();
-    const prevCues = cues.filter((c) => c.start.milliseconds < currentTime);
+    const prevCue = cues.findLast((c) => c.start.milliseconds < currentTime);
 
-    if (prevCues.length > 0) {
-      const prevCue = prevCues[prevCues.length - 1];
+    console.log(prevCue);
+    if (prevCue) {
       this.goToCue(track.id, prevCue.index);
     }
   }
@@ -329,54 +384,48 @@ export class SubtitleEditor {
    * Gets the current cue at playhead position.
    */
   getCurrentCue(trackId?: EntityId) {
-    const id = trackId ?? this.selection.getActiveTrackId();
+    const id = trackId ?? this._selection.getActiveTrackId();
     if (!id) return null;
 
-    const track = this.tracks.get(id);
+    const track = this._tracks.get(id);
     if (!track) return null;
 
-    const currentTime = this.playback.getCurrentTime();
+    const currentTime = this._playback.getCurrentTime();
     return track.document.getFirstAt(currentTime);
   }
 
   // ---------------------------------------------------------------------------
-  // Events
+  // History / Undo-Redo
   // ---------------------------------------------------------------------------
 
   /**
-   * Subscribes to editor events.
+   * Undo the last action.
+   * @returns true if an action was undone, false if nothing to undo
    */
-  on<T = unknown>(
-    eventType: EditorEventType,
-    handler: EditorEventHandler<T>,
-  ): () => void {
-    if (!this.eventHandlers.has(eventType)) {
-      this.eventHandlers.set(eventType, new Set());
-    }
-    this.eventHandlers.get(eventType)!.add(handler as EditorEventHandler);
-
-    return () => {
-      this.eventHandlers.get(eventType)?.delete(handler as EditorEventHandler);
-    };
+  undo(): boolean {
+    return this._history?.undo() ?? false;
   }
 
   /**
-   * Emits an event.
+   * Redo the last undone action.
+   * @returns true if an action was redone, false if nothing to redo
    */
-  private emit<T = unknown>(eventType: EditorEventType, data: T): void {
-    const event: EditorEvent<T> = {
-      type: eventType,
-      timestamp: Date.now(),
-      data,
-    };
+  redo(): boolean {
+    return this._history?.redo() ?? false;
+  }
 
-    this.eventHandlers.get(eventType)?.forEach((handler) => {
-      try {
-        handler(event);
-      } catch (error) {
-        console.error(`Error in event handler for ${eventType}:`, error);
-      }
-    });
+  /**
+   * Check if there are actions to undo.
+   */
+  canUndo(): boolean {
+    return this._history?.canUndo() ?? false;
+  }
+
+  /**
+   * Check if there are actions to redo.
+   */
+  canRedo(): boolean {
+    return this._history?.canRedo() ?? false;
   }
 
   // ---------------------------------------------------------------------------
@@ -388,21 +437,10 @@ export class SubtitleEditor {
    */
   reset(): void {
     this.unloadMedia();
-    this.tracks.clear();
-    this.markers.clear();
-    this.selection.clearAll();
-    this.playback.reset();
-  }
-
-  /**
-   * Destroys the editor and cleans up resources.
-   */
-  destroy(): void {
-    this.reset();
-    this.tracks.destroy();
-    this.markers.destroy();
-    this.selection.destroy();
-    this.playback.destroy();
-    this.eventHandlers.clear();
+    this._tracks.clear();
+    this._markers.clear();
+    this._selection.clearAll();
+    this._playback.reset();
+    this._history?.clear();
   }
 }

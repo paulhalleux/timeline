@@ -1,3 +1,4 @@
+import { SelectionModule, TrackModule } from "@ptl/subtitle-editor-core";
 import { clsx } from "clsx";
 import { LayersIcon, Trash2Icon } from "lucide-react";
 import React from "react";
@@ -18,6 +19,8 @@ export const MultipleCueEditor: React.FC<MultipleCueEditorProps> = ({
   cueIndices,
 }) => {
   const editor = useEditor();
+  const tracksModule = TrackModule.for(editor);
+  const selectionModule = SelectionModule.for(editor);
   const tracks = useTracks();
   const track = tracks.find((t) => t.id === trackId);
 
@@ -28,9 +31,9 @@ export const MultipleCueEditor: React.FC<MultipleCueEditorProps> = ({
       // Delete in reverse order to maintain indices
       const sorted = [...cueIndices].sort((a, b) => b - a);
       sorted.forEach((index) => {
-        editor.tracks.deleteCue(trackId, index);
+        tracksModule.deleteCue(trackId, index);
       });
-      editor.selection.clearCueSelection(trackId);
+      selectionModule.clearCueSelection(trackId);
     }
   };
 
@@ -38,7 +41,7 @@ export const MultipleCueEditor: React.FC<MultipleCueEditorProps> = ({
     cueIndices.forEach((index) => {
       const cue = track.document.getCues().find((c) => c.index === index);
       if (cue) {
-        editor.tracks.updateCue(trackId, index, {
+        tracksModule.updateCue(trackId, index, {
           startMs: Math.max(0, cue.start.milliseconds + offsetMs),
           endMs: cue.end.milliseconds + offsetMs,
         });

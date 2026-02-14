@@ -27,13 +27,14 @@ export class SubtitleDocument<
 
   private _startTime: number | null = null;
   private _endTime: number | null = null;
+  private _cueByIndex: Map<number, SubtitleCue<Metadata>> | null = null;
 
   constructor(
     private readonly format: Format,
     cues: SubtitleCue<Metadata>[],
   ) {
     this.cues = new WritableSignal(cues);
-    this.invalidateCache();
+    this.updateCache();
   }
 
   // Getters
@@ -76,7 +77,7 @@ export class SubtitleDocument<
    */
   getStartTime(): number {
     if (this._startTime === null) {
-      this.invalidateCache();
+      this.updateCache();
     }
 
     return this._startTime ?? 0;
@@ -88,7 +89,7 @@ export class SubtitleDocument<
    */
   getEndTime(): number {
     if (this._endTime === null) {
-      this.invalidateCache();
+      this.updateCache();
     }
 
     return this._endTime ?? 0;
@@ -119,6 +120,21 @@ export class SubtitleDocument<
     return null;
   }
 
+  /**
+   * Get a specific cue by its index.
+   * @param index - The index of the cue to retrieve.
+   * @returns The cue with the specified index, or null if not found.
+   */
+  getCueByIndex(index: number): SubtitleCue<Metadata> | null {
+    if (this._cueByIndex === null) {
+      this._cueByIndex = new Map();
+      this.cues.get().forEach((cue) => {
+        this._cueByIndex?.set(cue.index, cue);
+      });
+    }
+    return this._cueByIndex.get(index) ?? null;
+  }
+
   // Setters
 
   /**
@@ -127,6 +143,7 @@ export class SubtitleDocument<
    */
   setCues(cues: SubtitleCue<Metadata>[]): void {
     this.cues.set(cues);
+    this.invalidateCache();
   }
 
   /**
@@ -144,6 +161,7 @@ export class SubtitleDocument<
     this.cues.set(
       this.cues.get().map((c) => (c.index === index ? updatedCue : c)),
     );
+    this.invalidateCache();
   }
 
   /**
@@ -162,6 +180,7 @@ export class SubtitleDocument<
           return cue;
         }),
     );
+    this.invalidateCache();
   }
 
   /**
@@ -189,11 +208,18 @@ export class SubtitleDocument<
       });
     }
     this.cues.set(newCues);
+    this.invalidateCache();
   }
 
   // Private methods
 
   private invalidateCache(): void {
+    this._startTime = null;
+    this._endTime = null;
+    this._cueByIndex = null;
+  }
+
+  private updateCache(): void {
     if (this.cues.get().length === 0) {
       this._startTime = 0;
       this._endTime = 0;

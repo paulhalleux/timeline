@@ -1,3 +1,4 @@
+import { PlaybackModule } from "@ptl/subtitle-editor-core";
 import {
   BookmarkIcon,
   FlagIcon,
@@ -56,6 +57,7 @@ const MARKER_TYPES: {
 
 export const Controls: React.FC = () => {
   const editor = useEditor();
+  const playbackModule = PlaybackModule.for(editor);
   const media = useMedia();
   const playback = usePlayback();
   const currentTime = useCurrentTime();
@@ -70,12 +72,12 @@ export const Controls: React.FC = () => {
   );
 
   const handleTogglePlayPause = React.useCallback(() => {
-    editor.playback.togglePlayPause();
-  }, [editor]);
+    playbackModule.togglePlayPause();
+  }, [playbackModule]);
 
   const handleToggleMute = React.useCallback(() => {
-    editor.playback.toggleMute();
-  }, [editor]);
+    playbackModule.toggleMute();
+  }, [playbackModule]);
 
   return (
     <div className={styles.controls}>

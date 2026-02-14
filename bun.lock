@@ -37,8 +37,10 @@
       "version": "0.0.0",
       "dependencies": {
         "@floating-ui/react": "^0.27.17",
+        "@ptl/signal": "^0.0.0",
         "@ptl/signal-react": "^0.0.0",
         "@ptl/store": "^0.0.0",
+        "@ptl/subtitle-editor-core": "^0.0.0",
         "@ptl/subtitle-kit": "^0.0.0",
         "@ptl/timeline-core": "^0.0.0",
         "@ptl/timeline-react": "^0.0.0",
@@ -77,6 +79,21 @@
       "peerDependencies": {
         "eslint": ">=8.0.0",
         "typescript": ">=4.0.0",
+      },
+    },
+    "packages/modular-core": {
+      "name": "@ptl/modular-core",
+      "version": "0.0.0",
+      "dependencies": {
+        "@ptl/signal": "^0.0.0",
+        "@ptl/store": "^0.0.0",
+      },
+      "devDependencies": {
+        "@ptl/eslint-config": "^1.0.0",
+        "eslint": "^9.39.2",
+        "prettier": "^3.8.0",
+        "tsdown": "^0.20.1",
+        "typescript": "^5.9.3",
       },
     },
     "packages/sequence-model": {
@@ -146,6 +163,22 @@
         "typescript": "^5.9.3",
       },
     },
+    "packages/subtitle-editor-core": {
+      "name": "@ptl/subtitle-editor-core",
+      "version": "0.0.0",
+      "dependencies": {
+        "@ptl/modular-core": "^0.0.0",
+        "@ptl/store": "^0.0.0",
+        "@ptl/subtitle-kit": "^0.0.0",
+      },
+      "devDependencies": {
+        "@ptl/eslint-config": "^1.0.0",
+        "eslint": "^9.39.2",
+        "prettier": "^3.8.0",
+        "tsdown": "^0.20.1",
+        "typescript": "^5.9.3",
+      },
+    },
     "packages/subtitle-kit": {
       "name": "@ptl/subtitle-kit",
       "version": "0.0.0",
@@ -165,6 +198,7 @@
       "name": "@ptl/timeline-core",
       "version": "0.0.0",
       "dependencies": {
+        "@ptl/modular-core": "^0.0.0",
         "@ptl/signal": "^0.0.0",
         "@ptl/store": "^0.0.0",
       },
@@ -518,6 +552,8 @@
 
     "@ptl/eslint-config": ["@ptl/eslint-config@workspace:configs/eslint-config"],
 
+    "@ptl/modular-core": ["@ptl/modular-core@workspace:packages/modular-core"],
+
     "@ptl/react-example": ["@ptl/react-example@workspace:apps/react-example"],
 
     "@ptl/sequence-model": ["@ptl/sequence-model@workspace:packages/sequence-model"],
@@ -529,6 +565,8 @@
     "@ptl/store": ["@ptl/store@workspace:packages/store"],
 
     "@ptl/subtitle-editor": ["@ptl/subtitle-editor@workspace:apps/subtitle-editor"],
+
+    "@ptl/subtitle-editor-core": ["@ptl/subtitle-editor-core@workspace:packages/subtitle-editor-core"],
 
     "@ptl/subtitle-kit": ["@ptl/subtitle-kit@workspace:packages/subtitle-kit"],
 

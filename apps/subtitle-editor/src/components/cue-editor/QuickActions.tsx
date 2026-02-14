@@ -1,3 +1,4 @@
+import { PlaybackModule, TrackModule } from "@ptl/subtitle-editor-core";
 import type { SubtitleCue } from "@ptl/subtitle-kit";
 import {
   ArrowLeftToLineIcon,
@@ -17,31 +18,33 @@ type QuickActionsProps = {
 
 export const QuickActions: React.FC<QuickActionsProps> = ({ trackId, cue }) => {
   const editor = useEditor();
+  const playbackModule = PlaybackModule.for(editor);
+  const tracksModule = TrackModule.for(editor);
 
   const handlePlayCue = () => {
-    editor.playback.seek(cue.start.milliseconds);
-    editor.playback.play();
+    playbackModule.seek(cue.start.milliseconds);
+    playbackModule.play();
   };
 
   const handleGoToStart = () => {
-    editor.playback.seek(cue.start.milliseconds);
+    playbackModule.seek(cue.start.milliseconds);
   };
 
   const handleGoToEnd = () => {
-    editor.playback.seek(cue.end.milliseconds);
+    playbackModule.seek(cue.end.milliseconds);
   };
 
   const handleSetStartToPlayhead = () => {
-    const currentTime = editor.playback.getCurrentTime();
+    const currentTime = playbackModule.getCurrentTime();
     if (currentTime < cue.end.milliseconds) {
-      editor.tracks.updateCue(trackId, cue.index, { startMs: currentTime });
+      tracksModule.updateCue(trackId, cue.index, { startMs: currentTime });
     }
   };
 
   const handleSetEndToPlayhead = () => {
-    const currentTime = editor.playback.getCurrentTime();
+    const currentTime = playbackModule.getCurrentTime();
     if (currentTime > cue.start.milliseconds) {
-      editor.tracks.updateCue(trackId, cue.index, { endMs: currentTime });
+      tracksModule.updateCue(trackId, cue.index, { endMs: currentTime });
     }
   };
 

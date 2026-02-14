@@ -1,4 +1,5 @@
 import { useSignal } from "@ptl/signal-react";
+import { PlaybackModule, SelectionModule } from "@ptl/subtitle-editor-core";
 import type { SubtitleCue } from "@ptl/subtitle-kit";
 import { Track, ViewportItem } from "@ptl/timeline-react";
 import { CornerDownLeftIcon, CornerDownRightIcon } from "lucide-react";
@@ -18,6 +19,8 @@ export const SubtitleTrackComponent: React.FC<SubtitleTrackComponentProps> = ({
   track,
 }) => {
   const editor = useEditor();
+  const selectionModule = SelectionModule.for(editor);
+  const playbackModule = PlaybackModule.for(editor);
   const selectedCues = useSelectedCues(track.id);
 
   const handleCueClick = React.useCallback(
@@ -25,16 +28,16 @@ export const SubtitleTrackComponent: React.FC<SubtitleTrackComponentProps> = ({
       const addToSelection = e.ctrlKey || e.metaKey;
 
       if (selectedCues.has(cue.index) && !addToSelection) {
-        editor.selection.deselectCue(track.id, cue.index);
+        selectionModule.deselectCue(track.id, cue.index);
       } else {
-        editor.selection.selectCue(track.id, cue.index, addToSelection);
+        selectionModule.selectCue(track.id, cue.index, addToSelection);
       }
 
       if (e.shiftKey) {
-        editor.playback.seek(cue.start.milliseconds);
+        playbackModule.seek(cue.start.milliseconds);
       }
     },
-    [editor, track.id, selectedCues],
+    [selectionModule, playbackModule, track.id, selectedCues],
   );
 
   const cues = useSignal(track.document.getCuesSignal());

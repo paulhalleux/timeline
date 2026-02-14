@@ -1,4 +1,4 @@
-import { Store } from "@ptl/store";
+import { Core, type CoreApi } from "@ptl/modular-core";
 
 import { computeChunk } from "./chunk";
 import type { TimelineState } from "./state";
@@ -52,16 +52,9 @@ export type TimelineOptions = {
   modules?: TimelineModule[];
 };
 
-export interface TimelineApi {
-  // State related
-  getStore(): Store<TimelineState>;
-  select<S>(selector: (state: TimelineState) => S): S;
-  subscribe(listener: (selectedState: TimelineState) => void): () => void;
+export interface TimelineApi extends CoreApi<TimelineState> {
+  // Timeline specific
   getOptions(): TimelineOptions;
-  getModule<T extends TimelineModule>(moduleClass: {
-    new (...args: any[]): T;
-    id: string;
-  }): T;
 
   // Viewport related
   getViewport(): ViewportApi;
@@ -91,18 +84,18 @@ export interface TimelineApi {
   setVisibleRange(visibleRange: number): void;
 }
 
-export class Timeline implements TimelineApi {
-  private readonly store: Store<TimelineState>;
+export class Timeline extends Core<TimelineState> implements TimelineApi {
   private readonly viewport: Viewport;
 
-  private modules: TimelineModule[] = [];
-
   constructor(private readonly options: TimelineOptions) {
-    this.store = new Store<TimelineState>({
-      current: Math.max(0, options.currentPosition ?? 0),
-      chunkIndex: 0,
-      chunkStart: 0,
-      chunkDuration: 0,
+    super({
+      initialState: {
+        current: Math.max(0, options.currentPosition ?? 0),
+        chunkIndex: 0,
+        chunkStart: 0,
+        chunkDuration: 0,
+      },
+      modules: options.modules,
     });
 
     this.viewport = new Viewport({
@@ -113,9 +106,7 @@ export class Timeline implements TimelineApi {
     });
 
     this.subscribeToViewportChanges();
-
-    // Register initial modules
-    options.modules?.forEach((module) => this.registerModule(module));
+    super.setup();
   }
 
   /**
@@ -128,71 +119,12 @@ export class Timeline implements TimelineApi {
   }
 
   /**
-   * Registers a module with the timeline.
-   *
-   * @param module The module to register.
-   */
-  registerModule(module: TimelineModule): void {
-    module.detach?.(); // Detach if already attached
-    module.attach(this);
-    this.modules.push(module);
-  }
-
-  /**
-   * Gets a registered module by its class.
-   *
-   * @param moduleClass The class of the module to retrieve.
-   * @returns The registered module instance, or undefined if not found.
-   */
-  getModule<T extends TimelineModule>(moduleClass: {
-    new (...args: any[]): T;
-    id: string;
-  }): T {
-    const module = this.modules.find(
-      (module) => (module.constructor as any).id === moduleClass.id,
-    );
-    if (!module) {
-      throw new Error(`Module ${moduleClass.id} not found`);
-    }
-    return module as T;
-  }
-
-  /**
-   * Destroys the timeline instance and detaches all registered modules.
-   */
-  destroy(): void {
-    this.modules.forEach((module) => {
-      module.detach?.();
-    });
-    this.modules = [];
-  }
-
-  /**
    * Gets the timeline viewport.
    *
    * @returns The timeline viewport instance.
    */
   getViewport(): Viewport {
     return this.viewport;
-  }
-
-  /**
-   * Gets the current state of the timeline.
-   *
-   * @returns The current timeline state.
-   */
-  getStore(): Store<TimelineState> {
-    return this.store;
-  }
-
-  /**
-   * Selects a subset of the timeline state.
-   *
-   * @param selector The selector function to select a subset of the state.
-   * @returns The selected subset of the timeline state.
-   */
-  select<S>(selector: (state: TimelineState) => S): S {
-    return this.store.select(selector);
   }
 
   /**

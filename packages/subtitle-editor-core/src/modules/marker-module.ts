@@ -1,7 +1,18 @@
-import { Store } from "@ptl/store";
+import { Store } from "@ptl/modular-core";
 
-import type { EntityId, MarkerType, TimelineMarker } from "./types";
-import { generateId } from "./utils";
+import type { EditorModule } from "../editor-module";
+import type { EntityId, MarkerType, TimelineMarker } from "../types";
+import { generateId } from "../utils";
+import type { HistoryModule } from "./history-module";
+
+// ============================================================================
+// Marker Module Options
+// ============================================================================
+
+export interface MarkerModuleOptions {
+  /** Optional history module for auto-recording changes */
+  history?: HistoryModule | null;
+}
 
 // ============================================================================
 // Marker Module State
@@ -18,6 +29,45 @@ const createInitialState = (): MarkerModuleState => ({
 });
 
 // ============================================================================
+// Marker Module API
+// ============================================================================
+
+export interface MarkerModuleApi {
+  getStore(): Store<MarkerModuleState>;
+  getState(): MarkerModuleState;
+  getMarkers(): TimelineMarker[];
+  getSelectedIds(): Set<EntityId>;
+  add(
+    time: number,
+    type?: MarkerType,
+    label?: string,
+    color?: string,
+  ): TimelineMarker;
+  remove(markerId: EntityId): TimelineMarker | null;
+  get(markerId: EntityId): TimelineMarker | undefined;
+  update(
+    markerId: EntityId,
+    updates: Partial<Omit<TimelineMarker, "id">>,
+  ): void;
+  getInRange(startTime: number, endTime: number): TimelineMarker[];
+  getByType(type: MarkerType): TimelineMarker[];
+  getNearest(
+    time: number,
+    direction?: "before" | "after",
+  ): TimelineMarker | null;
+  select(markerId: EntityId, addToSelection?: boolean): void;
+  deselect(markerId: EntityId): void;
+  toggleSelection(markerId: EntityId): void;
+  clearSelection(): void;
+  selectAll(): void;
+  getSelected(): TimelineMarker[];
+  isSelected(markerId: EntityId): boolean;
+  removeSelected(): TimelineMarker[];
+  clear(): void;
+  destroy(): void;
+}
+
+// ============================================================================
 // Marker Module
 // ============================================================================
 
@@ -25,12 +75,29 @@ const createInitialState = (): MarkerModuleState => ({
  * Module for managing timeline markers.
  * Handles CRUD operations and selection for markers.
  */
-export class MarkerModule {
-  private readonly store: Store<MarkerModuleState>;
+export class MarkerModule implements EditorModule<MarkerModuleApi> {
+  static id = "MarkerModule";
 
-  constructor() {
+  private readonly store: Store<MarkerModuleState>;
+  private readonly history: HistoryModule | null;
+
+  constructor(options: MarkerModuleOptions = {}) {
     this.store = new Store<MarkerModuleState>(createInitialState());
+    this.history = options.history ?? null;
   }
+
+  // Static Methods
+
+  static for(editor: {
+    getModule: (m: typeof MarkerModule) => MarkerModule;
+  }): MarkerModule {
+    return editor.getModule(this);
+  }
+
+  // Lifecycle Methods
+
+  attach(): void {}
+  detach(): void {}
 
   // ---------------------------------------------------------------------------
   // Store Access
@@ -79,7 +146,29 @@ export class MarkerModule {
       selectedMarkerIds,
     });
 
+    // Auto-record to history
+    if (this.history && !this.history.isUndoingOrRedoing()) {
+      const markerId = marker.id;
+      this.history.record({
+        type: "marker:add",
+        description: `Add marker at ${time}ms`,
+        undo: () => this.removeInternal(markerId),
+        redo: () => this.addInternal(marker),
+      });
+    }
+
     return marker;
+  }
+
+  /**
+   * Internal add that doesn't record to history.
+   */
+  private addInternal(marker: TimelineMarker): void {
+    const { markers, selectedMarkerIds } = this.getState();
+    this.store.set({
+      markers: [...markers, marker].sort((a, b) => a.time - b.time),
+      selectedMarkerIds,
+    });
   }
 
   /**
@@ -90,6 +179,9 @@ export class MarkerModule {
     const marker = markers.find((m) => m.id === markerId);
     if (!marker) return null;
 
+    // Capture marker data for history
+    const markerData = { ...marker };
+
     const newSelectedIds = new Set(selectedMarkerIds);
     newSelectedIds.delete(markerId);
 
@@ -98,7 +190,30 @@ export class MarkerModule {
       selectedMarkerIds: newSelectedIds,
     });
 
+    // Auto-record to history
+    if (this.history && !this.history.isUndoingOrRedoing()) {
+      this.history.record({
+        type: "marker:remove",
+        description: `Remove marker`,
+        undo: () => this.addInternal(markerData),
+        redo: () => this.removeInternal(markerId),
+      });
+    }
+
     return marker;
+  }
+
+  /**
+   * Internal remove that doesn't record to history.
+   */
+  private removeInternal(markerId: EntityId): void {
+    const { markers, selectedMarkerIds } = this.getState();
+    const newSelectedIds = new Set(selectedMarkerIds);
+    newSelectedIds.delete(markerId);
+    this.store.set({
+      markers: markers.filter((m) => m.id !== markerId),
+      selectedMarkerIds: newSelectedIds,
+    });
   }
 
   /**
@@ -112,6 +227,49 @@ export class MarkerModule {
    * Updates a marker.
    */
   update(
+    markerId: EntityId,
+    updates: Partial<Omit<TimelineMarker, "id">>,
+  ): void {
+    const { markers, selectedMarkerIds } = this.getState();
+    const marker = markers.find((m) => m.id === markerId);
+    if (!marker) return;
+
+    // Capture old values for history
+    const oldValues: Partial<Omit<TimelineMarker, "id">> = {};
+    for (const key of Object.keys(updates) as Array<keyof typeof updates>) {
+      oldValues[key] = marker[key] as never;
+    }
+
+    const needsSort = updates.time !== undefined;
+
+    let newMarkers = markers.map((m) =>
+      m.id === markerId ? { ...m, ...updates } : m,
+    );
+
+    if (needsSort) {
+      newMarkers = newMarkers.sort((a, b) => a.time - b.time);
+    }
+
+    this.store.set({
+      markers: newMarkers,
+      selectedMarkerIds,
+    });
+
+    // Auto-record to history
+    if (this.history && !this.history.isUndoingOrRedoing()) {
+      this.history.record({
+        type: "marker:update",
+        description: `Update marker`,
+        undo: () => this.updateInternal(markerId, oldValues),
+        redo: () => this.updateInternal(markerId, updates),
+      });
+    }
+  }
+
+  /**
+   * Internal update that doesn't record to history.
+   */
+  private updateInternal(
     markerId: EntityId,
     updates: Partial<Omit<TimelineMarker, "id">>,
   ): void {

@@ -1,6 +1,7 @@
-import { Store } from "@ptl/store";
+import { Store } from "@ptl/modular-core";
 
-import type { EntityId, SelectableEntityType } from "./types";
+import type { EditorModule } from "../editor-module";
+import type { EntityId, SelectableEntityType } from "../types";
 
 // ============================================================================
 // Selection Module State
@@ -22,6 +23,39 @@ const createInitialState = (): SelectionModuleState => ({
 });
 
 // ============================================================================
+// Selection Module API
+// ============================================================================
+
+export interface SelectionModuleApi {
+  getStore(): Store<SelectionModuleState>;
+  getState(): SelectionModuleState;
+  getActiveTrackId(): EntityId | null;
+  setActiveTrack(trackId: EntityId | null): void;
+  getSelectedCues(trackId: EntityId): Set<number>;
+  getAllSelectedCues(): Map<EntityId, Set<number>>;
+  selectCue(
+    trackId: EntityId,
+    cueIndex: number,
+    addToSelection?: boolean,
+  ): void;
+  selectCueRange(
+    trackId: EntityId,
+    startIndex: number,
+    endIndex: number,
+    addToSelection?: boolean,
+  ): void;
+  deselectCue(trackId: EntityId, cueIndex: number): void;
+  toggleCueSelection(trackId: EntityId, cueIndex: number): void;
+  isCueSelected(trackId: EntityId, cueIndex: number): boolean;
+  clearCueSelection(trackId?: EntityId): void;
+  selectAllCues(trackId: EntityId, cueCount: number): void;
+  getPrimarySelectionType(): SelectableEntityType | null;
+  clearAll(): void;
+  onTrackRemoved(trackId: EntityId): void;
+  destroy(): void;
+}
+
+// ============================================================================
 // Selection Module
 // ============================================================================
 
@@ -30,12 +64,27 @@ const createInitialState = (): SelectionModuleState => ({
  * Handles track activation and cue selection.
  * Marker selection is handled by MarkerModule directly.
  */
-export class SelectionModule {
-  private store: Store<SelectionModuleState>;
+export class SelectionModule implements EditorModule<SelectionModuleApi> {
+  static id = "SelectionModule";
+
+  private readonly store: Store<SelectionModuleState>;
 
   constructor() {
     this.store = new Store<SelectionModuleState>(createInitialState());
   }
+
+  // Static Methods
+
+  static for(editor: {
+    getModule: (m: typeof SelectionModule) => SelectionModule;
+  }): SelectionModule {
+    return editor.getModule(this);
+  }
+
+  // Lifecycle Methods
+
+  attach(): void {}
+  detach(): void {}
 
   // ---------------------------------------------------------------------------
   // Store Access

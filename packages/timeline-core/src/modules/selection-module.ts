@@ -41,7 +41,7 @@ export class SelectionModule implements TimelineModule<SelectionApi> {
 
   // Lifecycle Methods
 
-  attach(): void {}
+  attach(_timeline: TimelineApi): void {}
   detach(): void {}
 
   // API Methods

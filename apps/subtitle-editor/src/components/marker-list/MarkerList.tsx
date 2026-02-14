@@ -1,3 +1,4 @@
+import { MarkerModule, PlaybackModule } from "@ptl/subtitle-editor-core";
 import {
   BookmarkIcon,
   CircleDotIcon,
@@ -75,6 +76,8 @@ const MarkerListItem: React.FC<MarkerListItemProps> = ({
 
 export const MarkerList: React.FC = () => {
   const editor = useEditor();
+  const markersModule = MarkerModule.for(editor);
+  const playbackModule = PlaybackModule.for(editor);
   const markers = useMarkers();
   const selectedIds = useMarkerSelection();
   const currentTime = useCurrentTime();
@@ -110,19 +113,19 @@ export const MarkerList: React.FC = () => {
       const addToSelection = e.shiftKey || e.ctrlKey || e.metaKey;
 
       if (addToSelection) {
-        editor.markers.toggleSelection(marker.id);
+        markersModule.toggleSelection(marker.id);
       } else {
-        editor.markers.select(marker.id);
+        markersModule.select(marker.id);
       }
 
-      editor.playback.seek(marker.time);
+      playbackModule.seek(marker.time);
     },
-    [editor],
+    [markersModule, playbackModule],
   );
 
   const handleDeleteSelected = React.useCallback(() => {
-    editor.markers.removeSelected();
-  }, [editor]);
+    markersModule.removeSelected();
+  }, [markersModule]);
 
   const hasSelection = selectedIds.size > 0;
 

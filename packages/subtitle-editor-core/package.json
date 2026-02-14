@@ -1,10 +1,10 @@
 {
-  "name": "@ptl/timeline-core",
+  "name": "@ptl/subtitle-editor-core",
   "type": "module",
   "version": "0.0.0",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
-  "description": "",
+  "description": "Core logic for the subtitle editor - UI framework agnostic",
   "exports": {
     "types": "./dist/index.d.mts",
     "import": "./dist/index.mjs"
@@ -17,8 +17,8 @@
   ],
   "dependencies": {
     "@ptl/modular-core": "^0.0.0",
-    "@ptl/signal": "^0.0.0",
-    "@ptl/store": "^0.0.0"
+    "@ptl/store": "^0.0.0",
+    "@ptl/subtitle-kit": "^0.0.0"
   },
   "devDependencies": {
     "@ptl/eslint-config": "^1.0.0",

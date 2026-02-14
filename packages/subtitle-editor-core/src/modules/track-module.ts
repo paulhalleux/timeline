@@ -1,8 +1,19 @@
-import { Store } from "@ptl/store";
+import { Store } from "@ptl/modular-core";
 import { SubtitleParser, type SupportedFormats } from "@ptl/subtitle-kit";
 
-import type { EntityId, SubtitleTrack } from "./types";
-import { generateId } from "./utils";
+import type { EditorModule } from "../editor-module";
+import type { EntityId, SubtitleTrack } from "../types";
+import { generateId } from "../utils";
+import type { HistoryModule } from "./history-module";
+
+// ============================================================================
+// Track Module Options
+// ============================================================================
+
+export interface TrackModuleOptions {
+  /** Optional history module for auto-recording changes */
+  history?: HistoryModule | null;
+}
 
 // ============================================================================
 // Track Module State
@@ -17,6 +28,43 @@ const createInitialState = (): TrackModuleState => ({
 });
 
 // ============================================================================
+// Track Module API
+// ============================================================================
+
+export interface TrackModuleApi {
+  getStore(): Store<TrackModuleState>;
+  getState(): TrackModuleState;
+  getTracks(): SubtitleTrack[];
+  loadFile(file: File): Promise<SubtitleTrack>;
+  parseAndAdd(filename: string, content: string): SubtitleTrack;
+  add(track: SubtitleTrack): void;
+  remove(trackId: EntityId): SubtitleTrack | null;
+  get(trackId: EntityId): SubtitleTrack | undefined;
+  update(trackId: EntityId, updates: Partial<Omit<SubtitleTrack, "id">>): void;
+  markDirty(trackId: EntityId, isDirty?: boolean): void;
+  getCue(
+    trackId: EntityId,
+    cueIndex: number,
+  ): ReturnType<SubtitleTrack["document"]["getCues"]>[number] | undefined;
+  updateCue(
+    trackId: EntityId,
+    cueIndex: number,
+    updates: { text?: string; startMs?: number; endMs?: number },
+  ): void;
+  deleteCue(trackId: EntityId, cueIndex: number): void;
+  insertCue(
+    trackId: EntityId,
+    startMs: number,
+    endMs: number,
+    text: string,
+    atIndex?: number,
+  ): void;
+  export(trackId: EntityId): string | null;
+  clear(): void;
+  destroy(): void;
+}
+
+// ============================================================================
 // Track Module
 // ============================================================================
 
@@ -24,12 +72,29 @@ const createInitialState = (): TrackModuleState => ({
  * Module for managing subtitle tracks.
  * Handles loading, parsing, and CRUD operations for subtitle files.
  */
-export class TrackModule {
-  private store: Store<TrackModuleState>;
+export class TrackModule implements EditorModule<TrackModuleApi> {
+  static id = "TrackModule";
 
-  constructor() {
+  private readonly store: Store<TrackModuleState>;
+  private readonly history: HistoryModule | null;
+
+  constructor(options: TrackModuleOptions = {}) {
     this.store = new Store<TrackModuleState>(createInitialState());
+    this.history = options.history ?? null;
   }
+
+  // Static Methods
+
+  static for(editor: {
+    getModule: (m: typeof TrackModule) => TrackModule;
+  }): TrackModule {
+    return editor.getModule(this);
+  }
+
+  // Lifecycle Methods
+
+  attach(): void {}
+  detach(): void {}
 
   // ---------------------------------------------------------------------------
   // Store Access
@@ -191,6 +256,16 @@ export class TrackModule {
     const track = this.get(trackId);
     if (!track) return;
 
+    // Capture old values for history
+    const cue = this.getCue(trackId, cueIndex);
+    const oldValues: { text?: string; startMs?: number; endMs?: number } = {};
+    if (cue) {
+      if (updates.text !== undefined) oldValues.text = cue.text;
+      if (updates.startMs !== undefined)
+        oldValues.startMs = cue.start.milliseconds;
+      if (updates.endMs !== undefined) oldValues.endMs = cue.end.milliseconds;
+    }
+
     const cueUpdates: Record<string, unknown> = {};
 
     if (updates.text !== undefined) {
@@ -216,6 +291,47 @@ export class TrackModule {
 
     // Trigger store update to notify subscribers
     this.store.set({ tracks: [...this.getState().tracks] });
+
+    // Auto-record to history
+    if (this.history && !this.history.isUndoingOrRedoing()) {
+      this.history.record({
+        type: "cue:update",
+        description: `Update cue ${cueIndex}`,
+        undo: () => this.updateCueInternal(trackId, cueIndex, oldValues),
+        redo: () => this.updateCueInternal(trackId, cueIndex, updates),
+      });
+    }
+  }
+
+  /**
+   * Internal cue update that doesn't record to history.
+   */
+  private updateCueInternal(
+    trackId: EntityId,
+    cueIndex: number,
+    updates: { text?: string; startMs?: number; endMs?: number },
+  ): void {
+    const track = this.get(trackId);
+    if (!track) return;
+
+    const cueUpdates: Record<string, unknown> = {};
+    if (updates.text !== undefined) cueUpdates.text = updates.text;
+    if (updates.startMs !== undefined) {
+      cueUpdates.start = {
+        raw: this.formatTimestamp(updates.startMs),
+        milliseconds: updates.startMs,
+      };
+    }
+    if (updates.endMs !== undefined) {
+      cueUpdates.end = {
+        raw: this.formatTimestamp(updates.endMs),
+        milliseconds: updates.endMs,
+      };
+    }
+
+    track.document.update(cueIndex, cueUpdates);
+    this.markDirty(trackId);
+    this.store.set({ tracks: [...this.getState().tracks] });
   }
 
   /**
@@ -237,10 +353,48 @@ export class TrackModule {
     const track = this.get(trackId);
     if (!track) return;
 
+    // Capture cue data for history
+    const cue = this.getCue(trackId, cueIndex);
+    const deletedCueData = cue
+      ? {
+          text: cue.text,
+          startMs: cue.start.milliseconds,
+          endMs: cue.end.milliseconds,
+        }
+      : null;
+
     track.document.remove(cueIndex);
     this.markDirty(trackId);
 
     // Trigger store update
+    this.store.set({ tracks: [...this.getState().tracks] });
+
+    // Auto-record to history
+    if (this.history && !this.history.isUndoingOrRedoing() && deletedCueData) {
+      this.history.record({
+        type: "cue:delete",
+        description: `Delete cue ${cueIndex}`,
+        undo: () =>
+          this.insertCueInternal(
+            trackId,
+            deletedCueData.startMs,
+            deletedCueData.endMs,
+            deletedCueData.text,
+            cueIndex,
+          ),
+        redo: () => this.deleteCueInternal(trackId, cueIndex),
+      });
+    }
+  }
+
+  /**
+   * Internal delete that doesn't record to history.
+   */
+  private deleteCueInternal(trackId: EntityId, cueIndex: number): void {
+    const track = this.get(trackId);
+    if (!track) return;
+    track.document.remove(cueIndex);
+    this.markDirty(trackId);
     this.store.set({ tracks: [...this.getState().tracks] });
   }
 
@@ -257,6 +411,9 @@ export class TrackModule {
     const track = this.get(trackId);
     if (!track) return;
 
+    // Determine the actual index where cue will be inserted
+    const insertIndex = atIndex ?? track.document.getCues().length;
+
     track.document.insert({
       start: { raw: this.formatTimestamp(startMs), milliseconds: startMs },
       end: { raw: this.formatTimestamp(endMs), milliseconds: endMs },
@@ -266,6 +423,39 @@ export class TrackModule {
     this.markDirty(trackId);
 
     // Trigger store update
+    this.store.set({ tracks: [...this.getState().tracks] });
+
+    // Auto-record to history
+    if (this.history && !this.history.isUndoingOrRedoing()) {
+      this.history.record({
+        type: "cue:insert",
+        description: `Insert cue at ${insertIndex}`,
+        undo: () => this.deleteCueInternal(trackId, insertIndex),
+        redo: () =>
+          this.insertCueInternal(trackId, startMs, endMs, text, insertIndex),
+      });
+    }
+  }
+
+  /**
+   * Internal insert that doesn't record to history.
+   */
+  private insertCueInternal(
+    trackId: EntityId,
+    startMs: number,
+    endMs: number,
+    text: string,
+    atIndex?: number,
+  ): void {
+    const track = this.get(trackId);
+    if (!track) return;
+    track.document.insert({
+      start: { raw: this.formatTimestamp(startMs), milliseconds: startMs },
+      end: { raw: this.formatTimestamp(endMs), milliseconds: endMs },
+      text,
+      index: atIndex,
+    });
+    this.markDirty(trackId);
     this.store.set({ tracks: [...this.getState().tracks] });
   }
 

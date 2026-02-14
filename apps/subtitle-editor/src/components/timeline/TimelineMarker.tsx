@@ -1,3 +1,4 @@
+import { MarkerModule, PlaybackModule } from "@ptl/subtitle-editor-core";
 import { ViewportItem } from "@ptl/timeline-react";
 import * as React from "react";
 
@@ -16,30 +17,32 @@ export const TimelineMarkerItem: React.FC<TimelineMarkerItemProps> = ({
   marker,
 }) => {
   const editor = useEditor();
+  const markersModule = MarkerModule.for(editor);
+  const playbackModule = PlaybackModule.for(editor);
   const isSelected = useIsMarkerSelected(marker.id);
 
   const handleClick = React.useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
       if (e.shiftKey) {
-        editor.markers.toggleSelection(marker.id);
+        markersModule.toggleSelection(marker.id);
       } else {
-        editor.markers.select(marker.id);
+        markersModule.select(marker.id);
       }
       // Seek to marker time
-      editor.playback.seek(marker.time);
+      playbackModule.seek(marker.time);
     },
-    [editor, marker.id, marker.time],
+    [markersModule, playbackModule, marker.id, marker.time],
   );
 
   const handleDoubleClick = React.useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
       // Seek to marker and select it
-      editor.playback.seek(marker.time);
-      editor.markers.select(marker.id);
+      playbackModule.seek(marker.time);
+      markersModule.select(marker.id);
     },
-    [editor, marker.id, marker.time],
+    [markersModule, playbackModule, marker.id, marker.time],
   );
 
   return (

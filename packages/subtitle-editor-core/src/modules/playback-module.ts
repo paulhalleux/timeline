@@ -1,7 +1,8 @@
-import { Store } from "@ptl/store";
+import { Store } from "@ptl/modular-core";
 
-import type { PlaybackState } from "./types";
-import { clamp } from "./utils";
+import type { EditorModule } from "../editor-module";
+import type { PlaybackState } from "../types";
+import { clamp } from "../utils";
 
 // ============================================================================
 // Playback Module State
@@ -39,6 +40,45 @@ export interface PlaybackController {
 }
 
 // ============================================================================
+// Playback Module API
+// ============================================================================
+
+export interface PlaybackModuleApi {
+  getStore(): Store<PlaybackModuleState>;
+  getState(): PlaybackModuleState;
+  connect(controller: PlaybackController): void;
+  disconnect(): void;
+  isConnected(): boolean;
+  update(updates: Partial<PlaybackModuleState>): void;
+  setCurrentTime(timeMs: number): void;
+  setDuration(durationMs: number): void;
+  setIsPlaying(isPlaying: boolean): void;
+  getCurrentTime(): number;
+  getDuration(): number;
+  play(): void;
+  pause(): void;
+  togglePlayPause(): void;
+  seek(timeMs: number): void;
+  seekRelative(deltaMs: number): void;
+  seekForward(amountMs?: number): void;
+  seekBackward(amountMs?: number): void;
+  seekToStart(): void;
+  seekToEnd(): void;
+  getVolume(): number;
+  setVolume(volume: number): void;
+  volumeUp(step?: number): void;
+  volumeDown(step?: number): void;
+  isMuted(): boolean;
+  setMuted(muted: boolean): void;
+  toggleMute(): void;
+  getPlaybackRate(): number;
+  setPlaybackRate(rate: number): void;
+  cyclePlaybackRate(): void;
+  reset(): void;
+  destroy(): void;
+}
+
+// ============================================================================
 // Playback Module
 // ============================================================================
 
@@ -46,13 +86,33 @@ export interface PlaybackController {
  * Module for managing playback state.
  * Can be connected to a video element or any other media source.
  */
-export class PlaybackModule {
+export class PlaybackModule implements EditorModule<PlaybackModuleApi> {
+  static id = "PlaybackModule";
+
+  /**
+   * Available playback rates.
+   */
+  static readonly RATES = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+
   private readonly store: Store<PlaybackModuleState>;
   private controller: PlaybackController | null = null;
 
   constructor() {
     this.store = new Store<PlaybackModuleState>(createInitialState());
   }
+
+  // Static Methods
+
+  static for(editor: {
+    getModule: (m: typeof PlaybackModule) => PlaybackModule;
+  }): PlaybackModule {
+    return editor.getModule(this);
+  }
+
+  // Lifecycle Methods
+
+  attach(): void {}
+  detach(): void {}
 
   // ---------------------------------------------------------------------------
   // Store Access
@@ -287,11 +347,6 @@ export class PlaybackModule {
     this.controller?.setPlaybackRate(clampedRate);
     this.update({ playbackRate: clampedRate });
   }
-
-  /**
-   * Available playback rates.
-   */
-  static readonly RATES = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
   /**
    * Cycles to next playback rate.
