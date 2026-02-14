@@ -1,5 +1,6 @@
-import * as React from "react";
 import { Playhead } from "@ptl/timeline-react";
+import * as React from "react";
+
 import styles from "./TimelineComponents.module.css";
 
 /**

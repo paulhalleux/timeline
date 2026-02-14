@@ -1,14 +1,20 @@
-import * as React from "react";
 import { useSignalSelector } from "@ptl/signal-react";
 import { PlayheadModule } from "@ptl/timeline-core";
 import { useTimeline } from "@ptl/timeline-react";
-import { useSubtitleEditor } from "../../store";
-import { Button, SearchBar, Tabs } from "../ui";
-import type { SubtitleTrack } from "../../types";
-import styles from "./SubtitleList.module.css";
 import { ArrowDownIcon, CaptionsIcon } from "lucide-react";
-import { EmptyState } from "../ui/EmptyState/EmptyState.tsx";
+import * as React from "react";
+
+import {
+  type SubtitleTrack,
+  useActiveTrack,
+  useActiveTrackId,
+  useEditor,
+  useTracks,
+} from "../../core";
 import { formatTime } from "../../utils/format.ts";
+import { Button, SearchBar, Tabs } from "../ui";
+import { EmptyState } from "../ui/EmptyState/EmptyState.tsx";
+import styles from "./SubtitleList.module.css";
 
 /* ============================================================================
  * CueListItem
@@ -177,56 +183,49 @@ const SubtitleTrackContent: React.FC<SubtitleTrackContentProps> = ({
  * ========================================================================== */
 
 export const SubtitleList: React.FC = () => {
-  const { store, actions } = useSubtitleEditor();
-  const subtitles = useSignalSelector(([state]) => state.subtitles, [
-    store,
-  ] as const);
+  const editor = useEditor();
+  const tracks = useTracks();
+  const activeTrack = useActiveTrack();
+  const activeTrackId = useActiveTrackId();
 
-  const [activeTabId, setActiveTabId] = React.useState<string>("");
-  const [searchQuery, setSearchQuery] = React.useState<string>("");
-  const [autoScroll, setAutoScroll] = React.useState<boolean>(true);
-
-  // Auto-select first tab when subtitles change
-  React.useEffect(() => {
-    if (subtitles.length > 0 && !subtitles.find((s) => s.id === activeTabId)) {
-      setActiveTabId(subtitles[0].id);
-    }
-  }, [subtitles, activeTabId]);
+  // Local UI state (not in core editor)
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [autoScrollEnabled, setAutoScrollEnabled] = React.useState(true);
 
   // Clear search when switching tabs
-  const handleTabChange = React.useCallback((tabId: string) => {
-    setActiveTabId(tabId);
-    setSearchQuery("");
-  }, []);
+  const handleTabChange = React.useCallback(
+    (tabId: string) => {
+      editor.selection.setActiveTrack(tabId);
+      setSearchQuery("");
+    },
+    [editor],
+  );
 
   const handleToggleAutoScroll = React.useCallback(() => {
-    setAutoScroll((prev) => !prev);
+    setAutoScrollEnabled((prev) => !prev);
   }, []);
 
-  if (subtitles.length === 0) {
-    return <EmptyState
-      icon={<CaptionsIcon size={48} />}
-      title="No subtitle tracks"
-      description="Add a subtitle track to get started."
-    />;
+  if (tracks.length === 0) {
+    return (
+      <EmptyState
+        icon={<CaptionsIcon size={48} />}
+        title="No subtitle tracks"
+        description="Add a subtitle track to get started."
+      />
+    );
   }
 
   const handleCloseTab = (trackId: string) => {
-    actions.removeSubtitleTrack(trackId);
-    if (activeTabId === trackId && subtitles.length > 1) {
-      const remaining = subtitles.filter((s) => s.id !== trackId);
-      setActiveTabId(remaining[0]?.id ?? "");
-    }
+    editor.removeTrack(trackId);
   };
 
-  const activeTrack = subtitles.find((s) => s.id === activeTabId);
   const cueCount = activeTrack?.document.getCues().length ?? 0;
 
   return (
     <div className={styles.container}>
-      <Tabs.Root value={activeTabId} onValueChange={handleTabChange}>
+      <Tabs.Root value={activeTrackId ?? ""} onValueChange={handleTabChange}>
         <Tabs.List>
-          {subtitles.map((track) => (
+          {tracks.map((track) => (
             <Tabs.Trigger
               key={track.id}
               value={track.id}
@@ -245,20 +244,22 @@ export const SubtitleList: React.FC = () => {
           />
           <Button
             variant="icon"
-            active={autoScroll}
+            active={autoScrollEnabled}
             onClick={handleToggleAutoScroll}
-            title={autoScroll ? "Auto-scroll enabled" : "Auto-scroll disabled"}
-            aria-pressed={autoScroll}
+            title={
+              autoScrollEnabled ? "Auto-scroll enabled" : "Auto-scroll disabled"
+            }
+            aria-pressed={autoScrollEnabled}
           >
             <ArrowDownIcon size={16} />
           </Button>
         </div>
-        {subtitles.map((track) => (
+        {tracks.map((track) => (
           <Tabs.Content key={track.id} value={track.id}>
             <SubtitleTrackContent
               track={track}
               searchQuery={searchQuery}
-              autoScroll={autoScroll}
+              autoScroll={autoScrollEnabled}
             />
           </Tabs.Content>
         ))}

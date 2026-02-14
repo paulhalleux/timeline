@@ -1,8 +1,7 @@
+import { Track, ViewportItem } from "@ptl/timeline-react";
 import * as React from "react";
-import { Track, useTimeline, ViewportItem } from "@ptl/timeline-react";
-import { SelectionModule } from "@ptl/timeline-core";
-import { useSignal } from "@ptl/signal-react";
-import type { SubtitleTrack } from "../../types";
+
+import { type SubtitleTrack, useEditor, useSelectedCues } from "../../core";
 import styles from "./TimelineComponents.module.css";
 
 interface SubtitleTrackComponentProps {
@@ -15,38 +14,42 @@ interface SubtitleTrackComponentProps {
 export const SubtitleTrackComponent: React.FC<SubtitleTrackComponentProps> = ({
   track,
 }) => {
-  const timeline = useTimeline();
-  const selectionModule = SelectionModule.for(timeline);
-  const selectedIds = useSignal(
-    selectionModule.getStore().map((s) => s.selectedIds),
-  );
+  const editor = useEditor();
+  const selectedCues = useSelectedCues(track.id);
 
   const handleCueClick = React.useCallback(
-    (cueId: string) => {
-      if (selectedIds.has(cueId)) {
-        selectionModule.deselect(cueId);
+    (cueIndex: number, e: React.MouseEvent) => {
+      const addToSelection = e.shiftKey || e.ctrlKey || e.metaKey;
+
+      if (selectedCues.has(cueIndex) && !addToSelection) {
+        editor.selection.deselectCue(track.id, cueIndex);
       } else {
-        selectionModule.select(cueId);
+        editor.selection.selectCue(track.id, cueIndex, addToSelection);
+      }
+
+      // Seek to cue start
+      const cue = track.document.getCues()[cueIndex];
+      if (cue) {
+        editor.playback.seek(cue.start.milliseconds);
       }
     },
-    [selectedIds, selectionModule],
+    [editor, track.id, track.document, selectedCues],
   );
 
   return (
     <Track.Root height={40} className={styles.trackRoot}>
       <Track.Header className={styles.trackHeader}>{track.label}</Track.Header>
       <Track.Content>
-        {track.document.getCues().map((cue) => {
-          const cueId = cue.start.raw;
-          const isSelected = selectedIds.has(cueId);
+        {track.document.getCues().map((cue, index) => {
+          const isSelected = selectedCues.has(index);
 
           return (
             <ViewportItem
-              key={cueId}
+              key={`${track.id}-${index}`}
               start={cue.start.milliseconds}
               end={cue.end.milliseconds}
               className={`${styles.cue} ${isSelected ? styles.cueSelected : ""}`}
-              onClick={() => handleCueClick(cueId)}
+              onClick={(e) => handleCueClick(index, e)}
             >
               <span className={styles.cueText}>{cue.text}</span>
             </ViewportItem>

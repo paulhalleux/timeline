@@ -1,5 +1,6 @@
-import * as React from "react";
 import { TimelineProvider } from "@ptl/timeline-react";
+import * as React from "react";
+
 import { createTimelineInstance, type TimelineConfig } from "./instance.ts";
 
 /**

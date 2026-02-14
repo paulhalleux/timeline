@@ -1,6 +1,7 @@
-import * as React from "react";
-import styles from "./SearchBar.module.css";
 import { SearchIcon, XIcon } from "lucide-react";
+import * as React from "react";
+
+import styles from "./SearchBar.module.css";
 
 /* ============================================================================
  * SearchBar

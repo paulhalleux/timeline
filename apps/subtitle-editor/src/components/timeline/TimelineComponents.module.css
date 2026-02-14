@@ -111,3 +111,85 @@
   font-size: var(--font-size-sm);
   color: var(--color-text);
 }
+
+/* Markers */
+.marker {
+  --marker-color: var(--color-warning);
+
+  width: 1px;
+  height: 100%;
+  background: oklab(from var(--marker-color) l a b / 0.3);
+  cursor: pointer;
+  transition: transform var(--transition-fast),
+              box-shadow var(--transition-fast);
+  position: relative;
+  z-index: 5;
+  pointer-events: auto;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    left: -2px;
+  }
+}
+
+.markerSelected {
+  background: oklab(from var(--marker-color) l a b / 1);
+}
+
+.marker[data-type="chapter"] {
+  --marker-color: var(--color-primary);
+}
+
+.marker[data-type="bookmark"] {
+  --marker-color: var(--color-success);
+}
+
+.marker[data-type="note"] {
+  --marker-color: var(--color-danger);
+}
+
+/* Footer */
+.footer {
+  height: var(--height-lg);
+  border-top: 1px solid var(--tl-color-border);
+  background: var(--tl-color-bg);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  gap: var(--space-3);
+}
+
+.footerWidgetContainer {
+  height: 20px;
+  width: 100%;
+  position: relative;
+  border: 1px solid var(--color-border);
+  padding: 2px;
+}
+
+.panHandle {
+  width: 64px;
+  height: 100%;
+  background: var(--color-bg-hover);
+  border: 1px solid var(--color-border);
+  cursor: ew-resize;
+  border-radius: 2px;
+}
+
+.minimapThumb {
+  height: 100%;
+  background: var(--color-bg-hover);
+  border: 1px solid var(--color-border);
+  cursor: ew-resize;
+  border-radius: 2px;
+}
+
+.minimapResizeHandle {
+  height: 100%;
+  width: 5px;
+  background: #aaa;
+}

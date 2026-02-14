@@ -20,7 +20,7 @@ const DEFAULT_CONFIG: Required<TimelineConfig> = {
   maxVisibleRange: 500000,
   chunkSize: 10,
   headerOffsetPx: 300,
-  initialTotalRange: 2000000,
+  initialTotalRange: 1000 * 60 * 30, // 1 hour
 };
 
 /**
@@ -33,11 +33,12 @@ export const createTimelineInstance = (config: TimelineConfig = {}) => {
     maxVisibleRange: mergedConfig.maxVisibleRange,
     chunkSize: mergedConfig.chunkSize,
     headerOffsetPx: mergedConfig.headerOffsetPx,
+    visibleRange: mergedConfig.minVisibleRange,
     modules: [
       new RulerModule(),
       new PlayheadModule(),
       new MinimapModule({
-        initialTotalRange: mergedConfig.initialTotalRange,
+        initialTotalRange: mergedConfig.maxVisibleRange,
       }),
       new ViewportDragModule(),
       new SelectionModule(),

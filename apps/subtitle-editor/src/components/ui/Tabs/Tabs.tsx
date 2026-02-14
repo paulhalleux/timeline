@@ -1,6 +1,7 @@
-import * as React from "react";
-import styles from "./Tabs.module.css";
 import { XIcon } from "lucide-react";
+import * as React from "react";
+
+import styles from "./Tabs.module.css";
 
 /* ============================================================================
  * Tab Context

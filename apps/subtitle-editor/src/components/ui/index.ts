@@ -1,3 +1,8 @@
-export { Tabs, useTabsContext } from "./Tabs/Tabs.tsx";
+export {
+  Button,
+  type ButtonProps,
+  type ButtonSize,
+  type ButtonVariant,
+} from "./Button/Button.tsx";
 export { SearchBar, type SearchBarProps } from "./SearchBar/SearchBar.tsx";
-export { Button, type ButtonProps, type ButtonVariant, type ButtonSize } from "./Button/Button.tsx";
+export { Tabs, useTabsContext } from "./Tabs/Tabs.tsx";

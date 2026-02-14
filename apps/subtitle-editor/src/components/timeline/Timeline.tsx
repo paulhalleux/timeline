@@ -1,16 +1,19 @@
-import * as ResizablePanels from "react-resizable-panels";
-import appStyles from "../../App.module.css";
-import styles from "./TimelineComponents.module.css";
-import { PANEL_MIN_SIZE } from "../../App.tsx";
-import { Timeline, useTimeline } from "@ptl/timeline-react";
+import { useSignal } from "@ptl/signal-react";
+import { Timeline, Translate, useTimeline } from "@ptl/timeline-react";
+import { Package2Icon } from "lucide-react";
 import * as React from "react";
-import { useSignal, useSignalSelector } from "@ptl/signal-react";
-import { useSubtitleEditor } from "../../store";
+import * as ResizablePanels from "react-resizable-panels";
+
+import appStyles from "../../App.module.css";
+import { PANEL_MIN_SIZE } from "../../App.tsx";
+import { useMarkers, useTracks } from "../../core";
+import { EmptyState } from "../ui/EmptyState/EmptyState.tsx";
+import { SubtitleTrackComponent } from "./SubtitleTrack.tsx";
+import styles from "./TimelineComponents.module.css";
+import { TimelineFooter } from "./TimelineFooter.tsx";
+import { TimelineMarkerItem } from "./TimelineMarker.tsx";
 import { TimelinePlayhead } from "./TimelinePlayhead.tsx";
 import { TimelineRuler } from "./TimelineRuler.tsx";
-import { SubtitleTrackComponent } from "./SubtitleTrack.tsx";
-import { EmptyState } from "../ui/EmptyState/EmptyState.tsx";
-import { Package2Icon } from "lucide-react";
 
 export const TimelinePanel: React.FC = () => {
   const timeline = useTimeline();
@@ -21,12 +24,10 @@ export const TimelinePanel: React.FC = () => {
       .map((s) => s.headerOffsetPx),
   );
 
-  const { store } = useSubtitleEditor();
-  const subtitles = useSignalSelector(([state]) => state.subtitles, [
-    store,
-  ] as const);
+  const tracks = useTracks();
+  const markers = useMarkers();
 
-  const isEmpty = subtitles.length === 0;
+  const isEmpty = tracks.length === 0;
 
   return (
     <ResizablePanels.Panel minSize={PANEL_MIN_SIZE} className={appStyles.panel}>
@@ -35,6 +36,11 @@ export const TimelinePanel: React.FC = () => {
           {!isEmpty && (
             <Timeline.Overlay style={{ overflow: "hidden" }}>
               <TimelinePlayhead />
+              <Translate style={{ width: "100%", height: "100%" }}>
+                {markers.map((marker) => (
+                  <TimelineMarkerItem key={marker.id} marker={marker} />
+                ))}
+              </Translate>
             </Timeline.Overlay>
           )}
           <Timeline.Viewport>
@@ -42,7 +48,7 @@ export const TimelinePanel: React.FC = () => {
               <>
                 <TimelineRuler />
                 <div>
-                  {subtitles.map((track) => (
+                  {tracks.map((track) => (
                     <SubtitleTrackComponent key={track.id} track={track} />
                   ))}
                 </div>
@@ -63,6 +69,7 @@ export const TimelinePanel: React.FC = () => {
             />
           )}
         </Timeline.Layers>
+        <TimelineFooter />
       </Timeline.Root>
     </ResizablePanels.Panel>
   );

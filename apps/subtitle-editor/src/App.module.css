@@ -157,14 +157,35 @@
   display: flex;
   align-items: center;
   height: 100%;
-  padding: 0 var(--space-4);
-  gap: var(--space-4);
+  padding: 0 var(--space-1);
+  gap: var(--space-1);
+}
+
+.controlsSeparator {
+  width: 1px;
+  height: 16px;
+  background-color: var(--color-border);
 }
 
 .timeDisplay {
   font-family: monospace;
   font-size: var(--font-size-sm);
   color: var(--color-text);
+  min-width: 140px;
+}
+
+.markerCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--space-1);
+  background-color: var(--color-primary);
+  color: white;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-full);
 }
 
 .mediaInfo {

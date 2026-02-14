@@ -1,9 +1,10 @@
 import * as React from "react";
 import * as ResizablePanels from "react-resizable-panels";
+
 import styles from "./App.module.css";
 import { BAR_HEIGHT } from "./App.tsx";
-import { useEditorActions } from "./store";
 import { Button } from "./components/ui";
+import { useEditor } from "./core";
 
 /* ============================================================================
  * Icons
@@ -104,20 +105,20 @@ const FileInputButton: React.FC<FileInputButtonProps> = ({
  * Application menu bar with file import controls.
  */
 export const Menu: React.FC = () => {
-  const actions = useEditorActions();
+  const editor = useEditor();
 
   const handleVideoLoad = React.useCallback(
     (file: File) => {
-      actions.loadVideo(file).catch(console.error);
+      editor.loadMedia(file).catch(console.error);
     },
-    [actions],
+    [editor],
   );
 
   const handleSubtitleLoad = React.useCallback(
     (file: File) => {
-      actions.loadSubtitles(file).catch(console.error);
+      editor.loadSubtitleFile(file).catch(console.error);
     },
-    [actions],
+    [editor],
   );
 
   return (

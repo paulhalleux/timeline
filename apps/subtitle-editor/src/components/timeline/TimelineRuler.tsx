@@ -1,33 +1,34 @@
-import * as React from "react";
-import { Ruler, useTimeline } from "@ptl/timeline-react";
-import styles from "./TimelineComponents.module.css";
-import { formatTime } from "../../utils/format.ts";
-import { useSubtitleEditor } from "../../store";
 import { useSignalSelector } from "@ptl/signal-react";
 import { PlayheadModule } from "@ptl/timeline-core";
+import { Ruler, useTimeline } from "@ptl/timeline-react";
+import * as React from "react";
+
+import { useMedia } from "../../core";
+import { formatTime } from "../../utils/format.ts";
+import styles from "./TimelineComponents.module.css";
 
 /**
  * Timeline ruler component displaying time markers.
  */
 export const TimelineRuler: React.FC = () => {
-  const { store } = useSubtitleEditor();
   const timeline = useTimeline();
 
-  const media = useSignalSelector(([state]) => state.media, [store] as const);
   const playhead = PlayheadModule.for(timeline);
-  const position = useSignalSelector(
-    ([state]) => state.position,
-    [playhead.getStore()] as const
-  );
+  const position = useSignalSelector(([state]) => state.position, [
+    playhead.getStore(),
+  ] as const);
 
-  const duration = media?.metadata.duration ?? 0;
+  const media = useMedia();
 
   return (
     <Ruler.Root className={styles.ruler}>
       <Ruler.Header className={styles.rulerHeader}>
-        <div className={styles.timeDisplay}>
-          {formatTime(position)} / {formatTime(duration * 1000)}
-        </div>
+        {media && (
+          <div className={styles.timeDisplay}>
+            {formatTime(position)} /{" "}
+            {formatTime(media.metadata.duration * 1000)}
+          </div>
+        )}
       </Ruler.Header>
       <Ruler.Ticks>
         {({ unit, left, width }) => (
