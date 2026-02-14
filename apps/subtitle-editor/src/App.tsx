@@ -3,7 +3,7 @@ import * as ResizablePanels from "react-resizable-panels";
 
 import styles from "./App.module.css";
 import { Canvas } from "./Canvas.tsx";
-import { SubtitleList } from "./components/subtitle-list";
+import { SidePanel } from "./components/side-panel";
 import { TimelinePanel } from "./components/timeline/Timeline.tsx";
 import { Controls } from "./Controls.tsx";
 import { EditorProvider, useEditorKeyboardShortcuts } from "./core";
@@ -38,7 +38,7 @@ const AppContent: React.FC = () => {
                   minSize={PANEL_MIN_SIZE}
                   className={styles.panel}
                 >
-                  <SubtitleList />
+                  <SidePanel />
                 </ResizablePanels.Panel>
                 <ResizablePanels.Panel minSize={CANVAS_MIN_SIZE}>
                   <ResizablePanels.Group

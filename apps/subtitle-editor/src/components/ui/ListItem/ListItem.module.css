@@ -1,0 +1,149 @@
+/* ListItem Component Styles */
+
+.listContainer {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.listItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background-color: var(--color-bg-surface);
+  border: none;
+  border-bottom: 1px solid var(--color-border-subtle);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color var(--transition-fast);
+  width: 100%;
+}
+
+.listItem:last-child {
+  border-bottom: none;
+}
+
+.listItem:hover {
+  background-color: var(--color-bg-elevated);
+}
+
+.listItemActive {
+  background-color: oklab(from var(--color-primary) l a b / 0.1);
+  border-left: 3px solid var(--color-primary);
+  padding-left: calc(var(--space-3) - 3px);
+}
+
+.listItemActive:hover {
+  background-color: oklab(from var(--color-primary) l a b / 0.15);
+}
+
+.listItemSelected {
+  background-color: oklab(from var(--color-primary) l a b / 0.08);
+}
+
+.listItemSelected:hover {
+  background-color: oklab(from var(--color-primary) l a b / 0.12);
+}
+
+/* Combined active + selected */
+.listItemActive.listItemSelected {
+  background-color: oklab(from var(--color-primary) l a b / 0.15);
+}
+
+/* Layout variants */
+.listItemRow {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Meta line (time, type badge, etc.) */
+.listItemMeta {
+  font-family: monospace;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.02em;
+}
+
+/* Primary text */
+.listItemText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+/* Secondary text */
+.listItemSecondary {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* Search Highlight */
+.highlight {
+  background-color: oklab(from var(--color-warning) l a b / 0.4);
+  color: var(--color-text);
+  border-radius: var(--radius-sm);
+  padding: 0 2px;
+}
+
+/* Type badge */
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-sm);
+  text-transform: capitalize;
+}
+
+.typeBadge[data-type="bookmark"] {
+  background-color: oklab(from var(--color-warning) l a b / 0.2);
+  color: var(--color-warning);
+}
+
+.typeBadge[data-type="chapter"] {
+  background-color: oklab(from var(--color-success) l a b / 0.2);
+  color: var(--color-success);
+}
+
+.typeBadge[data-type="note"] {
+  background-color: oklab(from var(--color-primary) l a b / 0.2);
+  color: var(--color-primary);
+}
+
+.typeBadge[data-type="sync-point"] {
+  background-color: oklab(from var(--color-danger) l a b / 0.2);
+  color: var(--color-danger);
+}
+
+/* Icon slot */
+.listItemIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+
+/* Empty state */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  color: var(--color-text-secondary);
+  text-align: center;
+  gap: var(--space-2);
+}

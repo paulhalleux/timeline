@@ -12,12 +12,12 @@ import {
   useTracks,
 } from "../../core";
 import { formatTime } from "../../utils/format.ts";
-import { Button, SearchBar, Tabs } from "../ui";
+import { Button, List, SearchBar, Tabs } from "../ui";
 import { EmptyState } from "../ui/EmptyState/EmptyState.tsx";
 import styles from "./SubtitleList.module.css";
 
 /* ============================================================================
- * CueListItem
+ * CueListItem - Uses generic List component
  * ========================================================================== */
 
 interface CueListItemProps {
@@ -39,38 +39,13 @@ const CueListItem: React.FC<CueListItemProps> = ({
   onClick,
   itemRef,
 }) => {
-  // Highlight matching text
-  const highlightText = (text: string, query: string) => {
-    if (!query.trim()) return text;
-
-    const regex = new RegExp(
-      `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-      "gi",
-    );
-    const parts = text.split(regex);
-
-    return parts.map((part, i) =>
-      regex.test(part) ? (
-        <mark key={i} className={styles.highlight}>
-          {part}
-        </mark>
-      ) : (
-        part
-      ),
-    );
-  };
-
   return (
-    <button
-      ref={itemRef}
-      className={`${styles.cueItem} ${isActive ? styles.cueItemActive : ""}`}
-      onClick={onClick}
-    >
-      <span className={styles.cueTime}>
+    <List.Item isActive={isActive} onClick={onClick} itemRef={itemRef}>
+      <List.Meta>
         {formatTime(start)} → {formatTime(end)}
-      </span>
-      <span className={styles.cueText}>{highlightText(text, searchQuery)}</span>
-    </button>
+      </List.Meta>
+      <List.Text>{List.highlightText(text, searchQuery)}</List.Text>
+    </List.Item>
   );
 };
 
@@ -155,7 +130,7 @@ const SubtitleTrackContent: React.FC<SubtitleTrackContentProps> = ({
   }
 
   return (
-    <div ref={listRef} className={styles.cueList}>
+    <List.Container ref={listRef} className={styles.cueList}>
       {filteredCues.map((cue, index) => {
         const startMs = cue.start.milliseconds;
         const endMs = cue.end.milliseconds;
@@ -174,7 +149,7 @@ const SubtitleTrackContent: React.FC<SubtitleTrackContentProps> = ({
           />
         );
       })}
-    </div>
+    </List.Container>
   );
 };
 
