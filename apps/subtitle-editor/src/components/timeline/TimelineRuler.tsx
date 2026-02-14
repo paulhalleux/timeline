@@ -32,7 +32,7 @@ export const TimelineRuler: React.FC = () => {
       <Ruler.Ticks>
         {({ unit, left, width }) => (
           <div className={styles.tickContainer} style={{ width, left }}>
-            <div className={styles.tickLabel}>{unit}</div>
+            <div className={styles.tickLabel}>{formatTime(unit)}</div>
           </div>
         )}
       </Ruler.Ticks>

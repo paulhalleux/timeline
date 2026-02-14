@@ -10,8 +10,8 @@
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px;
+  gap: var(--space-2);
+  padding: var(--space-2);
   background-color: var(--color-bg-surface);
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
@@ -31,14 +31,14 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
-  padding: 10px 12px;
+  gap: var(--space-1);
+  padding: var(--space-3);
   background-color: var(--color-bg-surface);
   border: none;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border-subtle);
   cursor: pointer;
   text-align: left;
-  transition: background-color 0.1s ease;
+  transition: background-color var(--transition-fast);
   width: 100%;
 }
 
@@ -47,28 +47,28 @@
 }
 
 .cueItem:hover {
-  background-color: oklab(from var(--color-bg-surface) calc(l + 0.03) a b);
+  background-color: var(--color-bg-elevated);
 }
 
 .cueItemActive {
-  background-color: oklab(from var(--color-primary) l a b / 0.08);
+  background-color: oklab(from var(--color-primary) l a b / 0.1);
   border-left: 3px solid var(--color-primary);
-  padding-left: 9px;
+  padding-left: calc(var(--space-3) - 3px);
 }
 
 .cueItemActive:hover {
-  background-color: oklab(from var(--color-primary) l a b / 0.18);
+  background-color: oklab(from var(--color-primary) l a b / 0.15);
 }
 
 .cueTime {
   font-family: monospace;
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
   letter-spacing: 0.02em;
 }
 
 .cueText {
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: var(--color-text);
   line-height: 1.4;
   display: -webkit-box;
@@ -81,6 +81,6 @@
 .highlight {
   background-color: oklab(from var(--color-warning) l a b / 0.4);
   color: var(--color-text);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   padding: 0 2px;
 }

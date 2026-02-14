@@ -1,27 +1,29 @@
+/* EmptyState Component Styles */
+
 .emptyState {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: 24px;
+  padding: var(--space-6);
   text-align: center;
 }
 
 .icon {
-  color: var(--color-text-secondary);
-  margin-bottom: 8px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
 }
 
 .title {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text);
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
 }
 
 .description {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   max-width: 200px;
 }
