@@ -1,7 +1,7 @@
 import { type CoreApi, Store } from "@ptl/modular-core";
 
 import type { EditorModule } from "../editor-module";
-import type { EntityId, SelectableEntityType } from "../types";
+import type { EntityId } from "../types";
 
 // ============================================================================
 // Selection Module State
@@ -11,15 +11,12 @@ export interface SelectionModuleState {
   /** Currently active track ID */
   activeTrackId: EntityId | null;
   /** Selected cue indices per track */
-  selectedCues: Map<EntityId, Set<number>>;
-  /** Primary selection type (most recently selected) */
-  primarySelectionType: SelectableEntityType | null;
+  selectedCues: Map<EntityId, Set<string>>;
 }
 
 const createInitialState = (): SelectionModuleState => ({
   activeTrackId: null,
   selectedCues: new Map(),
-  primarySelectionType: null,
 });
 
 // ============================================================================
@@ -31,25 +28,13 @@ export interface SelectionModuleApi {
   getState(): SelectionModuleState;
   getActiveTrackId(): EntityId | null;
   setActiveTrack(trackId: EntityId | null): void;
-  getSelectedCues(trackId: EntityId): Set<number>;
-  getAllSelectedCues(): Map<EntityId, Set<number>>;
-  selectCue(
-    trackId: EntityId,
-    cueIndex: number,
-    addToSelection?: boolean,
-  ): void;
-  selectCueRange(
-    trackId: EntityId,
-    startIndex: number,
-    endIndex: number,
-    addToSelection?: boolean,
-  ): void;
-  deselectCue(trackId: EntityId, cueIndex: number): void;
-  toggleCueSelection(trackId: EntityId, cueIndex: number): void;
-  isCueSelected(trackId: EntityId, cueIndex: number): boolean;
+  getSelectedCues(trackId: EntityId): Set<string>;
+  getAllSelectedCues(): Map<EntityId, Set<string>>;
+  selectCue(trackId: EntityId, cueId: string, addToSelection?: boolean): void;
+  deselectCue(trackId: EntityId, cueId: string): void;
+  toggleCueSelection(trackId: EntityId, cueId: string): void;
+  isCueSelected(trackId: EntityId, cueId: string): boolean;
   clearCueSelection(trackId?: EntityId): void;
-  selectAllCues(trackId: EntityId, cueCount: number): void;
-  getPrimarySelectionType(): SelectableEntityType | null;
   clearAll(): void;
   onTrackRemoved(trackId: EntityId): void;
   destroy(): void;
@@ -125,29 +110,29 @@ export class SelectionModule implements EditorModule<SelectionModuleApi> {
   /**
    * Gets selected cue indices for a track.
    */
-  getSelectedCues(trackId: EntityId): Set<number> {
+  getSelectedCues(trackId: EntityId): Set<string> {
     return this.getState().selectedCues.get(trackId) ?? new Set();
   }
 
   /**
    * Gets all selected cues across all tracks.
    */
-  getAllSelectedCues(): Map<EntityId, Set<number>> {
+  getAllSelectedCues(): Map<EntityId, Set<string>> {
     return new Map(this.getState().selectedCues);
   }
 
   /**
    * Selects a cue.
    */
-  selectCue(trackId: EntityId, cueIndex: number, addToSelection = false): void {
+  selectCue(trackId: EntityId, cueId: string, addToSelection = false): void {
     const state = this.getState();
     const selectedCues = new Map(state.selectedCues);
 
     const trackSelection = addToSelection
       ? new Set(selectedCues.get(trackId) ?? [])
-      : new Set<number>();
+      : new Set<string>();
 
-    trackSelection.add(cueIndex);
+    trackSelection.add(cueId);
     selectedCues.set(trackId, trackSelection);
 
     // Clear selections in other tracks if not adding to selection
@@ -162,51 +147,18 @@ export class SelectionModule implements EditorModule<SelectionModuleApi> {
     this.store.set({
       ...state,
       selectedCues,
-      primarySelectionType: "cue",
-    });
-  }
-
-  /**
-   * Selects a range of cues (for shift+click).
-   */
-  selectCueRange(
-    trackId: EntityId,
-    startIndex: number,
-    endIndex: number,
-    addToSelection = false,
-  ): void {
-    const state = this.getState();
-    const selectedCues = new Map(state.selectedCues);
-
-    const trackSelection = addToSelection
-      ? new Set(selectedCues.get(trackId) ?? [])
-      : new Set<number>();
-
-    const [min, max] =
-      startIndex < endIndex ? [startIndex, endIndex] : [endIndex, startIndex];
-
-    for (let i = min; i <= max; i++) {
-      trackSelection.add(i);
-    }
-
-    selectedCues.set(trackId, trackSelection);
-
-    this.store.set({
-      ...state,
-      selectedCues,
-      primarySelectionType: "cue",
     });
   }
 
   /**
    * Deselects a cue.
    */
-  deselectCue(trackId: EntityId, cueIndex: number): void {
+  deselectCue(trackId: EntityId, cueId: string): void {
     const state = this.getState();
     const selectedCues = new Map(state.selectedCues);
     const trackSelection = new Set(selectedCues.get(trackId) ?? []);
 
-    trackSelection.delete(cueIndex);
+    trackSelection.delete(cueId);
 
     if (trackSelection.size === 0) {
       selectedCues.delete(trackId);
@@ -223,20 +175,20 @@ export class SelectionModule implements EditorModule<SelectionModuleApi> {
   /**
    * Toggles cue selection.
    */
-  toggleCueSelection(trackId: EntityId, cueIndex: number): void {
+  toggleCueSelection(trackId: EntityId, cueId: string): void {
     const trackSelection = this.getSelectedCues(trackId);
-    if (trackSelection.has(cueIndex)) {
-      this.deselectCue(trackId, cueIndex);
+    if (trackSelection.has(cueId)) {
+      this.deselectCue(trackId, cueId);
     } else {
-      this.selectCue(trackId, cueIndex, true);
+      this.selectCue(trackId, cueId, true);
     }
   }
 
   /**
    * Checks if a cue is selected.
    */
-  isCueSelected(trackId: EntityId, cueIndex: number): boolean {
-    return this.getSelectedCues(trackId).has(cueIndex);
+  isCueSelected(trackId: EntityId, cueId: string): boolean {
+    return this.getSelectedCues(trackId).has(cueId);
   }
 
   /**
@@ -260,37 +212,9 @@ export class SelectionModule implements EditorModule<SelectionModuleApi> {
     }
   }
 
-  /**
-   * Selects all cues in a track.
-   */
-  selectAllCues(trackId: EntityId, cueCount: number): void {
-    const state = this.getState();
-    const selectedCues = new Map(state.selectedCues);
-    const trackSelection = new Set<number>();
-
-    for (let i = 0; i < cueCount; i++) {
-      trackSelection.add(i);
-    }
-
-    selectedCues.set(trackId, trackSelection);
-
-    this.store.set({
-      ...state,
-      selectedCues,
-      primarySelectionType: "cue",
-    });
-  }
-
   // ---------------------------------------------------------------------------
   // General Selection
   // ---------------------------------------------------------------------------
-
-  /**
-   * Gets the primary selection type.
-   */
-  getPrimarySelectionType(): SelectableEntityType | null {
-    return this.getState().primarySelectionType;
-  }
 
   /**
    * Clears all selections.

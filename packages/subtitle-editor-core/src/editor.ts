@@ -93,7 +93,7 @@ export interface SubtitleEditorApi extends CoreApi<EditorState> {
   goToPreviousMarker(): void;
 
   // Cue Navigation
-  goToCue(trackId: EntityId, cueIndex: number): void;
+  goToCue(trackId: EntityId, cueId: string): void;
   goToNextCue(): void;
   goToPreviousCue(): void;
   getCurrentCue(trackId?: EntityId): SubtitleCue<any> | null;
@@ -342,14 +342,14 @@ export class SubtitleEditor
   /**
    * Selects and navigates to a cue.
    */
-  goToCue(trackId: EntityId, cueIndex: number): void {
+  goToCue(trackId: EntityId, cueId: string): void {
     const track = this._tracks.get(trackId);
     if (!track) return;
 
-    const cue = track.document.getCueByIndex(cueIndex);
+    const cue = track.document.getCueById(cueId);
     if (!cue) return;
 
-    this._selection.selectCue(trackId, cueIndex);
+    this._selection.selectCue(trackId, cueId);
     this._playback.seek(cue.start.milliseconds);
   }
 
@@ -365,7 +365,7 @@ export class SubtitleEditor
     const nextCue = cues.find((c) => c.start.milliseconds > currentTime);
 
     if (nextCue) {
-      this.goToCue(track.id, nextCue.index);
+      this.goToCue(track.id, nextCue.id);
     }
   }
 
@@ -380,9 +380,8 @@ export class SubtitleEditor
     const cues = track.document.getCues();
     const prevCue = cues.findLast((c) => c.start.milliseconds < currentTime);
 
-    console.log(prevCue);
     if (prevCue) {
-      this.goToCue(track.id, prevCue.index);
+      this.goToCue(track.id, prevCue.id);
     }
   }
 

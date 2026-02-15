@@ -91,20 +91,20 @@ export interface SnappingModuleApi {
   /**
    * Get all snap targets for the current state.
    * @param excludeTrackId - Optional track ID to exclude cues from (to avoid snapping to self)
-   * @param excludeCueIndex - Optional cue index to exclude (to avoid snapping to self)
+   * @param excludeCueId - Optional cue id to exclude (to avoid snapping to self)
    */
-  getSnapTargets(excludeTrackId?: EntityId, excludeCueIndex?: number): number[];
+  getSnapTargets(excludeTrackId?: EntityId, excludeCueId?: string): number[];
 
   /**
    * Snap a value to the nearest snap target.
    * @param value - The value to potentially snap
    * @param excludeTrackId - Optional track ID to exclude cues from
-   * @param excludeCueIndex - Optional cue index to exclude
+   * @param excludeCueId - Optional cue id to exclude
    */
   snap(
     value: number,
     excludeTrackId?: EntityId,
-    excludeCueIndex?: number,
+    excludeCueId?: string,
   ): SnapResult;
 
   /**
@@ -221,10 +221,7 @@ export class SnappingModule implements EditorModule<SnappingModuleApi> {
   // Snap Targets
   // ---------------------------------------------------------------------------
 
-  getSnapTargets(
-    excludeTrackId?: EntityId,
-    excludeCueIndex?: number,
-  ): number[] {
+  getSnapTargets(excludeTrackId?: EntityId, excludeCueId?: string): number[] {
     if (!this.editor) return [];
 
     const state = this.getState();
@@ -257,7 +254,7 @@ export class SnappingModule implements EditorModule<SnappingModuleApi> {
         const cues = track.document.getCues();
         for (const cue of cues) {
           // Skip excluded cue
-          if (track.id === excludeTrackId && cue.index === excludeCueIndex) {
+          if (track.id === excludeTrackId && cue.id === excludeCueId) {
             continue;
           }
 
@@ -278,7 +275,7 @@ export class SnappingModule implements EditorModule<SnappingModuleApi> {
   snap(
     value: number,
     excludeTrackId?: EntityId,
-    excludeCueIndex?: number,
+    excludeCueId?: string,
   ): SnapResult {
     const state = this.getState();
 
@@ -292,7 +289,7 @@ export class SnappingModule implements EditorModule<SnappingModuleApi> {
     }
 
     const threshold = state.threshold;
-    const targets = this.getSnapTargets(excludeTrackId, excludeCueIndex);
+    const targets = this.getSnapTargets(excludeTrackId, excludeCueId);
 
     let closestTarget: number | null = null;
     let closestDistance = Infinity;
@@ -305,11 +302,7 @@ export class SnappingModule implements EditorModule<SnappingModuleApi> {
         closestDistance = distance;
 
         // Determine target type
-        targetType = this.getTargetType(
-          target,
-          excludeTrackId,
-          excludeCueIndex,
-        );
+        targetType = this.getTargetType(target, excludeTrackId, excludeCueId);
       }
     }
 
@@ -333,7 +326,7 @@ export class SnappingModule implements EditorModule<SnappingModuleApi> {
   private getTargetType(
     target: number,
     excludeTrackId?: EntityId,
-    excludeCueIndex?: number,
+    excludeCueId?: string,
   ): SnapResult["targetType"] {
     if (!this.editor) return null;
 
@@ -364,7 +357,7 @@ export class SnappingModule implements EditorModule<SnappingModuleApi> {
       for (const track of tracks) {
         const cues = track.document.getCues();
         for (const cue of cues) {
-          if (track.id === excludeTrackId && cue.index === excludeCueIndex) {
+          if (track.id === excludeTrackId && cue.id === excludeCueId) {
             continue;
           }
 

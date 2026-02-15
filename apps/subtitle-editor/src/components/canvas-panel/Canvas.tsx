@@ -26,6 +26,7 @@ export const Canvas: React.FC = () => {
 
   React.useEffect(() => {
     if (!subtitleSources[0]) return;
+    if (videoRef?.textTracks[0]) videoRef.textTracks[0].mode = "showing";
     return subtitleSources[0].document.getCuesSignal().subscribe(() => {
       if (videoRef?.textTracks[0]) videoRef.textTracks[0].mode = "showing";
     });
@@ -37,7 +38,7 @@ export const Canvas: React.FC = () => {
         className={styles.canvasContent}
         style={{ "--aspect-ratio": aspectRatio } as React.CSSProperties}
       >
-        <video ref={setVideoRef} controls className={styles.video}>
+        <video ref={setVideoRef} className={styles.video}>
           {media?.url && <source src={media.url} type="video/mp4" />}
           {subtitleSources.map(({ id, label, document }) => (
             <SubtitleTrack key={id} id={id} label={label} document={document} />

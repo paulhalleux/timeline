@@ -15,12 +15,12 @@ import { TimeAdjustment } from "./TimeAdjustment.tsx";
 
 interface MultipleCueEditorProps {
   trackId: string;
-  cueIndices: number[];
+  cueIds: string[];
 }
 
 export const MultipleCueEditor: React.FC<MultipleCueEditorProps> = ({
   trackId,
-  cueIndices,
+  cueIds,
 }) => {
   const editor = useEditor();
   const tracksModule = TrackModule.for(editor);
@@ -31,11 +31,9 @@ export const MultipleCueEditor: React.FC<MultipleCueEditorProps> = ({
   if (!track) return null;
 
   const handleDeleteAll = () => {
-    if (confirm(`Delete ${cueIndices.length} selected cues?`)) {
-      // Delete in reverse order to maintain indices
-      const sorted = [...cueIndices].sort((a, b) => b - a);
-      sorted.forEach((index) => {
-        tracksModule.deleteCue(trackId, index);
+    if (confirm(`Delete ${cueIds.length} selected cues?`)) {
+      cueIds.forEach((id) => {
+        tracksModule.deleteCue(trackId, id);
       });
       selectionModule.clearCueSelection(trackId);
     }
@@ -44,10 +42,10 @@ export const MultipleCueEditor: React.FC<MultipleCueEditorProps> = ({
   const handleShiftTiming = (offsetMs: number) => {
     const history = HistoryModule.for(editor);
     history.batch("Shift Multiple Cues", () => {
-      cueIndices.forEach((index) => {
-        const cue = track.document.getCues().find((c) => c.index === index);
+      cueIds.forEach((id) => {
+        const cue = track.document.getCues().find((c) => c.id === id);
         if (cue) {
-          tracksModule.updateCue(trackId, index, {
+          tracksModule.updateCue(trackId, id, {
             startMs: Math.max(0, cue.start.milliseconds + offsetMs),
             endMs: cue.end.milliseconds + offsetMs,
           });
@@ -69,7 +67,7 @@ export const MultipleCueEditor: React.FC<MultipleCueEditorProps> = ({
         <div className={styles.section}>
           <EmptyState
             icon={<LayersIcon size={48} />}
-            title={`${cueIndices.length} Cues Selected`}
+            title={`${cueIds.length} Cues Selected`}
             description="Edit multiple cues at once"
           />
         </div>
@@ -79,7 +77,7 @@ export const MultipleCueEditor: React.FC<MultipleCueEditorProps> = ({
         <div className={clsx(styles.actions, styles.section)}>
           <Button variant="danger" size="md" onClick={handleDeleteAll}>
             <Trash2Icon size={14} />
-            Delete All ({cueIndices.length})
+            Delete All ({cueIds.length})
           </Button>
         </div>
       </div>

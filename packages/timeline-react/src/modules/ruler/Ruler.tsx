@@ -1,4 +1,8 @@
-import { RulerModule, type TimelineApi } from "@ptl/timeline-core";
+import {
+  PlayheadModule,
+  RulerModule,
+  type TimelineApi,
+} from "@ptl/timeline-core";
 import React from "react";
 
 import { Translate, useTimeline, useTimelineStore } from "../../timeline";
@@ -58,12 +62,23 @@ export const RulerTicks = ({
   ...rest
 }: RulerTicksProps) => {
   const timeline = useTimeline();
-  const [{ prevIntervalTime, ticks }, api] = useRuler();
+  const playhead = PlayheadModule.for(timeline);
+  const [{ prevIntervalTime, ticks }] = useRuler();
   const tickWidth = useTimelineStore((timeline) =>
     timeline.unitToPx(prevIntervalTime),
   );
   const viewportWidth = useTimelineStore((timeline) =>
     timeline.getViewport().select((s) => s.widthPx),
+  );
+
+  const onClick = React.useCallback(
+    (e: React.MouseEvent) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const offsetX = e.clientX - rect.left;
+      const time = timeline.pxToUnit(offsetX);
+      playhead.setPosition(time);
+    },
+    [playhead, timeline],
   );
 
   return (
@@ -75,6 +90,7 @@ export const RulerTicks = ({
         width: viewportWidth,
         ...style,
       }}
+      onClick={onClick}
       {...rest}
     >
       {Tick &&

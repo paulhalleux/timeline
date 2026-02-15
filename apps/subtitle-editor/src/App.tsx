@@ -47,6 +47,7 @@ const AppContent: React.FC = () => {
     return () => {
       editor.unloadMedia();
       track.then((loadedTrack) => {
+        console.log(loadedTrack);
         editor.removeTrack(loadedTrack);
       });
     };

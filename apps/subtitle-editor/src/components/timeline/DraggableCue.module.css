@@ -3,6 +3,7 @@
   display: flex;
   align-items: stretch;
   user-select: none;
+  inset: 0;
 }
 
 .cue.dragging {

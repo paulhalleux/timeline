@@ -14,7 +14,7 @@ export type DragMode = "move" | "resize-start" | "resize-end";
 
 export interface DragTarget {
   trackId: EntityId;
-  cueIndex: number;
+  cueId: string;
 }
 
 export interface DragSession {
@@ -202,13 +202,13 @@ export class DragModule implements EditorModule<DragModuleApi> {
       const startSnapResult = snappingModule.snap(
         newStart,
         target.trackId,
-        target.cueIndex,
+        target.cueId,
       );
       // Try snapping end position
       const endSnapResult = snappingModule.snap(
         newEnd,
         target.trackId,
-        target.cueIndex,
+        target.cueId,
       );
 
       // Determine which snap is closer (if both are valid)
@@ -245,7 +245,7 @@ export class DragModule implements EditorModule<DragModuleApi> {
       const snapResult = snappingModule.snap(
         newStart,
         target.trackId,
-        target.cueIndex,
+        target.cueId,
       );
       if (snapResult.snapped && snapResult.target !== null) {
         newStart = snapResult.target;
@@ -264,7 +264,7 @@ export class DragModule implements EditorModule<DragModuleApi> {
       const snapResult = snappingModule.snap(
         newEnd,
         target.trackId,
-        target.cueIndex,
+        target.cueId,
       );
       if (snapResult.snapped && snapResult.target !== null) {
         newEnd = snapResult.target;
@@ -339,7 +339,7 @@ export class DragModule implements EditorModule<DragModuleApi> {
     // Apply the changes if there are any
     if (newStart !== initialStart || newEnd !== initialEnd) {
       const trackModule = TrackModule.for(this.editor);
-      trackModule.updateCue(target.trackId, target.cueIndex, {
+      trackModule.updateCue(target.trackId, target.cueId, {
         startMs: Math.round(newStart),
         endMs: Math.round(newEnd),
       });

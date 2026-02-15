@@ -37,14 +37,14 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ trackId, cue }) => {
   const handleSetStartToPlayhead = () => {
     const currentTime = playbackModule.getCurrentTime();
     if (currentTime < cue.end.milliseconds) {
-      tracksModule.updateCue(trackId, cue.index, { startMs: currentTime });
+      tracksModule.updateCue(trackId, cue.id, { startMs: currentTime });
     }
   };
 
   const handleSetEndToPlayhead = () => {
     const currentTime = playbackModule.getCurrentTime();
     if (currentTime > cue.start.milliseconds) {
-      tracksModule.updateCue(trackId, cue.index, { endMs: currentTime });
+      tracksModule.updateCue(trackId, cue.id, { endMs: currentTime });
     }
   };
 

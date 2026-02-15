@@ -50,6 +50,13 @@
   border-bottom: 1px solid var(--tl-color-border);
 }
 
+.activeTrack {
+  background: oklab(from var(--color-bg-hover) calc(l - 0.03) a b);
+  .trackHeader {
+    background: oklab(from var(--color-bg-hover) calc(l - 0.03) a b);
+  }
+}
+
 .trackHeader {
   background: var(--tl-color-bg);
   border-right: 1px solid var(--tl-color-border);

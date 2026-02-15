@@ -155,7 +155,7 @@ export const useActiveTrackId = (): EntityId | null => {
 /**
  * Hook to get selected cue indices for a track.
  */
-export const useSelectedCues = (trackId: EntityId): Set<number> => {
+export const useSelectedCues = (trackId: EntityId): Set<string> => {
   const editor = useEditor();
   const selection = SelectionModule.for(editor);
   return useSignalSelector(
@@ -445,6 +445,13 @@ export const useEditorKeyboardShortcuts = (
             editor.redo();
           }
           break;
+        case "KeyI":
+          editor.getActiveTrack()?.document.insert({
+            start: { milliseconds: playhead.getPosition(), raw: "" },
+            end: { milliseconds: playhead.getPosition() + 2000, raw: "" },
+            text: "New Cue",
+          });
+          break;
       }
     };
 
@@ -471,15 +478,12 @@ export const useDragSession = (): DragSession | null => {
 /**
  * Hook to check if a specific cue is being dragged.
  */
-export const useIsCueDragging = (
-  trackId: EntityId,
-  cueIndex: number,
-): boolean => {
+export const useIsCueDragging = (trackId: EntityId, cueId: string): boolean => {
   const session = useDragSession();
   return (
     session !== null &&
     session.target.trackId === trackId &&
-    session.target.cueIndex === cueIndex
+    session.target.cueId === cueId
   );
 };
 

@@ -30,14 +30,14 @@ export const CueEditor: React.FC = () => {
   // Single selection
   if (selectedIndices.length === 1 && activeTrackId) {
     return (
-      <SingleCueEditor trackId={activeTrackId} cueIndex={selectedIndices[0]} />
+      <SingleCueEditor trackId={activeTrackId} cueId={selectedIndices[0]} />
     );
   }
 
   // Multiple selection
   if (activeTrackId) {
     return (
-      <MultipleCueEditor trackId={activeTrackId} cueIndices={selectedIndices} />
+      <MultipleCueEditor trackId={activeTrackId} cueIds={selectedIndices} />
     );
   }
 

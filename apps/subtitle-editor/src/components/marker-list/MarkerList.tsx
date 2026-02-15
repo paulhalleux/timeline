@@ -1,11 +1,5 @@
 import { MarkerModule, PlaybackModule } from "@ptl/subtitle-editor-core";
-import {
-  BookmarkIcon,
-  CircleDotIcon,
-  FlagIcon,
-  MessageSquareIcon,
-  Trash2Icon,
-} from "lucide-react";
+import { BookmarkIcon, MessageSquareIcon, Trash2Icon } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -28,9 +22,7 @@ import styles from "./MarkerList.module.css";
 
 const MARKER_ICONS: Record<MarkerType, React.ReactNode> = {
   bookmark: <BookmarkIcon size={14} />,
-  chapter: <FlagIcon size={14} />,
   note: <MessageSquareIcon size={14} />,
-  "sync-point": <CircleDotIcon size={14} />,
 };
 
 // ============================================================================

@@ -2,10 +2,16 @@ import { useSignal } from "@ptl/signal-react";
 import { PlaybackModule, SelectionModule } from "@ptl/subtitle-editor-core";
 import type { SubtitleCue } from "@ptl/subtitle-kit";
 import { Track } from "@ptl/timeline-react";
+import { clsx } from "clsx";
 import { CornerDownLeftIcon, CornerDownRightIcon } from "lucide-react";
 import * as React from "react";
 
-import { type SubtitleTrack, useEditor, useSelectedCues } from "../../core";
+import {
+  type SubtitleTrack,
+  useActiveTrackId,
+  useEditor,
+  useSelectedCues,
+} from "../../core";
 import { DraggableCue } from "./DraggableCue";
 import styles from "./TimelineComponents.module.css";
 
@@ -23,15 +29,16 @@ export const SubtitleTrackComponent: React.FC<SubtitleTrackComponentProps> = ({
   const selectionModule = SelectionModule.for(editor);
   const playbackModule = PlaybackModule.for(editor);
   const selectedCues = useSelectedCues(track.id);
+  const isTrackActive = useActiveTrackId() === track.id;
 
   const handleCueClick = React.useCallback(
     (cue: SubtitleCue<any>, e: React.MouseEvent) => {
       const addToSelection = e.ctrlKey || e.metaKey;
 
-      if (selectedCues.has(cue.index) && !addToSelection) {
-        selectionModule.deselectCue(track.id, cue.index);
+      if (selectedCues.has(cue.id) && !addToSelection) {
+        selectionModule.deselectCue(track.id, cue.id);
       } else {
-        selectionModule.selectCue(track.id, cue.index, addToSelection);
+        selectionModule.selectCue(track.id, cue.id, addToSelection);
       }
 
       if (e.shiftKey) {
@@ -44,11 +51,16 @@ export const SubtitleTrackComponent: React.FC<SubtitleTrackComponentProps> = ({
   const cues = useSignal(track.document.getCuesSignal());
 
   return (
-    <Track.Root height={40} className={styles.trackRoot}>
+    <Track.Root
+      height={40}
+      className={clsx(styles.trackRoot, {
+        [styles.activeTrack]: isTrackActive,
+      })}
+    >
       <Track.Header className={styles.trackHeader}>{track.label}</Track.Header>
       <Track.Content>
         {cues.map((cue) => {
-          const isSelected = selectedCues.has(cue.index);
+          const isSelected = selectedCues.has(cue.id);
           const sliced = cue.text.split("\n").slice(0, 2);
 
           return (

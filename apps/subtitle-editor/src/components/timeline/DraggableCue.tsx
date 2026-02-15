@@ -26,7 +26,7 @@ export const DraggableCue: React.FC<DraggableCueProps> = ({
   const dragModule = DragModule.for(editor);
 
   // Subscribe only to whether THIS cue is dragging
-  const isDragging = useIsCueDragging(trackId, cue.index);
+  const isDragging = useIsCueDragging(trackId, cue.id);
   const shouldCancelClick = React.useRef(false);
 
   // Get display times - compute from drag module when dragging
@@ -63,18 +63,12 @@ export const DraggableCue: React.FC<DraggableCueProps> = ({
 
       dragModule.startDrag(
         mode,
-        { trackId, cueIndex: cue.index },
+        { trackId, cueId: cue.id },
         cue.start.milliseconds,
         cue.end.milliseconds,
       );
     },
-    [
-      dragModule,
-      trackId,
-      cue.index,
-      cue.start.milliseconds,
-      cue.end.milliseconds,
-    ],
+    [dragModule, trackId, cue.id, cue.start.milliseconds, cue.end.milliseconds],
   );
 
   const handlePointerMove = React.useCallback(
