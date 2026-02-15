@@ -30,7 +30,12 @@ const AppContent: React.FC = () => {
   return (
     <div className={styles.container}>
       <ResizablePanels.Group orientation="vertical" className={styles.col}>
-        <Panel defaultSize={BAR_HEIGHT} minSize={BAR_HEIGHT} disabled>
+        <Panel
+          defaultSize={BAR_HEIGHT}
+          minSize={BAR_HEIGHT}
+          maxSize={BAR_HEIGHT}
+          disabled
+        >
           <Menu />
         </Panel>
         <ResizablePanels.Panel>

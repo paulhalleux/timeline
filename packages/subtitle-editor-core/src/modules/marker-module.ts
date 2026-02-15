@@ -1,4 +1,4 @@
-import { Store } from "@ptl/modular-core";
+import { type CoreApi, Store } from "@ptl/modular-core";
 
 import type { EditorModule } from "../editor-module";
 import type { EntityId, MarkerType, TimelineMarker } from "../types";
@@ -88,9 +88,7 @@ export class MarkerModule implements EditorModule<MarkerModuleApi> {
 
   // Static Methods
 
-  static for(editor: {
-    getModule: (m: typeof MarkerModule) => MarkerModule;
-  }): MarkerModule {
+  static for<A>(editor: CoreApi<A>): MarkerModule {
     return editor.getModule(this);
   }
 
@@ -434,6 +432,32 @@ export class MarkerModule implements EditorModule<MarkerModuleApi> {
       markers: markers.filter((m) => !this.isSelected(m.id)),
       selectedMarkerIds: new Set(),
     });
+
+    if (this.history && !this.history.isUndoingOrRedoing()) {
+      this.history.record({
+        type: "marker:removeSelected",
+        description: `Remove ${selected.length} selected marker(s)`,
+        undo: () => {
+          const { markers, selectedMarkerIds } = this.getState();
+          this.store.set({
+            markers: [...markers, ...selected].sort((a, b) => a.time - b.time),
+            selectedMarkerIds: new Set([
+              ...selectedMarkerIds,
+              ...selected.map((m) => m.id),
+            ]),
+          });
+        },
+        redo: () => {
+          const { markers } = this.getState();
+          this.store.set({
+            markers: markers.filter(
+              (m) => !selected.some((s) => s.id === m.id),
+            ),
+            selectedMarkerIds: new Set(),
+          });
+        },
+      });
+    }
 
     return selected;
   }

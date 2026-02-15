@@ -1,9 +1,13 @@
 export {
-  createCueDeleteAction,
-  createCueInsertAction,
-  createCueUpdateAction,
-  createMarkerAddAction,
-  createMarkerRemoveAction,
+  type DragMode,
+  DragModule,
+  type DragModuleApi,
+  type DragModuleState,
+  type DragResult,
+  type DragSession,
+  type DragTarget,
+} from "./drag-module";
+export {
   type HistoryAction,
   HistoryModule,
   type HistoryModuleApi,

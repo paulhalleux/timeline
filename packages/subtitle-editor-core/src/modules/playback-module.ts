@@ -1,4 +1,4 @@
-import { Store } from "@ptl/modular-core";
+import { type CoreApi, Store } from "@ptl/modular-core";
 
 import type { EditorModule } from "../editor-module";
 import type { PlaybackState } from "../types";
@@ -103,9 +103,7 @@ export class PlaybackModule implements EditorModule<PlaybackModuleApi> {
 
   // Static Methods
 
-  static for(editor: {
-    getModule: (m: typeof PlaybackModule) => PlaybackModule;
-  }): PlaybackModule {
+  static for<A>(editor: CoreApi<A>): PlaybackModule {
     return editor.getModule(this);
   }
 

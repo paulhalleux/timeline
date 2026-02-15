@@ -1,10 +1,11 @@
 import { PlaybackModule } from "@ptl/subtitle-editor-core";
 import {
   BookmarkIcon,
-  FlagIcon,
   MessageSquareIcon,
   PauseIcon,
   PlayIcon,
+  Redo2Icon,
+  Undo2Icon,
   Volume2Icon,
   VolumeXIcon,
 } from "lucide-react";
@@ -14,6 +15,7 @@ import {
   type MarkerType,
   useCurrentTime,
   useEditor,
+  useHistory,
   useMedia,
   usePlayback,
 } from "../../core";
@@ -38,12 +40,6 @@ const MARKER_TYPES: {
     shortcut: "B",
   },
   {
-    type: "chapter",
-    icon: <FlagIcon size={14} />,
-    label: "Chapter",
-    shortcut: "C",
-  },
-  {
     type: "note",
     icon: <MessageSquareIcon size={14} />,
     label: "Note",
@@ -61,6 +57,7 @@ export const Controls: React.FC = () => {
   const media = useMedia();
   const playback = usePlayback();
   const currentTime = useCurrentTime();
+  const history = useHistory();
 
   const duration = media?.metadata.duration ?? 0;
 
@@ -126,6 +123,39 @@ export const Controls: React.FC = () => {
           {icon}
         </Button>
       ))}
+
+      {/* Separator */}
+      <div className={styles.controlsSeparator} />
+
+      {/* History */}
+      <div className={styles.historyButtons}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={history.undo}
+          disabled={!history.canUndo}
+          className={styles.historyButton}
+          title="Undo (Ctrl+Z)"
+        >
+          <Undo2Icon size={16} />
+          {history.past.length > 0 && (
+            <span className={styles.historyCount}>{history.past.length}</span>
+          )}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={history.redo}
+          disabled={!history.canRedo}
+          className={styles.historyButton}
+          title="Redo (Ctrl+Y)"
+        >
+          <Redo2Icon size={16} />
+          {history.future.length > 0 && (
+            <span className={styles.historyCount}>{history.future.length}</span>
+          )}
+        </Button>
+      </div>
 
       {/* Media Info */}
       {media && (

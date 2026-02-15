@@ -9,6 +9,8 @@ import styles from "./TimeInput.module.css";
 interface TimeInputProps {
   value: number; // milliseconds
   onChange: (ms: number) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
   min?: number;
   max?: number;
 }
@@ -16,6 +18,8 @@ interface TimeInputProps {
 export const TimeInput: React.FC<TimeInputProps> = ({
   value,
   onChange,
+  onFocus,
+  onBlur,
   min = 0,
   max = Infinity,
 }) => {
@@ -80,10 +84,18 @@ export const TimeInput: React.FC<TimeInputProps> = ({
 
   const handleFocus = () => {
     setIsEditing(true);
+    onFocus?.();
   };
 
   const handleBlur = () => {
     setIsEditing(false);
+    onBlur?.();
+
+    if (inputValue === formatMs(value)) {
+      setHasError(false);
+      return;
+    }
+
     const parsed = parseTime(inputValue);
     if (parsed !== null && parsed >= min && parsed <= max) {
       onChange(parsed);

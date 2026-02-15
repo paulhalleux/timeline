@@ -1,5 +1,9 @@
 import { useSignal } from "@ptl/signal-react";
-import { SelectionModule, TrackModule } from "@ptl/subtitle-editor-core";
+import {
+  HistoryModule,
+  SelectionModule,
+  TrackModule,
+} from "@ptl/subtitle-editor-core";
 import { clsx } from "clsx";
 import { CopyIcon, TextIcon, Trash2Icon } from "lucide-react";
 import React from "react";
@@ -23,6 +27,8 @@ export const SingleCueEditor: React.FC<SingleCueEditorProps> = ({
   const editor = useEditor();
   const tracksModule = TrackModule.for(editor);
   const selectionModule = SelectionModule.for(editor);
+  const history = HistoryModule.for(editor);
+
   const tracks = useTracks();
   const track = tracks.find((t) => t.id === trackId);
   const cue = useSignal(
@@ -122,7 +128,12 @@ export const SingleCueEditor: React.FC<SingleCueEditorProps> = ({
               </div>
             }
           >
-            <Textarea value={cue.text} onChange={handleTextChange} />
+            <Textarea
+              value={cue.text}
+              onChange={handleTextChange}
+              onFocus={() => history.startBatch("Edit Cue Text")}
+              onBlur={() => history.endBatch()}
+            />
           </Field>
         </div>
         <div className={clsx(styles.section, styles.row)}>
@@ -130,6 +141,8 @@ export const SingleCueEditor: React.FC<SingleCueEditorProps> = ({
             <TimeInput
               value={cue.start.milliseconds}
               onChange={handleStartChange}
+              onFocus={() => history.startBatch("Edit Cue Timing")}
+              onBlur={() => history.endBatch()}
               max={cue.end.milliseconds - 1}
             />
           </Field>
@@ -137,6 +150,8 @@ export const SingleCueEditor: React.FC<SingleCueEditorProps> = ({
             <TimeInput
               value={cue.end.milliseconds}
               onChange={handleEndChange}
+              onFocus={() => history.startBatch("Edit Cue Timing")}
+              onBlur={() => history.endBatch()}
               min={cue.start.milliseconds + 1}
             />
           </Field>

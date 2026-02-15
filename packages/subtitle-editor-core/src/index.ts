@@ -12,11 +12,13 @@ export { type EditorModule, type EditorModuleClass } from "./editor-module";
 
 // Modules
 export {
-  createCueDeleteAction,
-  createCueInsertAction,
-  createCueUpdateAction,
-  createMarkerAddAction,
-  createMarkerRemoveAction,
+  type DragMode,
+  DragModule,
+  type DragModuleApi,
+  type DragModuleState,
+  type DragResult,
+  type DragSession,
+  type DragTarget,
   type HistoryAction,
   HistoryModule,
   type HistoryModuleApi,

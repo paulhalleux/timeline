@@ -1,4 +1,8 @@
-import { SelectionModule, TrackModule } from "@ptl/subtitle-editor-core";
+import {
+  HistoryModule,
+  SelectionModule,
+  TrackModule,
+} from "@ptl/subtitle-editor-core";
 import { clsx } from "clsx";
 import { LayersIcon, Trash2Icon } from "lucide-react";
 import React from "react";
@@ -38,14 +42,17 @@ export const MultipleCueEditor: React.FC<MultipleCueEditorProps> = ({
   };
 
   const handleShiftTiming = (offsetMs: number) => {
-    cueIndices.forEach((index) => {
-      const cue = track.document.getCues().find((c) => c.index === index);
-      if (cue) {
-        tracksModule.updateCue(trackId, index, {
-          startMs: Math.max(0, cue.start.milliseconds + offsetMs),
-          endMs: cue.end.milliseconds + offsetMs,
-        });
-      }
+    const history = HistoryModule.for(editor);
+    history.batch("Shift Multiple Cues", () => {
+      cueIndices.forEach((index) => {
+        const cue = track.document.getCues().find((c) => c.index === index);
+        if (cue) {
+          tracksModule.updateCue(trackId, index, {
+            startMs: Math.max(0, cue.start.milliseconds + offsetMs),
+            endMs: cue.end.milliseconds + offsetMs,
+          });
+        }
+      });
     });
   };
 

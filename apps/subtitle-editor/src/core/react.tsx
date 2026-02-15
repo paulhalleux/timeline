@@ -1,10 +1,13 @@
 import { useSignal, useSignalSelector } from "@ptl/signal-react";
 import {
   clamp,
+  DragModule,
+  type DragModuleState,
+  type DragSession,
   type EditorOptions,
   type EntityId,
+  HistoryModule,
   MarkerModule,
-  type MarkerType,
   type PlaybackController,
   PlaybackModule,
   type PlaybackModuleState,
@@ -79,14 +82,6 @@ export const useTracks = (): SubtitleTrack[] => {
 };
 
 /**
- * Hook to get a specific track.
- */
-export const useTrack = (trackId: EntityId): SubtitleTrack | undefined => {
-  const tracks = useTracks();
-  return tracks.find((t) => t.id === trackId);
-};
-
-/**
  * Hook to get the active track.
  */
 export const useActiveTrack = (): SubtitleTrack | undefined => {
@@ -133,17 +128,6 @@ export const useIsMarkerSelected = (markerId: EntityId): boolean => {
   return selectedIds.has(markerId);
 };
 
-/**
- * Hook to get markers of a specific type.
- */
-export const useMarkersByType = (type: MarkerType): TimelineMarker[] => {
-  const markers = useMarkers();
-  return React.useMemo(
-    () => markers.filter((m) => m.type === type),
-    [markers, type],
-  );
-};
-
 // ============================================================================
 // Selection Hooks
 // ============================================================================
@@ -180,17 +164,6 @@ export const useSelectedCues = (trackId: EntityId): Set<number> => {
   );
 };
 
-/**
- * Hook to check if a cue is selected.
- */
-export const useIsCueSelected = (
-  trackId: EntityId,
-  cueIndex: number,
-): boolean => {
-  const selectedCues = useSelectedCues(trackId);
-  return selectedCues.has(cueIndex);
-};
-
 // ============================================================================
 // Playback Hooks
 // ============================================================================
@@ -211,39 +184,6 @@ export const useCurrentTime = (): number => {
   const editor = useEditor();
   const playback = PlaybackModule.for(editor);
   return useSignalSelector(([state]) => state.currentTime, [
-    playback.getStore(),
-  ] as const);
-};
-
-/**
- * Hook to check if playing.
- */
-export const useIsPlaying = (): boolean => {
-  const editor = useEditor();
-  const playback = PlaybackModule.for(editor);
-  return useSignalSelector(([state]) => state.isPlaying, [
-    playback.getStore(),
-  ] as const);
-};
-
-/**
- * Hook to get volume.
- */
-export const useVolume = (): number => {
-  const editor = useEditor();
-  const playback = PlaybackModule.for(editor);
-  return useSignalSelector(([state]) => state.volume, [
-    playback.getStore(),
-  ] as const);
-};
-
-/**
- * Hook to check if muted.
- */
-export const useIsMuted = (): boolean => {
-  const editor = useEditor();
-  const playback = PlaybackModule.for(editor);
-  return useSignalSelector(([state]) => state.isMuted, [
     playback.getStore(),
   ] as const);
 };
@@ -433,17 +373,9 @@ export const useEditorKeyboardShortcuts = (
             e.preventDefault();
             editor.addMarkerAtTime(playhead.getPosition(), "bookmark");
             return;
-          case "C":
-            e.preventDefault();
-            editor.addMarkerAtTime(playhead.getPosition(), "chapter");
-            return;
           case "N":
             e.preventDefault();
             editor.addMarkerAtTime(playhead.getPosition(), "note");
-            return;
-          case "S":
-            e.preventDefault();
-            editor.addMarkerAtTime(playhead.getPosition(), "sync-point");
             return;
         }
       }
@@ -518,4 +450,62 @@ export const useEditorKeyboardShortcuts = (
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [editor, enabled, markers, playback, playhead, seekAmount]);
+};
+
+// ============================================================================
+// Drag Hooks
+// ============================================================================
+
+/**
+ * Hook to get the current drag session (if any).
+ */
+export const useDragSession = (): DragSession | null => {
+  const editor = useEditor();
+  const dragModule = DragModule.for(editor);
+  return useSignalSelector(([state]: [DragModuleState]) => state.session, [
+    dragModule.getStore(),
+  ] as const);
+};
+
+/**
+ * Hook to check if a specific cue is being dragged.
+ */
+export const useIsCueDragging = (
+  trackId: EntityId,
+  cueIndex: number,
+): boolean => {
+  const session = useDragSession();
+  return (
+    session !== null &&
+    session.target.trackId === trackId &&
+    session.target.cueIndex === cueIndex
+  );
+};
+
+// ============================================================================
+// History Hooks
+// ============================================================================
+
+/**
+ * Hook to get the undo/redo history state.
+ */
+export const useHistory = () => {
+  const editor = useEditor();
+  const history = HistoryModule.for(editor);
+
+  const state = useSignalSelector(
+    ([state]) => ({
+      canRedo: editor.canRedo(),
+      canUndo: editor.canUndo(),
+      past: state.undoStack,
+      future: state.redoStack,
+    }),
+    [history.getStore()] as const,
+  );
+
+  return {
+    ...state,
+    undo: () => editor.undo(),
+    redo: () => editor.redo(),
+  };
 };

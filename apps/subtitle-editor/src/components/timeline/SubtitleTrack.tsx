@@ -49,6 +49,7 @@ export const SubtitleTrackComponent: React.FC<SubtitleTrackComponentProps> = ({
       <Track.Content>
         {cues.map((cue) => {
           const isSelected = selectedCues.has(cue.index);
+          const sliced = cue.text.split("\n").slice(0, 2);
 
           return (
             <DraggableCue
@@ -59,10 +60,10 @@ export const SubtitleTrackComponent: React.FC<SubtitleTrackComponentProps> = ({
               onClick={(e) => handleCueClick(cue, e)}
             >
               <span className={styles.cueText}>
-                {cue.text.split("\n").map((line, i) => (
+                {sliced.map((line, i) => (
                   <React.Fragment key={line + i}>
                     {line}
-                    {i < cue.text.split("\n").length - 1 && (
+                    {i < sliced.length - 1 && (
                       <>
                         <CornerDownLeftIcon
                           size={10}

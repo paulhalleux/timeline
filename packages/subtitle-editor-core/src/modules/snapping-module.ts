@@ -1,4 +1,4 @@
-import { Store } from "@ptl/modular-core";
+import { type CoreApi, Store } from "@ptl/modular-core";
 
 import type { SubtitleEditorApi } from "../editor";
 import type { EditorModule } from "../editor-module";
@@ -135,15 +135,13 @@ export class SnappingModule implements EditorModule<SnappingModuleApi> {
   private readonly store: Store<SnappingModuleState>;
   private editor?: SubtitleEditorApi;
 
-  constructor(private readonly options: SnappingModuleOptions = {}) {
+  constructor(options: SnappingModuleOptions = {}) {
     this.store = new Store<SnappingModuleState>(createInitialState(options));
   }
 
   // Static Methods
 
-  static for(editor: {
-    getModule: (m: typeof SnappingModule) => SnappingModule;
-  }): SnappingModule {
+  static for<A>(editor: CoreApi<A>): SnappingModule {
     return editor.getModule(this);
   }
 

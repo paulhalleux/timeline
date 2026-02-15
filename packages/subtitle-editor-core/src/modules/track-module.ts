@@ -1,4 +1,4 @@
-import { Store } from "@ptl/modular-core";
+import { type CoreApi, Store } from "@ptl/modular-core";
 import { SubtitleParser, type SupportedFormats } from "@ptl/subtitle-kit";
 
 import type { EditorModule } from "../editor-module";
@@ -41,7 +41,6 @@ export interface TrackModuleApi {
   remove(trackId: EntityId): SubtitleTrack | null;
   get(trackId: EntityId): SubtitleTrack | undefined;
   update(trackId: EntityId, updates: Partial<Omit<SubtitleTrack, "id">>): void;
-  markDirty(trackId: EntityId, isDirty?: boolean): void;
   getCue(
     trackId: EntityId,
     cueIndex: number,
@@ -85,9 +84,7 @@ export class TrackModule implements EditorModule<TrackModuleApi> {
 
   // Static Methods
 
-  static for(editor: {
-    getModule: (m: typeof TrackModule) => TrackModule;
-  }): TrackModule {
+  static for<A>(editor: CoreApi<A>): TrackModule {
     return editor.getModule(this);
   }
 
@@ -172,9 +169,7 @@ export class TrackModule implements EditorModule<TrackModuleApi> {
     const track: SubtitleTrack = {
       id: generateId("track"),
       label: filename,
-      format,
       document,
-      isDirty: false,
     };
 
     this.add(track);
@@ -219,13 +214,6 @@ export class TrackModule implements EditorModule<TrackModuleApi> {
     this.store.set({
       tracks: tracks.map((t) => (t.id === trackId ? { ...t, ...updates } : t)),
     });
-  }
-
-  /**
-   * Marks a track as dirty (has unsaved changes).
-   */
-  markDirty(trackId: EntityId, isDirty = true): void {
-    this.update(trackId, { isDirty });
   }
 
   // ---------------------------------------------------------------------------
@@ -287,7 +275,6 @@ export class TrackModule implements EditorModule<TrackModuleApi> {
     }
 
     track.document.update(cueIndex, cueUpdates);
-    this.markDirty(trackId);
 
     // Trigger store update to notify subscribers
     this.store.set({ tracks: [...this.getState().tracks] });
@@ -330,7 +317,6 @@ export class TrackModule implements EditorModule<TrackModuleApi> {
     }
 
     track.document.update(cueIndex, cueUpdates);
-    this.markDirty(trackId);
     this.store.set({ tracks: [...this.getState().tracks] });
   }
 
@@ -364,7 +350,6 @@ export class TrackModule implements EditorModule<TrackModuleApi> {
       : null;
 
     track.document.remove(cueIndex);
-    this.markDirty(trackId);
 
     // Trigger store update
     this.store.set({ tracks: [...this.getState().tracks] });
@@ -394,7 +379,6 @@ export class TrackModule implements EditorModule<TrackModuleApi> {
     const track = this.get(trackId);
     if (!track) return;
     track.document.remove(cueIndex);
-    this.markDirty(trackId);
     this.store.set({ tracks: [...this.getState().tracks] });
   }
 
@@ -420,7 +404,6 @@ export class TrackModule implements EditorModule<TrackModuleApi> {
       text,
       index: atIndex,
     });
-    this.markDirty(trackId);
 
     // Trigger store update
     this.store.set({ tracks: [...this.getState().tracks] });
@@ -455,7 +438,6 @@ export class TrackModule implements EditorModule<TrackModuleApi> {
       text,
       index: atIndex,
     });
-    this.markDirty(trackId);
     this.store.set({ tracks: [...this.getState().tracks] });
   }
 
@@ -465,7 +447,7 @@ export class TrackModule implements EditorModule<TrackModuleApi> {
   export(trackId: EntityId): string | null {
     const track = this.get(trackId);
     if (!track) return null;
-    return SubtitleParser.stringify(track.format, track.document);
+    return SubtitleParser.stringify(track.document.getFormat(), track.document);
   }
 
   /**

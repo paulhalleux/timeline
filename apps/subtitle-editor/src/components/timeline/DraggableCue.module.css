@@ -46,8 +46,3 @@
 .cue:hover .resizeHandle {
   opacity: 0.5;
 }
-
-.resizeHandle:hover {
-  opacity: 1 !important;
-}
-

@@ -1,4 +1,4 @@
-import { Store } from "@ptl/modular-core";
+import { type CoreApi, Store } from "@ptl/modular-core";
 
 import type { EditorModule } from "../editor-module";
 import type { EntityId, SelectableEntityType } from "../types";
@@ -75,9 +75,7 @@ export class SelectionModule implements EditorModule<SelectionModuleApi> {
 
   // Static Methods
 
-  static for(editor: {
-    getModule: (m: typeof SelectionModule) => SelectionModule;
-  }): SelectionModule {
+  static for<A>(editor: CoreApi<A>): SelectionModule {
     return editor.getModule(this);
   }
 

@@ -1,6 +1,5 @@
-import { Store } from "@ptl/modular-core";
+import { type CoreApi, Store } from "@ptl/modular-core";
 
-import type { SubtitleEditorApi } from "../editor";
 import type { EditorModule } from "../editor-module";
 
 // ============================================================================
@@ -122,12 +121,12 @@ export class HistoryModule implements EditorModule<HistoryModuleApi> {
 
   private readonly store: Store<HistoryModuleState>;
   private readonly options: Required<HistoryModuleOptions>;
-  private editor?: SubtitleEditorApi;
   private actionIdCounter = 0;
 
   // For batching
   private batchActions: Array<Omit<HistoryAction, "id" | "timestamp">> = [];
   private isBatching = false;
+  private batchDescription = "";
 
   constructor(options: HistoryModuleOptions = {}) {
     this.store = new Store<HistoryModuleState>(createInitialState());
@@ -138,20 +137,14 @@ export class HistoryModule implements EditorModule<HistoryModuleApi> {
 
   // Static Methods
 
-  static for(editor: {
-    getModule: (m: typeof HistoryModule) => HistoryModule;
-  }): HistoryModule {
+  static for<A>(editor: CoreApi<A>): HistoryModule {
     return editor.getModule(this);
   }
 
   // Lifecycle Methods
 
-  attach(editor: SubtitleEditorApi): void {
-    this.editor = editor;
-  }
-
+  attach(): void {}
   detach(): void {
-    this.editor = undefined;
     this.clear();
   }
 
@@ -383,46 +376,44 @@ export class HistoryModule implements EditorModule<HistoryModuleApi> {
    * Create a batch of operations that will be recorded as a single undo action.
    */
   batch(description: string, fn: () => void): void {
-    if (this.isBatching) {
-      // Already batching, just execute
+    this.startBatch(description);
+    try {
       fn();
+    } finally {
+      this.endBatch();
+    }
+  }
+
+  startBatch(description: string): void {
+    this.isBatching = true;
+    this.batchDescription = description;
+    this.batchActions = [];
+  }
+
+  endBatch(): void {
+    if (!this.isBatching) {
       return;
     }
 
-    this.isBatching = true;
+    const actions = [...this.batchActions];
+    this.isBatching = false;
     this.batchActions = [];
 
-    try {
-      fn();
-
-      // Combine all batch actions into one
-      if (this.batchActions.length > 0) {
-        const actions = [...this.batchActions];
-
-        this.isBatching = false;
-        this.batchActions = [];
-
-        // Record combined action
-        this.record({
-          type: "batch",
-          description,
-          undo: () => {
-            // Undo in reverse order
-            for (let i = actions.length - 1; i >= 0; i--) {
-              actions[i].undo();
-            }
-          },
-          redo: () => {
-            // Redo in original order
-            for (const action of actions) {
-              action.redo();
-            }
-          },
-        });
-      }
-    } finally {
-      this.isBatching = false;
-      this.batchActions = [];
+    if (actions.length > 0) {
+      this.record({
+        type: "batch",
+        description: this.batchDescription,
+        undo: () => {
+          for (let i = actions.length - 1; i >= 0; i--) {
+            actions[i].undo();
+          }
+        },
+        redo: () => {
+          for (const action of actions) {
+            action.redo();
+          }
+        },
+      });
     }
   }
 
@@ -439,165 +430,4 @@ export class HistoryModule implements EditorModule<HistoryModuleApi> {
   destroy(): void {
     this.clear();
   }
-}
-
-// ============================================================================
-// History Helper Functions
-// ============================================================================
-
-/**
- * Creates a cue update action for history tracking.
- */
-export function createCueUpdateAction(
-  tracks: {
-    updateCue: (
-      trackId: string,
-      cueIndex: number,
-      updates: Record<string, unknown>,
-    ) => void;
-  },
-  trackId: string,
-  cueIndex: number,
-  oldValues: { text?: string; startMs?: number; endMs?: number },
-  newValues: { text?: string; startMs?: number; endMs?: number },
-): Omit<HistoryAction, "id" | "timestamp"> {
-  return {
-    type: "cue:update",
-    description: `Update cue ${cueIndex}`,
-    undo: () => tracks.updateCue(trackId, cueIndex, oldValues),
-    redo: () => tracks.updateCue(trackId, cueIndex, newValues),
-  };
-}
-
-/**
- * Creates a cue delete action for history tracking.
- */
-export function createCueDeleteAction(
-  tracks: {
-    deleteCue: (trackId: string, cueIndex: number) => void;
-    insertCue: (
-      trackId: string,
-      startMs: number,
-      endMs: number,
-      text: string,
-      atIndex?: number,
-    ) => void;
-  },
-  trackId: string,
-  cueIndex: number,
-  deletedCue: {
-    text: string;
-    start: { milliseconds: number };
-    end: { milliseconds: number };
-  },
-): Omit<HistoryAction, "id" | "timestamp"> {
-  return {
-    type: "cue:delete",
-    description: `Delete cue ${cueIndex}`,
-    undo: () =>
-      tracks.insertCue(
-        trackId,
-        deletedCue.start.milliseconds,
-        deletedCue.end.milliseconds,
-        deletedCue.text,
-        cueIndex,
-      ),
-    redo: () => tracks.deleteCue(trackId, cueIndex),
-  };
-}
-
-/**
- * Creates a cue insert action for history tracking.
- */
-export function createCueInsertAction(
-  tracks: {
-    deleteCue: (trackId: string, cueIndex: number) => void;
-    insertCue: (
-      trackId: string,
-      startMs: number,
-      endMs: number,
-      text: string,
-      atIndex?: number,
-    ) => void;
-  },
-  trackId: string,
-  cueIndex: number,
-  startMs: number,
-  endMs: number,
-  text: string,
-): Omit<HistoryAction, "id" | "timestamp"> {
-  return {
-    type: "cue:insert",
-    description: `Insert cue at ${cueIndex}`,
-    undo: () => tracks.deleteCue(trackId, cueIndex),
-    redo: () => tracks.insertCue(trackId, startMs, endMs, text, cueIndex),
-  };
-}
-
-/**
- * Creates a marker add action for history tracking.
- */
-export function createMarkerAddAction(
-  markers: {
-    add: (
-      time: number,
-      type?: string,
-      label?: string,
-      color?: string,
-    ) => { id: string };
-    remove: (markerId: string) => unknown;
-  },
-  time: number,
-  type: string,
-  label?: string,
-  color?: string,
-): Omit<HistoryAction, "id" | "timestamp"> {
-  let markerId: string | null = null;
-
-  return {
-    type: "marker:add",
-    description: `Add marker at ${time}ms`,
-    undo: () => {
-      if (markerId) {
-        markers.remove(markerId);
-      }
-    },
-    redo: () => {
-      const marker = markers.add(time, type, label, color);
-      markerId = marker.id;
-    },
-  };
-}
-
-/**
- * Creates a marker remove action for history tracking.
- */
-export function createMarkerRemoveAction(
-  markers: {
-    add: (
-      time: number,
-      type?: string,
-      label?: string,
-      color?: string,
-    ) => { id: string };
-    remove: (markerId: string) => unknown;
-  },
-  markerId: string,
-  markerData: { time: number; type: string; label?: string; color?: string },
-): Omit<HistoryAction, "id" | "timestamp"> {
-  return {
-    type: "marker:remove",
-    description: `Remove marker`,
-    undo: () => {
-      markers.add(
-        markerData.time,
-        markerData.type,
-        markerData.label,
-        markerData.color,
-      );
-    },
-    redo: () => {
-      markers.remove(markerId);
-    },
-  };
 }

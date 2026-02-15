@@ -3,6 +3,7 @@ import { type SubtitleCue } from "@ptl/subtitle-kit";
 
 import type { EditorModule } from "./editor-module";
 import {
+  DragModule,
   HistoryModule,
   MarkerModule,
   type PlaybackController,
@@ -127,7 +128,6 @@ export class SubtitleEditor
   private readonly _markers: MarkerModule;
   private readonly _selection: SelectionModule;
   private readonly _playback: PlaybackModule;
-  private readonly _snapping: SnappingModule;
   private readonly _history: HistoryModule | null;
 
   constructor(options: EditorOptions = {}) {
@@ -142,6 +142,7 @@ export class SubtitleEditor
     const selection = new SelectionModule();
     const playback = new PlaybackModule();
     const snapping = new SnappingModule();
+    const drag = new DragModule();
 
     const builtInModules: EditorModule[] = [
       tracks,
@@ -149,6 +150,7 @@ export class SubtitleEditor
       selection,
       playback,
       snapping,
+      drag,
     ];
 
     if (history) {
@@ -164,7 +166,6 @@ export class SubtitleEditor
     this._markers = markers;
     this._selection = selection;
     this._playback = playback;
-    this._snapping = snapping;
     this._history = history;
 
     this.options = mergedOptions;

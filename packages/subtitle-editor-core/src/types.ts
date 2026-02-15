@@ -1,4 +1,4 @@
-import type { SubtitleDocument, SupportedFormats } from "@ptl/subtitle-kit";
+import type { SubtitleDocument } from "@ptl/subtitle-kit";
 
 // ============================================================================
 // Utility Types
@@ -43,12 +43,8 @@ export interface LoadedMedia {
 export interface SubtitleTrack extends Identifiable {
   /** Display label (usually filename) */
   label: string;
-  /** Original format of the subtitle file */
-  format: SupportedFormats;
   /** Parsed subtitle document */
   document: SubtitleDocument;
-  /** Whether the track has unsaved changes */
-  isDirty: boolean;
 }
 
 // ============================================================================
@@ -58,7 +54,7 @@ export interface SubtitleTrack extends Identifiable {
 /**
  * Marker types for timeline annotations.
  */
-export type MarkerType = "bookmark" | "note" | "chapter" | "sync-point";
+export type MarkerType = "bookmark" | "note";
 
 /**
  * Represents a marker on the timeline.
