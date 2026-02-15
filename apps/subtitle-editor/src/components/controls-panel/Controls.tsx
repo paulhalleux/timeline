@@ -76,6 +76,13 @@ export const Controls: React.FC = () => {
     playbackModule.toggleMute();
   }, [playbackModule]);
 
+  const setPlaybackRate = React.useCallback(
+    (rate: number) => {
+      playbackModule.setPlaybackRate(rate);
+    },
+    [playbackModule],
+  );
+
   return (
     <div className={styles.controls}>
       {/* Play/Pause */}
@@ -107,6 +114,20 @@ export const Controls: React.FC = () => {
           <Volume2Icon size={16} />
         )}
       </Button>
+
+      {/* Playback Speed */}
+      <select
+        className={styles.playbackRateSelect}
+        value={playback.playbackRate}
+        onChange={(e) => setPlaybackRate(parseFloat(e.target.value))}
+        title="Playback Speed"
+      >
+        {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
+          <option key={rate} value={rate}>
+            {rate}×
+          </option>
+        ))}
+      </select>
 
       {/* Separator */}
       <div className={styles.controlsSeparator} />
