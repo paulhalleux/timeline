@@ -58,27 +58,15 @@ type TimelineViewportProps = React.ComponentProps<"div">;
 const TimelineViewport = ({
   children,
   className,
-  onWheel,
   ...rest
 }: TimelineViewportProps) => {
   const timeline = useTimeline();
   const mounted = useTimelineStore((tl) => tl.getViewport().isConnected());
 
-  const handleWheel = React.useCallback(
-    (event: React.WheelEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      timeline.panByPx(event.deltaX * -1 * 2);
-
-      onWheel?.(event);
-    },
-    [onWheel, timeline],
-  );
-
   return (
     <div
       ref={(el) => timeline.connect(el)}
       className={clsx(styles.viewport, className)}
-      onWheel={handleWheel}
       {...rest}
     >
       {mounted ? children : null}

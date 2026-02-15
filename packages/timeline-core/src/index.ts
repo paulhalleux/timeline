@@ -1,27 +1,4 @@
-export {
-  type MinimapApi,
-  MinimapModule,
-  type MinimapOptions,
-  type MinimapState,
-} from "./modules/minimap-module";
-export { type PlayheadApi, PlayheadModule } from "./modules/playhead-module";
-export {
-  createDefaultTickIntervalGenerator,
-  type RulerApi,
-  RulerModule,
-  type RulerOptions,
-  type RulerState,
-} from "./modules/ruler-module";
-export {
-  type SelectionApi,
-  SelectionModule,
-  type SelectionState,
-} from "./modules/selection-module";
-export {
-  type ViewportDragApi,
-  ViewportDragModule,
-  type ViewportDragState,
-} from "./modules/viewport-drag-module";
+export * from "./modules";
 export { Timeline, type TimelineApi, type TimelineOptions } from "./timeline";
 export type { TimelineModule } from "./timeline-module";
 export {

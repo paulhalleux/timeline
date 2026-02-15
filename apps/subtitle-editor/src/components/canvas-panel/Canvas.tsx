@@ -20,9 +20,16 @@ export const Canvas: React.FC = () => {
   const media = useMedia();
   const subtitleSources = useSubtitleSources();
 
-  const videoRef = useVideoConnection();
+  const { videoRef, setVideoRef } = useVideoConnection();
 
   const aspectRatio = media?.metadata.aspectRatio ?? 21 / 9;
+
+  React.useEffect(() => {
+    if (!subtitleSources[0]) return;
+    return subtitleSources[0].document.getCuesSignal().subscribe(() => {
+      if (videoRef?.textTracks[0]) videoRef.textTracks[0].mode = "showing";
+    });
+  }, [subtitleSources, videoRef]);
 
   return (
     <div className={styles.canvas}>
@@ -30,7 +37,7 @@ export const Canvas: React.FC = () => {
         className={styles.canvasContent}
         style={{ "--aspect-ratio": aspectRatio } as React.CSSProperties}
       >
-        <video ref={videoRef} controls className={styles.video}>
+        <video ref={setVideoRef} controls className={styles.video}>
           {media?.url && <source src={media.url} type="video/mp4" />}
           {subtitleSources.map(({ id, label, document }) => (
             <SubtitleTrack key={id} id={id} label={label} document={document} />
@@ -58,11 +65,9 @@ const SubtitleTrack: React.FC<{
 
   const prevSrcRef = React.useRef<string | null>(null);
 
-  // eslint-disable-next-line react-hooks/refs
   if (prevSrcRef.current && prevSrcRef.current !== src) {
-    // eslint-disable-next-line react-hooks/refs
     URL.revokeObjectURL(prevSrcRef.current);
-    // eslint-disable-next-line react-hooks/refs
+
     prevSrcRef.current = src;
   }
 

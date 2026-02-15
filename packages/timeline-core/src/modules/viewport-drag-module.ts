@@ -109,8 +109,28 @@ export class ViewportDragModule implements TimelineModule<ViewportDragApi> {
       this.store.set({ isDragging: false });
     };
 
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        const zoomFactor = 1 - e.deltaY * 0.0001;
+        timeline.setZoom(clamp(timeline.getZoomLevel() * zoomFactor, 0, 1));
+      } else if (e.deltaX !== 0) {
+        e.preventDefault();
+        timeline.panByPx(e.deltaX * -2);
+      }
+    };
+
+    viewportElement.addEventListener("wheel", onWheel, {
+      signal,
+      passive: false,
+    });
+
     viewportElement.addEventListener("pointerdown", onPointerDown, { signal });
     viewportElement.addEventListener("pointermove", onPointerMove, { signal });
     viewportElement.addEventListener("pointerup", onPointerUp, { signal });
   }
 }
+
+const clamp = (value: number, min: number, max: number) => {
+  return Math.min(Math.max(value, min), max);
+};

@@ -318,8 +318,9 @@ export const useVideoConnection = () => {
     };
   }, [editor, playback, playhead, timeline, videoRef]);
 
-  return (node: HTMLVideoElement | null) => {
-    setVideoRef(node);
+  return {
+    setVideoRef,
+    videoRef,
   };
 };
 
