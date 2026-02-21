@@ -6,6 +6,7 @@ import {
 } from "@ptl/subtitle";
 import { PlayheadModule } from "@ptl/timeline-core";
 import { usePlayhead, useTimeline } from "@ptl/timeline-react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import clsx from "clsx";
 import { ArrowRightIcon, PackageOpenIcon } from "lucide-react";
 import React from "react";
@@ -89,7 +90,6 @@ type CueListProps = {
 
 const CueList = ({ document, filteredCues, searchQuery }: CueListProps) => {
   const listRef = React.useRef<HTMLDivElement>(null);
-  const itemRefs = React.useRef<Map<string, HTMLDivElement>>(new Map());
 
   const [{ position }] = usePlayhead();
   const timeline = useTimeline();
@@ -100,30 +100,33 @@ const CueList = ({ document, filteredCues, searchQuery }: CueListProps) => {
     return getCueAt(document, position + 1);
   }, [document, position]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const virtualizer = useVirtualizer({
+    count: filteredCues.length,
+    getScrollElement: () => listRef.current,
+    estimateSize: () => 72,
+    overscan: 5,
+  });
+
+  // Find the index of the active cue in the filtered list
+  const activeCueIndex = React.useMemo(() => {
+    if (!activeCue) return -1;
+    return filteredCues.findIndex((c) => c.id === activeCue.id);
+  }, [activeCue, filteredCues]);
+
   // Auto-scroll to the active cue
+  const prevActiveCueIdRef = React.useRef<string | null>(null);
   React.useEffect(() => {
-    if (!activeCue) return;
+    if (activeCueIndex < 0) return;
+    // Only scroll when the active cue changes
+    if (prevActiveCueIdRef.current === activeCue?.id) return;
+    prevActiveCueIdRef.current = activeCue?.id ?? null;
 
-    const el = itemRefs.current.get(activeCue.id);
-    if (!el || !listRef.current) return;
-
-    // Only scroll if the active cue is in the filtered list
-    if (searchQuery) {
-      const isInFiltered = filteredCues.some((c) => c.id === activeCue.id);
-      if (!isInFiltered) return;
-    }
-
-    const container = listRef.current;
-    const elTop = el.offsetTop - container.offsetTop;
-    const elBottom = elTop + el.offsetHeight;
-    const scrollTop = container.scrollTop;
-    const containerHeight = container.clientHeight;
-
-    // Scroll only if the element is not visible
-    if (elTop < scrollTop || elBottom > scrollTop + containerHeight) {
-      el.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    }
-  }, [activeCue, filteredCues, searchQuery]);
+    virtualizer.scrollToIndex(activeCueIndex, {
+      align: "auto",
+      behavior: "smooth",
+    });
+  }, [activeCueIndex, activeCue?.id, virtualizer]);
 
   const handleCueClick = React.useCallback(
     (cue: Cue) => {
@@ -146,23 +149,39 @@ const CueList = ({ document, filteredCues, searchQuery }: CueListProps) => {
 
   return (
     <div ref={listRef} className="flex-1 overflow-y-auto">
-      {filteredCues.map((cue, index) => (
-        <CueItem
-          key={cue.id}
-          ref={(el) => {
-            if (el) {
-              itemRefs.current.set(cue.id, el);
-            } else {
-              itemRefs.current.delete(cue.id);
-            }
-          }}
-          cue={cue}
-          index={index}
-          isActive={cue.id === activeCue?.id}
-          searchQuery={searchQuery}
-          onClick={handleCueClick}
-        />
-      ))}
+      <div
+        style={{
+          height: virtualizer.getTotalSize(),
+          width: "100%",
+          position: "relative",
+        }}
+      >
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const cue = filteredCues[virtualRow.index];
+          return (
+            <div
+              key={cue.id}
+              ref={virtualizer.measureElement}
+              data-index={virtualRow.index}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              <CueItem
+                cue={cue}
+                index={virtualRow.index}
+                isActive={cue.id === activeCue?.id}
+                searchQuery={searchQuery}
+                onClick={handleCueClick}
+              />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
@@ -173,7 +192,6 @@ type CueItemProps = {
   isActive: boolean;
   searchQuery: string;
   onClick: (cue: Cue) => void;
-  ref: React.Ref<HTMLDivElement>;
 };
 
 const CueItem = ({
@@ -182,11 +200,9 @@ const CueItem = ({
   isActive,
   searchQuery,
   onClick,
-  ref,
 }: CueItemProps) => {
   return (
     <div
-      ref={ref}
       onClick={() => onClick(cue)}
       className={clsx(
         "flex flex-col gap-2 px-3 py-2 border-b border-neutral-800/60 cursor-pointer transition-colors",
