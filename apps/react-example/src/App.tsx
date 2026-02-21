@@ -9,7 +9,7 @@ import {
 import { TimelineProvider } from "@ptl/timeline-react";
 import React from "react";
 
-import { Example3 } from "./example-subtitle/example3.tsx";
+import { Example3 } from "./example3/example3.tsx";
 
 export const App = () => {
   const [timeline] = React.useState(() => {

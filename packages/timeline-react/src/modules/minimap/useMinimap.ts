@@ -1,4 +1,4 @@
-import { useSignal } from "@ptl/signal-react";
+import { useStore } from "@ptl/store/react";
 import {
   type MinimapApi,
   MinimapModule,
@@ -15,7 +15,7 @@ import { useTimeline } from "../../timeline";
 export const useMinimap = (): [MinimapState, MinimapApi] => {
   const timeline = useTimeline();
   const minimap = MinimapModule.for(timeline);
-  const state = useSignal(minimap.getStore());
+  const state = useStore(minimap.getStore());
   return [state, minimap];
 };
 

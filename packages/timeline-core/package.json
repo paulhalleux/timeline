@@ -17,7 +17,6 @@
   ],
   "dependencies": {
     "@ptl/modular-core": "^0.0.0",
-    "@ptl/signal": "^0.0.0",
     "@ptl/store": "^0.0.0"
   },
   "devDependencies": {

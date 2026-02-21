@@ -1,4 +1,4 @@
-import { useSignal } from "@ptl/signal-react";
+import { useStore } from "@ptl/store/react";
 import {
   type RulerApi,
   RulerModule,
@@ -15,7 +15,7 @@ import { useTimeline } from "../../timeline";
 export const useRuler = (): [RulerState, RulerApi] => {
   const timeline = useTimeline();
   const ruler = RulerModule.for(timeline);
-  const state = useSignal(ruler.getStore());
+  const state = useStore(ruler.getStore());
   return [state, ruler];
 };
 

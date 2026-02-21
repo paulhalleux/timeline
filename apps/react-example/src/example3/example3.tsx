@@ -1,4 +1,4 @@
-import { useSignal } from "@ptl/signal-react";
+import { useStoreSelector } from "@ptl/store/react";
 import { MinimapModule } from "@ptl/timeline-core";
 import {
   Minimap,
@@ -30,14 +30,13 @@ export const Example3 = () => {
   }, []);
 
   const minimapModule = MinimapModule.for(timeline);
-  const isOverflow = useSignal(
-    minimapModule.getStore().map(() => minimapModule.isOverflowing()),
+  const isOverflow = useStoreSelector(minimapModule.getStore(), () =>
+    minimapModule.isOverflowing(),
   );
-  const headerOffsetPx = useSignal(
-    timeline
-      .getViewport()
-      .getStore()
-      .map((s) => s.headerOffsetPx),
+
+  const headerOffsetPx = useStoreSelector(
+    timeline.getViewport().getStore(),
+    (state) => state.headerOffsetPx,
   );
 
   return (

@@ -1,4 +1,4 @@
-import { useSignal, useSignalSelector } from "@ptl/signal-react";
+import { useStore, useStoreCombine } from "@ptl/store/react";
 import { type PlayheadApi, PlayheadModule } from "@ptl/timeline-core";
 
 import { useTimeline } from "../../timeline";
@@ -13,12 +13,12 @@ export const usePlayhead = (): [PlayheadState, PlayheadApi] => {
   const timeline = useTimeline();
   const playhead = PlayheadModule.for(timeline);
 
-  const state = useSignal(playhead.getStore());
-  const leftPx = useSignalSelector(
-    ([{ position }]) => {
-      return timeline.projectToChunk(position);
-    },
+  const state = useStore(playhead.getStore());
+  const leftPx = useStoreCombine(
     [playhead.getStore(), timeline.getViewport().getStore()] as const,
+    ([playheadState]) => {
+      return timeline.projectToChunk(playheadState.position);
+    },
   );
 
   return [
