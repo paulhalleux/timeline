@@ -96,20 +96,6 @@
         "typescript": "^5.9.3",
       },
     },
-    "packages/sequence-model": {
-      "name": "@ptl/sequence-model",
-      "version": "0.0.0",
-      "dependencies": {
-        "@ptl/store": "^0.0.0",
-      },
-      "devDependencies": {
-        "@ptl/eslint-config": "^1.0.0",
-        "eslint": "^9.39.2",
-        "prettier": "^3.8.0",
-        "tsdown": "^0.20.1",
-        "typescript": "^5.9.3",
-      },
-    },
     "packages/signal": {
       "name": "@ptl/signal",
       "version": "0.0.0",
@@ -157,6 +143,18 @@
       },
       "devDependencies": {
         "@ptl/eslint-config": "^1.0.0",
+        "eslint": "^9.39.2",
+        "prettier": "^3.8.0",
+        "tsdown": "^0.20.1",
+        "typescript": "^5.9.3",
+      },
+    },
+    "packages/subtitle": {
+      "name": "@ptl/subtitle",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@ptl/eslint-config": "^1.0.0",
+        "@types/node": "^25.1.0",
         "eslint": "^9.39.2",
         "prettier": "^3.8.0",
         "tsdown": "^0.20.1",
@@ -556,13 +554,13 @@
 
     "@ptl/react-example": ["@ptl/react-example@workspace:apps/react-example"],
 
-    "@ptl/sequence-model": ["@ptl/sequence-model@workspace:packages/sequence-model"],
-
     "@ptl/signal": ["@ptl/signal@workspace:packages/signal"],
 
     "@ptl/signal-react": ["@ptl/signal-react@workspace:packages/signal-react"],
 
     "@ptl/store": ["@ptl/store@workspace:packages/store"],
+
+    "@ptl/subtitle": ["@ptl/subtitle@workspace:packages/subtitle"],
 
     "@ptl/subtitle-editor": ["@ptl/subtitle-editor@workspace:apps/subtitle-editor"],
 
@@ -2017,6 +2015,8 @@
     "@nx/devkit/semver": ["semver@7.7.3", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q=="],
 
     "@oxc-resolver/binding-wasm32-wasi/@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@0.2.12", "", { "dependencies": { "@emnapi/core": "^1.4.3", "@emnapi/runtime": "^1.4.3", "@tybys/wasm-util": "^0.10.0" } }, "sha512-ZVWUcfwY4E/yPitQJl481FjFo3K22D6qF0DuFH6Y/nbnE11GY5uguDxZMGXPQ8WQ0128MXQD7TnfHyK4oWoIJQ=="],
+
+    "@ptl/subtitle/@types/node": ["@types/node@25.1.0", "", { "dependencies": { "undici-types": "~7.16.0" } }, "sha512-t7frlewr6+cbx+9Ohpl0NOTKXZNV9xHRmNOvql47BFJKcEG1CxtxlPEEe+gR9uhVWM4DwhnvTF110mIL4yP9RA=="],
 
     "@ptl/subtitle-kit/@types/node": ["@types/node@25.1.0", "", { "dependencies": { "undici-types": "~7.16.0" } }, "sha512-t7frlewr6+cbx+9Ohpl0NOTKXZNV9xHRmNOvql47BFJKcEG1CxtxlPEEe+gR9uhVWM4DwhnvTF110mIL4yP9RA=="],
 
