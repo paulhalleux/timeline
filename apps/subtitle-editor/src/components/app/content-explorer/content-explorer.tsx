@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import React from "react";
 
+import { useAddNewCue } from "../../../core/actions/cue.ts";
 import {
   useSubtitleDocument,
   useSubtitleEditor,
@@ -29,7 +30,6 @@ import { EmptyState } from "../../ui/empty-state";
 import { ListView } from "../../ui/list-view";
 import { SearchInput } from "../../ui/search-input";
 import { ToggleGroup } from "../../ui/toggle-group";
-import { useAddNewCue } from "../../../core/actions/cue.ts";
 
 type ViewMode = "list" | "table";
 

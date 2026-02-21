@@ -43,8 +43,9 @@ const importSubtitle = (api: SubtitleEditorApi, timelineApi: TimelineApi) => {
 
         const document = defaultRegistry.parse(content);
         if (document) {
-          api.setDocument(
+          api.addDocument(
             updateDocumentMetadata(document, {
+              id: crypto.randomUUID(),
               name: files[0].name,
             }),
           );
@@ -70,12 +71,13 @@ const createNewDocument =
     const document = createDocument({
       format,
       metadata: {
+        id: crypto.randomUUID(),
         name: `New ${format.toUpperCase()} Document`,
       },
       cues: [],
     });
 
-    api.setDocument(document);
+    api.addDocument(document);
     timelineApi.setVisibleRange(getDocumentDuration(document));
   };
 

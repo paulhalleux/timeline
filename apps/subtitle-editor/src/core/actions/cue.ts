@@ -7,9 +7,9 @@ export const useAddNewCue = () => {
   const editor = useSubtitleEditor();
   return React.useCallback(
     (init: CueInput) => {
-      const document = editor.getDocument();
+      const document = editor.getActiveDocument();
       if (!document) return;
-      editor.setDocument(addCue(document, init));
+      editor.addDocument(addCue(document, init));
     },
     [editor],
   );

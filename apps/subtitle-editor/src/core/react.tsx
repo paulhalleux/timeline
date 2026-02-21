@@ -31,8 +31,15 @@ export const useSubtitleEditor = () => {
 export const useSubtitleDocument = <T,>(
   selector: (state: SubtitleDocument | null) => T,
 ) => {
-  const { store } = useSubtitleEditor();
-  return useStoreSelector(store, (state) => {
-    return selector(state.document);
+  const editor = useSubtitleEditor();
+  return useStoreSelector(editor.store, () => {
+    return selector(editor.getActiveDocument());
+  });
+};
+
+export const useDocumentList = () => {
+  const editor = useSubtitleEditor();
+  return useStoreSelector(editor.store, () => {
+    return editor.getDocumentList();
   });
 };
