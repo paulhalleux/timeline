@@ -1,6 +1,8 @@
 import * as Resizable from "react-resizable-panels";
 
 import { Panel } from "../ui/panel";
+import { EditorTimeline } from "./editor-timeline/editor-timelient.tsx";
+import { Menu } from "./menu/menu.tsx";
 
 const PanelProps: Record<string, Resizable.PanelProps> = {
   Menu: {
@@ -14,7 +16,7 @@ const PanelProps: Record<string, Resizable.PanelProps> = {
     defaultSize: 400,
   },
   Timeline: {
-    defaultSize: 100,
+    defaultSize: 350,
     minSize: 200,
     maxSize: 350,
   },
@@ -40,7 +42,7 @@ export const SubtitleEditor = () => {
     >
       {/* Menu */}
       <Panel as={Resizable.Panel} {...PanelProps.Menu}>
-        <h1 className="text-xl font-bold">Subtitle Editor</h1>
+        <Menu />
       </Panel>
 
       {/* Content - Canvas - Editor */}
@@ -48,7 +50,7 @@ export const SubtitleEditor = () => {
         <Resizable.Group className="h-full gap-2">
           {/* Content */}
           <Panel as={Resizable.Panel} {...PanelProps.ContentExplorer}>
-            <h2 className="text-lg font-semibold">Canvas</h2>
+            <h2 className="text-lg font-semibold">Content</h2>
           </Panel>
 
           {/* Canvas */}
@@ -65,7 +67,7 @@ export const SubtitleEditor = () => {
 
       {/* Timeline */}
       <Panel as={Resizable.Panel} {...PanelProps.Timeline}>
-        <h2 className="text-lg font-semibold">Timeline</h2>
+        <EditorTimeline />
       </Panel>
     </Resizable.Group>
   );
