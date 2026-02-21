@@ -1,6 +1,8 @@
+import { useStoreSelector } from "@ptl/store/react";
 import {
   Timeline as BaseTimeline,
   Track as BaseTrack,
+  useTimeline,
   ViewportItem,
 } from "@ptl/timeline-react";
 import clsx from "clsx";
@@ -11,9 +13,23 @@ export const TimelineRoot = ({
   className,
   ...rest
 }: React.ComponentProps<typeof BaseTimeline.Root>) => {
+  const timeline = useTimeline();
+  const headerOffsetPx = useStoreSelector(timeline.getStore(), () => {
+    return timeline.getViewport().getHeaderOffsetPx();
+  });
+
   return (
     <BaseTimeline.Root className={clsx("h-full text-sm", className)} {...rest}>
-      <BaseTimeline.Layers>{children}</BaseTimeline.Layers>
+      <BaseTimeline.Layers>
+        {children}
+        <BaseTimeline.Layer
+          layer={0}
+          className="border-r border-neutral-800 h-full"
+          style={{
+            width: headerOffsetPx,
+          }}
+        />
+      </BaseTimeline.Layers>
     </BaseTimeline.Root>
   );
 };

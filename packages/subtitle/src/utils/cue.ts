@@ -3,14 +3,13 @@ import type { Cue, CueInput } from "../types";
 /**
  * Generate a unique ID for a cue.
  *
- * This function creates a random string ID by generating a random number, converting it to base 36 (which includes letters and digits), and taking a substring of it.
- * <br/>
- * The prefix "cue_" is added to ensure that the ID is easily identifiable as a cue ID.
+ * This function uses the `crypto.randomUUID()` method to create a universally unique identifier (UUID) for each cue.
+ * The generated ID is prefixed with "cue_" to indicate that it belongs to a cue.
  *
  * @returns A unique string ID for a cue.
  */
 export function generateCueId(): string {
-  return `cue_${Math.random().toString(36).substring(2, 9)}`;
+  return `cue_${crypto.randomUUID()}`;
 }
 
 /**

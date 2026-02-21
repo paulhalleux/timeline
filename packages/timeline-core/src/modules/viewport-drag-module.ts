@@ -113,7 +113,8 @@ export class ViewportDragModule implements TimelineModule<ViewportDragApi> {
       if (e.ctrlKey) {
         e.preventDefault();
         const zoomFactor = 1 - e.deltaY * 0.0001;
-        timeline.setZoom(clamp(timeline.getZoomLevel() * zoomFactor, 0, 1));
+        const nonZeroZoom = Math.max(timeline.getZoomLevel(), 0.01);
+        timeline.setZoom(clamp(nonZeroZoom * zoomFactor, 0, 1));
       } else if (e.deltaX !== 0) {
         e.preventDefault();
         timeline.panByPx(e.deltaX * -2);

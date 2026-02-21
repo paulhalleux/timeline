@@ -1,4 +1,8 @@
-import { defaultRegistry, getDocumentDuration } from "@ptl/subtitle";
+import {
+  defaultRegistry,
+  getDocumentDuration,
+  updateDocumentMetadata,
+} from "@ptl/subtitle";
 import type { TimelineApi } from "@ptl/timeline-core";
 import { useTimeline } from "@ptl/timeline-react";
 import { CaptionsIcon, VideoIcon } from "lucide-react";
@@ -35,7 +39,11 @@ const importSubtitle = (api: SubtitleEditorApi, timelineApi: TimelineApi) => {
 
         const document = defaultRegistry.parse(content);
         if (document) {
-          api.setDocument(document);
+          api.setDocument(
+            updateDocumentMetadata(document, {
+              name: files[0].name,
+            }),
+          );
           timelineApi.setVisibleRange(getDocumentDuration(document));
         } else {
           alert("Failed to parse subtitle file.");

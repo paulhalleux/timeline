@@ -1,4 +1,6 @@
-import { contentToPlainText } from "@ptl/subtitle";
+import { getMetadataValue } from "@ptl/subtitle";
+import { CornerDownLeftIcon, CornerDownRightIcon } from "lucide-react";
+import React from "react";
 
 import { useSubtitleDocument } from "../../../core/react.tsx";
 import { Playhead, Ruler, Timeline } from "../../ui/timeline";
@@ -15,11 +17,13 @@ export const EditorTimeline = () => {
   const tracks = [
     {
       id: "Subtitles",
+      title: getMetadataValue(document, "name", "Unnamed Document"),
+      format: document.format,
       items: document.cues.map((cue) => ({
         id: cue.id,
         start: cue.start.ms,
         end: cue.end.ms,
-        content: contentToPlainText(cue.content),
+        content: cue.content,
       })),
     },
   ];
@@ -47,7 +51,12 @@ export const EditorTimeline = () => {
         {tracks.map((track) => (
           <Timeline.Track height={40} key={track.id}>
             <Timeline.TrackHeader className="flex items-center px-3 text-sm text-gray-400">
-              {track.id}
+              <span className="bg-gray-700/50 text-gray-300 px-1 rounded mr-2 text-xs font-bold shrink-0">
+                {track.format.toUpperCase()}
+              </span>
+              <span className="text-ellipsis overflow-hidden whitespace-nowrap">
+                {track.title}
+              </span>
             </Timeline.TrackHeader>
             <Timeline.TrackContent>
               {track.items.map((item) => (
@@ -55,11 +64,31 @@ export const EditorTimeline = () => {
                   key={item.id}
                   start={item.start}
                   end={item.end}
-                  className="flex items-center justify-center px-0.5"
+                  className="flex items-center justify-center px-1"
                 >
-                  <span className="text-xs text-ellipsis overflow-hidden whitespace-nowrap">
-                    {item.content}
-                  </span>
+                  <div className="text-xs text-ellipsis overflow-hidden whitespace-nowrap inline-block">
+                    {item.content.map((c, index) => {
+                      if (c.type === "text" || c.type === "styled") {
+                        return c.text;
+                      } else {
+                        return (
+                          <>
+                            <CornerDownLeftIcon
+                              key={item.id + index + "start"}
+                              className="inline text-white/50 mx-0.5"
+                              size={12}
+                            />
+                            <br />
+                            <CornerDownRightIcon
+                              key={item.id + index + "end"}
+                              className="inline text-white/50 mx-0.5"
+                              size={12}
+                            />
+                          </>
+                        );
+                      }
+                    })}
+                  </div>
                 </Timeline.TrackItem>
               ))}
             </Timeline.TrackContent>
