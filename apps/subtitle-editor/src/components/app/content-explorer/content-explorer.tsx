@@ -1,3 +1,4 @@
+import { useStoreCombine } from "@ptl/store/react";
 import {
   contentToPlainText,
   type Cue,
@@ -6,9 +7,14 @@ import {
 } from "@ptl/subtitle";
 import { PlayheadModule } from "@ptl/timeline-core";
 import { useTimeline } from "@ptl/timeline-react";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import type { ColumnDef } from "@tanstack/react-table";
 import clsx from "clsx";
-import { ArrowRightIcon, PackageOpenIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  ListIcon,
+  PackageOpenIcon,
+  TableIcon,
+} from "lucide-react";
 import React from "react";
 
 import {
@@ -17,13 +23,18 @@ import {
 } from "../../../core/react.tsx";
 import { formatTime } from "../../../utils/format-time.ts";
 import { CueContentDisplay } from "../../ui/cue-content-display";
+import { DataTable } from "../../ui/data-table";
 import { EmptyState } from "../../ui/empty-state";
+import { ListView } from "../../ui/list-view";
 import { SearchInput } from "../../ui/search-input";
-import { useStoreCombine } from "@ptl/store/react";
+import { ToggleGroup } from "../../ui/toggle-group";
+
+type ViewMode = "list" | "table";
 
 export const ContentExplorer = () => {
   const document = useSubtitleDocument((state) => state);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [viewMode, setViewMode] = React.useState<ViewMode>("list");
 
   const filteredCues = React.useMemo(() => {
     if (!document) return [];
@@ -52,15 +63,28 @@ export const ContentExplorer = () => {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="shrink-0 p-2 border-b border-neutral-800 flex flex-col items-end">
-        <SearchInput
-          placeholder="Search cues..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onClear={() => setSearchQuery("")}
-          className="w-full"
-        />
-        <div className="text-xs text-neutral-500 mt-1.5">
+      <div className="shrink-0 p-2 border-b border-neutral-800 flex flex-col gap-1.5">
+        <div className="flex items-center gap-2">
+          <SearchInput
+            placeholder="Search cues..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onClear={() => setSearchQuery("")}
+            className="flex-1"
+          />
+          <ToggleGroup.Root
+            value={viewMode}
+            onValueChange={(v) => setViewMode(v as ViewMode)}
+          >
+            <ToggleGroup.Item value="list" title="List view">
+              <ListIcon size={14} />
+            </ToggleGroup.Item>
+            <ToggleGroup.Item value="table" title="Table view">
+              <TableIcon size={14} />
+            </ToggleGroup.Item>
+          </ToggleGroup.Root>
+        </div>
+        <div className="text-xs text-neutral-500 text-right">
           <span>
             {document.cues.length} cue{document.cues.length !== 1 ? "s" : ""}
           </span>
@@ -76,12 +100,20 @@ export const ContentExplorer = () => {
         </div>
       </div>
 
-      {/* Cue list */}
-      <CueList
-        document={document}
-        filteredCues={filteredCues}
-        searchQuery={searchQuery}
-      />
+      {/* Content */}
+      {viewMode === "list" ? (
+        <CueList
+          document={document}
+          filteredCues={filteredCues}
+          searchQuery={searchQuery}
+        />
+      ) : (
+        <CueTable
+          document={document}
+          filteredCues={filteredCues}
+          searchQuery={searchQuery}
+        />
+      )}
     </div>
   );
 };
@@ -93,8 +125,6 @@ type CueListProps = {
 };
 
 const CueList = ({ document, filteredCues, searchQuery }: CueListProps) => {
-  const listRef = React.useRef<HTMLDivElement>(null);
-
   const timeline = useTimeline();
   const editor = useSubtitleEditor();
 
@@ -106,33 +136,10 @@ const CueList = ({ document, filteredCues, searchQuery }: CueListProps) => {
     },
   );
 
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const virtualizer = useVirtualizer({
-    count: filteredCues.length,
-    getScrollElement: () => listRef.current,
-    estimateSize: () => 72,
-    overscan: 5,
-  });
-
-  // Find the index of the active cue in the filtered list
   const activeCueIndex = React.useMemo(() => {
     if (!activeCue) return -1;
     return filteredCues.findIndex((c) => c.id === activeCue.id);
   }, [activeCue, filteredCues]);
-
-  // Auto-scroll to the active cue
-  const prevActiveCueIdRef = React.useRef<string | null>(null);
-  React.useEffect(() => {
-    if (activeCueIndex < 0) return;
-    // Only scroll when the active cue changes
-    if (prevActiveCueIdRef.current === activeCue?.id) return;
-    prevActiveCueIdRef.current = activeCue?.id ?? null;
-
-    virtualizer.scrollToIndex(activeCueIndex, {
-      align: "auto",
-      behavior: "smooth",
-    });
-  }, [activeCueIndex, activeCue?.id, virtualizer]);
 
   const handleCueClick = React.useCallback(
     (cue: Cue) => {
@@ -154,41 +161,19 @@ const CueList = ({ document, filteredCues, searchQuery }: CueListProps) => {
   }
 
   return (
-    <div ref={listRef} className="flex-1 overflow-y-auto">
-      <div
-        style={{
-          height: virtualizer.getTotalSize(),
-          width: "100%",
-          position: "relative",
-        }}
-      >
-        {virtualizer.getVirtualItems().map((virtualRow) => {
-          const cue = filteredCues[virtualRow.index];
-          return (
-            <div
-              key={cue.id}
-              ref={virtualizer.measureElement}
-              data-index={virtualRow.index}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                transform: `translateY(${virtualRow.start}px)`,
-              }}
-            >
-              <CueItem
-                cue={cue}
-                index={virtualRow.index}
-                isActive={cue.id === activeCue?.id}
-                searchQuery={searchQuery}
-                onClick={handleCueClick}
-              />
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <ListView.Root count={filteredCues.length} activeIndex={activeCueIndex}>
+      <ListView.Items data={filteredCues} getItemKey={(cue) => cue.id}>
+        {(cue, index) => (
+          <CueItem
+            cue={cue}
+            index={index}
+            isActive={cue.id === activeCue?.id}
+            searchQuery={searchQuery}
+            onClick={handleCueClick}
+          />
+        )}
+      </ListView.Items>
+    </ListView.Root>
   );
 };
 
@@ -245,3 +230,113 @@ const CueItem = React.memo(
 );
 
 CueItem.displayName = "CueItem";
+
+const cueTableColumns: ColumnDef<Cue, unknown>[] = [
+  {
+    id: "index",
+    header: "#",
+    size: 40,
+    cell: ({ row }) => (
+      <span className="font-mono text-neutral-500">{row.index + 1}</span>
+    ),
+  },
+  {
+    id: "start",
+    header: "Start",
+    size: 100,
+    cell: ({ row }) => (
+      <span className="font-mono">{formatTime(row.original.start.ms)}</span>
+    ),
+  },
+  {
+    id: "end",
+    header: "End",
+    size: 100,
+    cell: ({ row }) => (
+      <span className="font-mono">{formatTime(row.original.end.ms)}</span>
+    ),
+  },
+  {
+    id: "duration",
+    header: "Duration",
+    size: 100,
+    cell: ({ row }) => {
+      const durationMs = row.original.end.ms - row.original.start.ms;
+      return (
+        <span className="font-mono text-neutral-500">
+          {formatTime(durationMs)}
+        </span>
+      );
+    },
+  },
+  {
+    id: "content",
+    header: "Content",
+    size: 400,
+    cell: ({ row, table }) => {
+      const searchQuery =
+        (table.options.meta as { searchQuery?: string })?.searchQuery ?? "";
+      return (
+        <CueContentDisplay
+          content={row.original.content}
+          highlightQuery={searchQuery}
+          className="text-ellipsis overflow-hidden whitespace-nowrap"
+        />
+      );
+    },
+  },
+];
+
+const CueTable = ({ document, filteredCues, searchQuery }: CueListProps) => {
+  const timeline = useTimeline();
+  const editor = useSubtitleEditor();
+
+  const playheadApi = PlayheadModule.for(timeline);
+  const activeCue = useStoreCombine(
+    [playheadApi.getStore(), editor.store] as const,
+    ([state]) => {
+      return getCueAt(document, state.position + 1);
+    },
+  );
+
+  const activeCueIndex = React.useMemo(() => {
+    if (!activeCue) return -1;
+    return filteredCues.findIndex((c) => c.id === activeCue.id);
+  }, [activeCue, filteredCues]);
+
+  const handleRowClick = React.useCallback(
+    (cue: Cue) => {
+      playheadApi.setPosition(cue.start.ms);
+    },
+    [playheadApi],
+  );
+
+  const isRowActive = React.useCallback(
+    (cue: Cue) => cue.id === activeCue?.id,
+    [activeCue?.id],
+  );
+
+  if (filteredCues.length === 0) {
+    return (
+      <EmptyState.Root>
+        <EmptyState.Description>
+          {searchQuery
+            ? `No cues match the search query "${searchQuery}".`
+            : "No cues in the document."}
+        </EmptyState.Description>
+      </EmptyState.Root>
+    );
+  }
+
+  return (
+    <DataTable
+      data={filteredCues}
+      columns={cueTableColumns}
+      activeRowIndex={activeCueIndex}
+      onRowClick={handleRowClick}
+      isRowActive={isRowActive}
+      rowHeight={40}
+      meta={{ searchQuery }}
+    />
+  );
+};

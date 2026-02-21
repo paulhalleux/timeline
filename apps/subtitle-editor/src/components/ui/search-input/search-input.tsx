@@ -22,9 +22,9 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
           type="text"
           value={value}
           className={clsx(
-            "w-full rounded bg-neutral-800 border border-neutral-700 text-sm text-neutral-200",
-            "placeholder:text-neutral-500 focus:outline-none focus:border-cyan-700",
-            "pl-7 pr-7 py-1.5",
+            "w-full rounded bg-neutral-800 text-xs text-neutral-200",
+            "placeholder:text-neutral-500 placeholder:text-xs focus:outline-none focus:border-cyan-700",
+            "h-6 pl-7",
           )}
           {...rest}
         />
