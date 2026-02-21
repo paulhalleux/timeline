@@ -5,6 +5,7 @@ import { castDraft } from "immer";
 export type SubtitleEditorState = {
   documents: Map<string, SubtitleDocument>;
   activeDocumentId: string | null;
+  selectedCueIds: Set<string>;
 };
 
 export type SubtitleEditorApi = {
@@ -20,12 +21,20 @@ export type SubtitleEditorApi = {
   // Active document management
   setActiveDocument: (id: string | undefined) => void;
   getActiveDocument: () => SubtitleDocument | null;
+
+  // Cue selection management
+  getSelectedCueIds: () => Set<string>;
+  selectCue: (cueId: string) => void;
+  deselectCue: (cueId: string) => void;
+  clearSelectedCues: () => void;
+  isCueSelected: (cueId: string) => boolean;
 };
 
 export const createSubtitleEditor = (): SubtitleEditorApi => {
   const store = new Store<SubtitleEditorState>({
     documents: new Map(),
     activeDocumentId: null,
+    selectedCueIds: new Set(),
   });
 
   const getDocumentById = (id: string) => store.get().documents.get(id);
@@ -65,6 +74,25 @@ export const createSubtitleEditor = (): SubtitleEditorApi => {
     return activeId ? store.get().documents.get(activeId) || null : null;
   };
 
+  const getSelectedCueIds = () => store.get().selectedCueIds;
+  const selectCue = (cueId: string) => {
+    store.update((state) => {
+      state.selectedCueIds.add(cueId);
+    });
+  };
+  const deselectCue = (cueId: string) => {
+    store.update((state) => {
+      state.selectedCueIds.delete(cueId);
+    });
+  };
+  const clearSelectedCues = () => {
+    store.update((state) => {
+      state.selectedCueIds.clear();
+    });
+  };
+  const isCueSelected = (cueId: string) =>
+    store.get().selectedCueIds.has(cueId);
+
   return {
     store,
 
@@ -75,5 +103,11 @@ export const createSubtitleEditor = (): SubtitleEditorApi => {
 
     setActiveDocument,
     getActiveDocument,
+
+    getSelectedCueIds,
+    selectCue,
+    deselectCue,
+    clearSelectedCues,
+    isCueSelected,
   };
 };

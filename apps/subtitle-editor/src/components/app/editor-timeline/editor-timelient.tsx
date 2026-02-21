@@ -4,7 +4,11 @@ import { PlayheadModule } from "@ptl/timeline-core";
 import { useTimeline } from "@ptl/timeline-react";
 import { PackageOpenIcon } from "lucide-react";
 
-import { useDocumentList, useSubtitleEditor } from "../../../core/react.tsx";
+import {
+  useDocumentList,
+  useSelectedCueIds,
+  useSubtitleEditor,
+} from "../../../core/react.tsx";
 import { binarySearchMatchingTime } from "../../../utils/binary-search.ts";
 import { formatTime, formatTimeShort } from "../../../utils/format-time.ts";
 import { CueContentDisplay } from "../../ui/cue-content-display";
@@ -76,6 +80,7 @@ const DocumentTrack = ({
 }) => {
   const timeline = useTimeline();
   const editor = useSubtitleEditor();
+  const selected = useSelectedCueIds();
 
   const visibleRange = useStoreSelector(timeline.getStore(), (state) => {
     if (!document) {
@@ -124,6 +129,19 @@ const DocumentTrack = ({
               start={cue.start.ms}
               end={cue.end.ms}
               className="flex items-center justify-center px-1"
+              isSelected={selected.has(cue.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!e.ctrlKey) {
+                  editor.clearSelectedCues();
+                }
+
+                if (selected.has(cue.id) && e.ctrlKey) {
+                  editor.deselectCue(cue.id);
+                } else {
+                  editor.selectCue(cue.id);
+                }
+              }}
             >
               <CueContentDisplay
                 content={cue.content}

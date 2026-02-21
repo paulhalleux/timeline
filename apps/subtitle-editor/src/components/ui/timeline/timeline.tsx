@@ -111,13 +111,19 @@ export const TimelineTrackContent = ({
 export const TimelineTrackItem = ({
   children,
   className,
+  isSelected,
   ...rest
-}: React.ComponentProps<typeof ViewportItem>) => {
+}: React.ComponentProps<typeof ViewportItem> & {
+  isSelected?: boolean;
+}) => {
   return (
     <ViewportItem
       className={clsx(
         "overflow-hidden",
-        "bg-cyan-900 rounded-xs border-r border-cyan-950 border-l border-l-white/10 border-t border-t-white/10",
+        "bg-cyan-900 rounded-xs border-r border-r-cyan-950 border-l border-l-white/10 border-t border-t-white/10",
+        {
+          "bg-cyan-700!": isSelected,
+        },
         className,
       )}
       {...rest}

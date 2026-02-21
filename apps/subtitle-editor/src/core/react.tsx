@@ -43,3 +43,17 @@ export const useDocumentList = () => {
     return editor.getDocumentList();
   });
 };
+
+export const useSelectedCueIds = () => {
+  const editor = useSubtitleEditor();
+  return useStoreSelector(editor.store, () => {
+    return editor.getSelectedCueIds();
+  });
+};
+
+export const useIsCueSelected = (cueId: string) => {
+  const editor = useSubtitleEditor();
+  return useStoreSelector(editor.store, () => {
+    return editor.isCueSelected(cueId);
+  });
+};
