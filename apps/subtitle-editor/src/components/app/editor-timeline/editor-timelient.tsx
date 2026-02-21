@@ -1,11 +1,12 @@
 import { useStoreSelector } from "@ptl/store/react";
 import { getMetadataValue } from "@ptl/subtitle";
+import { PlayheadModule } from "@ptl/timeline-core";
 import { useTimeline } from "@ptl/timeline-react";
 import { PackageOpenIcon } from "lucide-react";
 
 import { useSubtitleDocument } from "../../../core/react.tsx";
 import { binarySearchMatchingTime } from "../../../utils/binary-search.ts";
-import { formatTimeShort } from "../../../utils/format-time.ts";
+import { formatTime, formatTimeShort } from "../../../utils/format-time.ts";
 import { CueContentDisplay } from "../../ui/cue-content-display";
 import { EmptyState } from "../../ui/empty-state";
 import { Playhead, Ruler, Timeline } from "../../ui/timeline";
@@ -77,7 +78,9 @@ export const EditorTimeline = () => {
       </Timeline.Overlay>
       <Timeline.Viewport>
         <Ruler.Root>
-          <Ruler.Header>00:00:00</Ruler.Header>
+          <Ruler.Header className="flex items-center px-3">
+            <CurrentTime />
+          </Ruler.Header>
           <Ruler.Ticks>
             {({ unit, left, width }) => (
               <Ruler.Tick
@@ -119,5 +122,20 @@ export const EditorTimeline = () => {
         ))}
       </Timeline.Viewport>
     </Timeline.Root>
+  );
+};
+
+const CurrentTime = () => {
+  const timeline = useTimeline();
+  const playheadApi = PlayheadModule.for(timeline);
+  const currentTime = useStoreSelector(
+    playheadApi.getStore(),
+    (state) => state.position,
+  );
+
+  return (
+    <div className="bg-gray-700/50 text-gray-300 px-1 rounded text-xs font-mono">
+      {formatTime(currentTime)}
+    </div>
   );
 };

@@ -66,3 +66,30 @@ export const EmptyStateIcon = ({
     <Icon size={48} className={clsx("text-neutral-500", className)} {...rest} />
   );
 };
+
+export const EmptyStateActions = ({
+  className,
+  children,
+  ...rest
+}: React.ComponentPropsWithoutRef<"div">) => {
+  return (
+    <div className={clsx("flex items-center gap-2", className)} {...rest}>
+      {children}
+    </div>
+  );
+};
+
+export const EmptyStateAction = ({
+  className,
+  children,
+  ...rest
+}: React.ComponentPropsWithoutRef<"button">) => {
+  return (
+    <button
+      className={clsx("underline text-sm text-neutral-300", className)}
+      {...rest}
+    >
+      {children}
+    </button>
+  );
+};

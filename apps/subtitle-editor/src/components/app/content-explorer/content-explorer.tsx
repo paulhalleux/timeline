@@ -4,6 +4,7 @@ import {
   type Cue,
   getCueAt,
   type SubtitleDocument,
+  time,
 } from "@ptl/subtitle";
 import { PlayheadModule } from "@ptl/timeline-core";
 import { useTimeline } from "@ptl/timeline-react";
@@ -28,6 +29,7 @@ import { EmptyState } from "../../ui/empty-state";
 import { ListView } from "../../ui/list-view";
 import { SearchInput } from "../../ui/search-input";
 import { ToggleGroup } from "../../ui/toggle-group";
+import { useAddNewCue } from "../../../core/actions/cue.ts";
 
 type ViewMode = "list" | "table";
 
@@ -148,6 +150,8 @@ const CueList = ({ document, filteredCues, searchQuery }: CueListProps) => {
     [playheadApi],
   );
 
+  const handleAddNewCue = useAddNewCue();
+
   if (filteredCues.length === 0) {
     return (
       <EmptyState.Root>
@@ -156,6 +160,19 @@ const CueList = ({ document, filteredCues, searchQuery }: CueListProps) => {
             ? `No cues match the search query "${searchQuery}".`
             : "No cues in the document."}
         </EmptyState.Description>
+        <EmptyState.Actions>
+          <EmptyState.Action
+            onClick={() => {
+              handleAddNewCue({
+                start: time(0),
+                end: time(2000),
+                content: [{ type: "text", text: "New cue" }],
+              });
+            }}
+          >
+            Add new
+          </EmptyState.Action>
+        </EmptyState.Actions>
       </EmptyState.Root>
     );
   }

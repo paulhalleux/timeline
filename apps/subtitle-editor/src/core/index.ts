@@ -9,6 +9,7 @@ export type SubtitleEditorApi = {
   store: Store<SubtitleEditorState>;
   setDocument: (document: SubtitleDocument) => void;
   clearDocument: () => void;
+  getDocument: () => SubtitleDocument | null;
 };
 
 export const createSubtitleEditor = (): SubtitleEditorApi => {
@@ -24,9 +25,14 @@ export const createSubtitleEditor = (): SubtitleEditorApi => {
     store.set({ document: null });
   };
 
+  const getDocument = () => {
+    return store.get().document;
+  };
+
   return {
     store,
     setDocument,
     clearDocument,
+    getDocument,
   };
 };

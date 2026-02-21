@@ -58,6 +58,14 @@ export const CueContentDisplay = React.memo(
       return offsets;
     }, [content]);
 
+    if (content.length === 0) {
+      return (
+        <span className={clsx("block italic opacity-50", className)}>
+          (no content)
+        </span>
+      );
+    }
+
     return (
       <span className={clsx("block", className)}>
         {content.map((segment, segIdx) => {

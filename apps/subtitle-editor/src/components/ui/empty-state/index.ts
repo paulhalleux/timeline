@@ -1,4 +1,6 @@
 import {
+  EmptyStateAction,
+  EmptyStateActions,
   EmptyStateDescription,
   EmptyStateIcon,
   EmptyStateRoot,
@@ -10,4 +12,6 @@ export const EmptyState = {
   Icon: EmptyStateIcon,
   Title: EmptyStateTitle,
   Description: EmptyStateDescription,
+  Actions: EmptyStateActions,
+  Action: EmptyStateAction,
 };

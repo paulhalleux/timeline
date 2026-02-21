@@ -1,11 +1,12 @@
 import {
+  createDocument,
   defaultRegistry,
   getDocumentDuration,
   updateDocumentMetadata,
 } from "@ptl/subtitle";
 import type { TimelineApi } from "@ptl/timeline-core";
 import { useTimeline } from "@ptl/timeline-react";
-import { CaptionsIcon, VideoIcon } from "lucide-react";
+import { CaptionsIcon, PlusIcon, VideoIcon } from "lucide-react";
 import React from "react";
 
 import type { SubtitleEditorApi } from "../../../core";
@@ -13,14 +14,17 @@ import { useSubtitleEditor } from "../../../core/react.tsx";
 import { triggerFileImport } from "../../../utils/file-import.ts";
 import { Menubar } from "../../ui/menubar";
 
+type Option = {
+  label: string;
+  icon?: React.ComponentType<{ size: number; className?: string }>;
+  onClick?: (api: SubtitleEditorApi, timelineApi: TimelineApi) => void;
+  submenu?: Option[];
+};
+
 type MenuItem = {
   label: string;
   groups?: MenuItem[];
-  items?: {
-    label: string;
-    icon?: React.ComponentType<{ size: number; className?: string }>;
-    onClick?: (api: SubtitleEditorApi, timelineApi: TimelineApi) => void;
-  }[];
+  items?: Option[];
   icon?: React.ComponentType<{ size: number; className?: string }>;
   disabled?: boolean;
 };
@@ -60,17 +64,45 @@ const importSubtitle = (api: SubtitleEditorApi, timelineApi: TimelineApi) => {
   });
 };
 
+const createNewDocument =
+  (format: "srt" | "vtt") =>
+  (api: SubtitleEditorApi, timelineApi: TimelineApi) => {
+    const document = createDocument({
+      format,
+      metadata: {
+        name: `New ${format.toUpperCase()} Document`,
+      },
+      cues: [],
+    });
+
+    api.setDocument(document);
+    timelineApi.setVisibleRange(getDocumentDuration(document));
+  };
+
 const MENU_ITEMS: MenuItem[] = [
   {
     label: "File",
     groups: [
       {
+        label: "New",
+        items: [
+          {
+            label: "New Document",
+            icon: PlusIcon,
+            submenu: [
+              { label: "New SRT Document", onClick: createNewDocument("srt") },
+              { label: "New VTT Document", onClick: createNewDocument("vtt") },
+            ],
+          },
+        ],
+      },
+      {
         label: "Import",
         items: [
-          { icon: VideoIcon, label: "Import Video" },
+          { icon: VideoIcon, label: "Import Video File" },
           {
             icon: CaptionsIcon,
-            label: "Import Subtitle",
+            label: "Import Subtitle File",
             onClick: importSubtitle,
           },
         ],
@@ -115,32 +147,73 @@ export const Menu = () => {
                   {group.label}
                 </Menubar.GroupLabel>
                 {group.items?.map((item) => (
-                  <Menubar.Item
+                  <MenuOption
                     key={item.label}
-                    onClick={() => item.onClick?.(api, timeline)}
-                  >
-                    {item.icon ? (
-                      <item.icon size={15} className="text-gray-400" />
-                    ) : (
-                      <div className="w-3.75" />
-                    )}
-                    {item.label}
-                  </Menubar.Item>
+                    item={item}
+                    api={api}
+                    timeline={timeline}
+                  />
                 ))}
               </Menubar.Group>
             ))}
             {menu.items?.map((item) => (
-              <Menubar.Item
+              <MenuOption
                 key={item.label}
-                onClick={() => item.onClick?.(api, timeline)}
-              >
-                {item.icon && <item.icon size={15} className="text-gray-400" />}
-                {item.label}
-              </Menubar.Item>
+                item={item}
+                api={api}
+                timeline={timeline}
+              />
             ))}
           </Menubar.Content>
         </Menubar.Menu>
       ))}
     </Menubar.Root>
+  );
+};
+
+const MenuOptionContent = ({ item }: { item: Option }) => (
+  <>
+    {item.icon ? (
+      <item.icon size={15} className="text-gray-400" />
+    ) : (
+      <div className="w-3.75" />
+    )}
+    {item.label}
+  </>
+);
+
+const MenuOption = ({
+  item,
+  api,
+  timeline,
+}: {
+  item: Option;
+  api: SubtitleEditorApi;
+  timeline: TimelineApi;
+}) => {
+  if (item.submenu && item.submenu.length > 0) {
+    return (
+      <Menubar.Submenu>
+        <Menubar.SubmenuTrigger>
+          <MenuOptionContent item={item} />
+        </Menubar.SubmenuTrigger>
+        <Menubar.SubmenuContent>
+          {item.submenu.map((sub) => (
+            <MenuOption
+              key={sub.label}
+              item={sub}
+              api={api}
+              timeline={timeline}
+            />
+          ))}
+        </Menubar.SubmenuContent>
+      </Menubar.Submenu>
+    );
+  }
+
+  return (
+    <Menubar.Item onClick={() => item.onClick?.(api, timeline)}>
+      <MenuOptionContent item={item} />
+    </Menubar.Item>
   );
 };
