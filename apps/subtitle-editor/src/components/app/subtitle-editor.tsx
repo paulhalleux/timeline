@@ -1,6 +1,7 @@
 import * as Resizable from "react-resizable-panels";
 
 import { Panel } from "../ui/panel";
+import { ContentExplorer } from "./content-explorer/content-explorer.tsx";
 import { EditorTimeline } from "./editor-timeline/editor-timelient.tsx";
 import { Menu } from "./menu/menu.tsx";
 
@@ -50,7 +51,7 @@ export const SubtitleEditor = () => {
         <Resizable.Group className="h-full gap-2">
           {/* Content */}
           <Panel as={Resizable.Panel} {...PanelProps.ContentExplorer}>
-            <h2 className="text-lg font-semibold">Content</h2>
+            <ContentExplorer />
           </Panel>
 
           {/* Canvas */}

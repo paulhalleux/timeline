@@ -1,8 +1,10 @@
 import { getMetadataValue } from "@ptl/subtitle";
-import { CornerDownLeftIcon, CornerDownRightIcon } from "lucide-react";
-import React from "react";
+import { PackageOpenIcon } from "lucide-react";
 
 import { useSubtitleDocument } from "../../../core/react.tsx";
+import { formatTimeShort } from "../../../utils/format-time.ts";
+import { CueContentDisplay } from "../../ui/cue-content-display";
+import { EmptyState } from "../../ui/empty-state";
 import { Playhead, Ruler, Timeline } from "../../ui/timeline";
 
 export const EditorTimeline = () => {
@@ -10,7 +12,13 @@ export const EditorTimeline = () => {
 
   if (!document) {
     return (
-      <div className="p-4 text-gray-400">No subtitle document loaded.</div>
+      <EmptyState.Root>
+        <EmptyState.Icon icon={PackageOpenIcon} />
+        <EmptyState.Title>No document loaded</EmptyState.Title>
+        <EmptyState.Description>
+          Please load a subtitle document to see the timeline.
+        </EmptyState.Description>
+      </EmptyState.Root>
     );
   }
 
@@ -43,7 +51,7 @@ export const EditorTimeline = () => {
                 width={width}
                 className="text-xs px-1 py-0.5 text-gray-400 font-mono"
               >
-                {formatTime(unit)}
+                {formatTimeShort(unit)}
               </Ruler.Tick>
             )}
           </Ruler.Ticks>
@@ -66,29 +74,10 @@ export const EditorTimeline = () => {
                   end={item.end}
                   className="flex items-center justify-center px-1"
                 >
-                  <div className="text-xs text-ellipsis overflow-hidden whitespace-nowrap inline-block">
-                    {item.content.map((c, index) => {
-                      if (c.type === "text" || c.type === "styled") {
-                        return c.text;
-                      } else {
-                        return (
-                          <>
-                            <CornerDownLeftIcon
-                              key={item.id + index + "start"}
-                              className="inline text-white/50 mx-0.5"
-                              size={12}
-                            />
-                            <br />
-                            <CornerDownRightIcon
-                              key={item.id + index + "end"}
-                              className="inline text-white/50 mx-0.5"
-                              size={12}
-                            />
-                          </>
-                        );
-                      }
-                    })}
-                  </div>
+                  <CueContentDisplay
+                    content={item.content}
+                    className="text-xs text-ellipsis overflow-hidden whitespace-nowrap inline-block"
+                  />
                 </Timeline.TrackItem>
               ))}
             </Timeline.TrackContent>
@@ -97,13 +86,4 @@ export const EditorTimeline = () => {
       </Timeline.Viewport>
     </Timeline.Root>
   );
-};
-
-const formatTime = (ms: number) => {
-  const hours = Math.floor(ms / 3600000);
-  const minutes = Math.floor((ms % 3600000) / 60000);
-  const seconds = Math.floor((ms % 60000) / 1000);
-  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
-    .toString()
-    .padStart(2, "0")}`;
 };
