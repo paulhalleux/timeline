@@ -1,19 +1,28 @@
-import React from "react";
+import { contentToPlainText } from "@ptl/subtitle";
 
+import { useSubtitleDocument } from "../../../core/react.tsx";
 import { Playhead, Ruler, Timeline } from "../../ui/timeline";
 
 export const EditorTimeline = () => {
-  const tracks = React.useMemo(() => {
-    return Array.from({ length: 25 }, (_, i) => ({
-      id: `track-${i}`,
-      items: Array.from({ length: 10 }, (_, j) => ({
-        id: `item-${i}-${j}`,
-        start: j * 10000,
-        end: j * 10000 + 10000,
-        content: `Item ${j}`,
+  const document = useSubtitleDocument((state) => state);
+
+  if (!document) {
+    return (
+      <div className="p-4 text-gray-400">No subtitle document loaded.</div>
+    );
+  }
+
+  const tracks = [
+    {
+      id: "Subtitles",
+      items: document.cues.map((cue) => ({
+        id: cue.id,
+        start: cue.start.ms,
+        end: cue.end.ms,
+        content: contentToPlainText(cue.content),
       })),
-    }));
-  }, []);
+    },
+  ];
 
   return (
     <Timeline.Root>
@@ -46,9 +55,11 @@ export const EditorTimeline = () => {
                   key={item.id}
                   start={item.start}
                   end={item.end}
-                  className="flex items-center justify-center text-xs"
+                  className="flex items-center justify-center px-0.5"
                 >
-                  {item.content}
+                  <span className="text-xs text-ellipsis overflow-hidden whitespace-nowrap">
+                    {item.content}
+                  </span>
                 </Timeline.TrackItem>
               ))}
             </Timeline.TrackContent>
