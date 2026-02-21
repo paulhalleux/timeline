@@ -5,17 +5,21 @@ import {
   type SubtitleDocument,
 } from "@ptl/subtitle";
 import { PlayheadModule } from "@ptl/timeline-core";
-import { usePlayhead, useTimeline } from "@ptl/timeline-react";
+import { useTimeline } from "@ptl/timeline-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import clsx from "clsx";
 import { ArrowRightIcon, PackageOpenIcon } from "lucide-react";
 import React from "react";
 
-import { useSubtitleDocument } from "../../../core/react.tsx";
+import {
+  useSubtitleDocument,
+  useSubtitleEditor,
+} from "../../../core/react.tsx";
 import { formatTime } from "../../../utils/format-time.ts";
 import { CueContentDisplay } from "../../ui/cue-content-display";
 import { EmptyState } from "../../ui/empty-state";
 import { SearchInput } from "../../ui/search-input";
+import { useStoreCombine } from "@ptl/store/react";
 
 export const ContentExplorer = () => {
   const document = useSubtitleDocument((state) => state);
@@ -91,14 +95,16 @@ type CueListProps = {
 const CueList = ({ document, filteredCues, searchQuery }: CueListProps) => {
   const listRef = React.useRef<HTMLDivElement>(null);
 
-  const [{ position }] = usePlayhead();
   const timeline = useTimeline();
-  const playheadApi = PlayheadModule.for(timeline);
+  const editor = useSubtitleEditor();
 
-  // Find the active cue (the one whose time range contains the playhead)
-  const activeCue = React.useMemo(() => {
-    return getCueAt(document, position + 1);
-  }, [document, position]);
+  const playheadApi = PlayheadModule.for(timeline);
+  const activeCue = useStoreCombine(
+    [playheadApi.getStore(), editor.store] as const,
+    ([state]) => {
+      return getCueAt(document, state.position + 1);
+    },
+  );
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
@@ -194,50 +200,48 @@ type CueItemProps = {
   onClick: (cue: Cue) => void;
 };
 
-const CueItem = ({
-  cue,
-  index,
-  isActive,
-  searchQuery,
-  onClick,
-}: CueItemProps) => {
-  return (
-    <div
-      onClick={() => onClick(cue)}
-      className={clsx(
-        "flex flex-col gap-2 px-3 py-2 border-b border-neutral-800/60 cursor-pointer transition-colors",
-        "hover:bg-neutral-800/50",
-        isActive && "bg-cyan-950/40 border-l-2 border-l-cyan-800",
-        !isActive && "border-l-2 border-l-transparent",
-      )}
-    >
-      {/* Index & timing */}
-      <div className="shrink-0 flex gap-3 min-w-11 text-neutral-300 text-xs font-mono">
-        <span className="font-bold">#{index + 1}</span>
-        <div
-          className={clsx("flex items-center gap-1", {
-            "text-cyan-100": isActive,
-          })}
-        >
-          <span>{formatTime(cue.start.ms)}</span>
-          <ArrowRightIcon size={10} />
-          <span>{formatTime(cue.end.ms)}</span>
-        </div>
-      </div>
-
+const CueItem = React.memo(
+  ({ cue, index, isActive, searchQuery, onClick }: CueItemProps) => {
+    return (
       <div
+        onClick={() => onClick(cue)}
         className={clsx(
-          "rounded-xs py-0.5 px-1.5",
-          "bg-cyan-900 border border-white/15",
-          "text-xs leading-relaxed",
+          "flex flex-col gap-2 px-3 py-2 border-b border-neutral-800/60 cursor-pointer transition-colors",
+          "hover:bg-neutral-800/50",
+          isActive && "bg-cyan-950/40 border-l-2 border-l-cyan-800",
+          !isActive && "border-l-2 border-l-transparent",
         )}
       >
-        <CueContentDisplay
-          content={cue.content}
-          highlightQuery={searchQuery}
-          className="text-ellipsis overflow-hidden whitespace-nowrap"
-        />
+        {/* Index & timing */}
+        <div className="shrink-0 flex gap-3 min-w-11 text-neutral-300 text-xs font-mono">
+          <span className="font-bold">#{index + 1}</span>
+          <div
+            className={clsx("flex items-center gap-1", {
+              "text-cyan-100": isActive,
+            })}
+          >
+            <span>{formatTime(cue.start.ms)}</span>
+            <ArrowRightIcon size={10} />
+            <span>{formatTime(cue.end.ms)}</span>
+          </div>
+        </div>
+
+        <div
+          className={clsx(
+            "rounded-xs py-0.5 px-1.5",
+            "bg-cyan-900 border border-white/15",
+            "text-xs leading-relaxed",
+          )}
+        >
+          <CueContentDisplay
+            content={cue.content}
+            highlightQuery={searchQuery}
+            className="text-ellipsis overflow-hidden whitespace-nowrap"
+          />
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  },
+);
+
+CueItem.displayName = "CueItem";

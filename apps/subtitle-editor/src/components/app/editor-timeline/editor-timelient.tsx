@@ -1,14 +1,46 @@
+import { useStoreSelector } from "@ptl/store/react";
 import { getMetadataValue } from "@ptl/subtitle";
+import { useTimeline } from "@ptl/timeline-react";
 import { PackageOpenIcon } from "lucide-react";
 
 import { useSubtitleDocument } from "../../../core/react.tsx";
+import { binarySearchMatchingTime } from "../../../utils/binary-search.ts";
 import { formatTimeShort } from "../../../utils/format-time.ts";
 import { CueContentDisplay } from "../../ui/cue-content-display";
 import { EmptyState } from "../../ui/empty-state";
 import { Playhead, Ruler, Timeline } from "../../ui/timeline";
 
 export const EditorTimeline = () => {
+  const timeline = useTimeline();
   const document = useSubtitleDocument((state) => state);
+
+  const visibleRange = useStoreSelector(timeline.getStore(), (state) => {
+    if (!document) {
+      return {
+        indexIn: 0,
+        indexOut: 0,
+      };
+    }
+
+    const timeIn = state.current;
+    const timeOut = timeIn + timeline.getVisibleRange();
+
+    const indexIn = binarySearchMatchingTime(
+      document.cues,
+      timeIn,
+      (cue) => cue.end.ms,
+    );
+    const indexOut = binarySearchMatchingTime(
+      document.cues,
+      timeOut,
+      (cue) => cue.start.ms,
+    );
+
+    return {
+      indexIn,
+      indexOut,
+    };
+  });
 
   if (!document) {
     return (
@@ -27,12 +59,14 @@ export const EditorTimeline = () => {
       id: "Subtitles",
       title: getMetadataValue(document, "name", "Unnamed Document"),
       format: document.format,
-      items: document.cues.map((cue) => ({
-        id: cue.id,
-        start: cue.start.ms,
-        end: cue.end.ms,
-        content: cue.content,
-      })),
+      items: document.cues
+        .slice(visibleRange.indexIn, visibleRange.indexOut + 1)
+        .map((cue) => ({
+          id: cue.id,
+          start: cue.start.ms,
+          end: cue.end.ms,
+          content: cue.content,
+        })),
     },
   ];
 
