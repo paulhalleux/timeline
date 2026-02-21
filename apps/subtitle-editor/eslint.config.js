@@ -5,17 +5,15 @@ import reactConfig from "@ptl/eslint-config/react";
 
 export default defineConfig([
   globalIgnores(["dist"]),
-  reactRefresh.configs.vite,
   ...reactConfig.map((config) => ({ ...config, files: ["**/*.{ts,tsx}"] })),
+  reactRefresh.configs.vite,
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
       globals: globals.browser,
     },
-  },
-  {
     rules: {
-      "react-refresh/only-export-components": "off",
-    },
+      'react/react-in-jsx-scope': 'off',
+    }
   },
 ]);

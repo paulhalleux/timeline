@@ -14,7 +14,8 @@
       "types": "./dist/src/index.d.ts"
     },
     "./index.css": {
-      "import": "./dist/index.css"
+      "import": "./dist/index.css",
+      "style": "./dist/index.css"
     }
   },
   "scripts": {
