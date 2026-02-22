@@ -1,6 +1,7 @@
+import React from "react";
+
 import { useStoreSelector } from "@ptl/store/react";
 import type { SubtitleDocument } from "@ptl/subtitle";
-import React from "react";
 
 import type { SubtitleEditorApi } from "./index.ts";
 

@@ -1,6 +1,8 @@
-import { Ruler as BaseRuler } from "@ptl/timeline-react";
-import clsx from "clsx";
 import React from "react";
+
+import { Ruler as BaseRuler } from "@ptl/timeline-react";
+
+import clsx from "clsx";
 
 export const RulerRoot = ({
   children,

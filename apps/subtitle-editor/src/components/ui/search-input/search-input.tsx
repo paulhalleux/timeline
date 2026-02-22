@@ -1,6 +1,7 @@
+import React from "react";
+
 import clsx from "clsx";
 import { SearchIcon, XIcon } from "lucide-react";
-import React from "react";
 
 type SearchInputProps = Omit<
   React.ComponentPropsWithoutRef<"input">,

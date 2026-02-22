@@ -175,6 +175,8 @@ export class Timeline extends Core<TimelineState> implements TimelineApi {
    * @param centerPx optional pixel position to zoom around (mine is 0, max is viewport width, default is 0)
    */
   setZoom(value: number, centerPx?: number): void {
+    const normalizedValue = Math.max(0, Math.min(1, value));
+
     const min = this.getViewport().getMinVisibleRange();
     const max = this.getViewport().getMaxVisibleRange();
 
@@ -184,7 +186,7 @@ export class Timeline extends Core<TimelineState> implements TimelineApi {
     const normalizedCenterPx = Math.min(centerPx ?? 0, viewportWidthPx);
 
     // Compute new visibleRange
-    const newVisibleRange = max - value * (max - min);
+    const newVisibleRange = max - normalizedValue * (max - min);
     const deltaRange =
       newVisibleRange - this.viewport.select((s) => s.visibleRange);
     const centerDelta = (1 / viewportWidthPx) * normalizedCenterPx;

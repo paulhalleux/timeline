@@ -37,15 +37,20 @@ export default [
             ["^\\u0000"],
             // Node.js builtins prefixed with `node:`.
             ["^node:"],
-            // Packages.
-            // Things that start with a letter (or digit or underscore), or `@` followed by a letter.
+            // React (and react-dom, react-*) — always first among packages.
+            ["^react$", "^react-dom$", "^react/", "^react-dom/", "^react-.+"],
+            // Workspace packages.
+            ["^@ptl/"],
+            // Other third-party packages.
             ["^@?\\w"],
-            // Absolute imports and other imports such as Vue-style `@/foo`.
-            // Anything not matched in another group.
+            // Absolute imports / path aliases (anything not matched above).
             ["^"],
             // Relative imports.
-            // Anything that starts with a dot.
             ["^\\."],
+            // Style / asset imports (.css, .scss, .svg, images, etc.).
+            [
+              "^.+\\.(css|scss|sass|less|module\\.css|svg|png|jpg|jpeg|gif|webp|ico)$",
+            ],
           ],
         },
       ],

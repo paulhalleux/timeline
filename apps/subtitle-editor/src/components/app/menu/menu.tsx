@@ -1,3 +1,5 @@
+import React from "react";
+
 import {
   createDocument,
   defaultRegistry,
@@ -6,8 +8,8 @@ import {
 } from "@ptl/subtitle";
 import type { TimelineApi } from "@ptl/timeline-core";
 import { useTimeline } from "@ptl/timeline-react";
+
 import { CaptionsIcon, PlusIcon, VideoIcon } from "lucide-react";
-import React from "react";
 
 import type { SubtitleEditorApi } from "../../../core";
 import { useSubtitleEditor } from "../../../core/react.tsx";

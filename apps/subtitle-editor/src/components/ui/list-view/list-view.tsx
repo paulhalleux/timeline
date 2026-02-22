@@ -1,6 +1,7 @@
+import React from "react";
+
 import { useVirtualizer } from "@tanstack/react-virtual";
 import clsx from "clsx";
-import React from "react";
 
 type ListViewContextType = {
   virtualizer: ReturnType<typeof useVirtualizer<HTMLDivElement, Element>>;
@@ -21,6 +22,7 @@ type ListViewRootProps = {
   activeIndex?: number;
   estimateSize?: number;
   overscan?: number;
+  getItemKey?: (index: number) => string | number;
   className?: string;
   children: React.ReactNode;
 };
@@ -30,6 +32,7 @@ const ListViewRoot = ({
   activeIndex = -1,
   estimateSize = 72,
   overscan = 5,
+  getItemKey,
   className,
   children,
 }: ListViewRootProps) => {
@@ -41,6 +44,7 @@ const ListViewRoot = ({
     getScrollElement: () => scrollRef.current,
     estimateSize: () => estimateSize,
     overscan,
+    getItemKey,
   });
 
   const prevActiveIndexRef = React.useRef<number>(-1);
@@ -78,22 +82,18 @@ const ListViewRoot = ({
 
 type ListViewItemsProps<TData> = {
   data: readonly TData[];
-  getItemKey?: (item: TData, index: number) => string | number;
   children: (item: TData, index: number) => React.ReactNode;
 };
 
 const ListViewItems = <TData,>({
   data,
-  getItemKey,
   children,
 }: ListViewItemsProps<TData>) => {
   const { virtualizer } = useListView();
 
   return virtualizer.getVirtualItems().map((virtualRow) => {
     const item = data[virtualRow.index];
-    const key = getItemKey
-      ? getItemKey(item, virtualRow.index)
-      : virtualRow.index;
+    const key = virtualRow.key;
 
     return (
       <div

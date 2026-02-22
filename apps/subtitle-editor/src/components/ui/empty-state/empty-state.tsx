@@ -1,6 +1,7 @@
+import React from "react";
+
 import clsx from "clsx";
 import type { LucideProps } from "lucide-react";
-import React from "react";
 
 export type EmptyStateRootProps = React.ComponentPropsWithoutRef<"div">;
 

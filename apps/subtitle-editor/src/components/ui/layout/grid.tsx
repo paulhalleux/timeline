@@ -1,5 +1,6 @@
-import clsx from "clsx";
 import React from "react";
+
+import clsx from "clsx";
 
 type GridProps<T extends React.ElementType = "div"> =
   React.ComponentPropsWithoutRef<T> & {

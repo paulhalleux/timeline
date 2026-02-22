@@ -1,10 +1,12 @@
+import React from "react";
+
 import {
   contentToPlainText,
   type CueContent as CueContentType,
 } from "@ptl/subtitle";
+
 import clsx from "clsx";
 import { CornerDownLeftIcon, CornerDownRightIcon } from "lucide-react";
-import React from "react";
 
 type HighlightRange = { start: number; end: number };
 

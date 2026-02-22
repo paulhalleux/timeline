@@ -1,3 +1,5 @@
+import React from "react";
+
 import {
   PlayheadModule,
   RulerModule,
@@ -5,7 +7,6 @@ import {
   ViewportDragModule,
 } from "@ptl/timeline-core";
 import { TimelineProvider } from "@ptl/timeline-react";
-import React from "react";
 
 import { SubtitleEditor } from "./components/app/subtitle-editor.tsx";
 import { createSubtitleEditor } from "./core";

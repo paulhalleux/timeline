@@ -4,18 +4,22 @@ import { time } from "../utils";
 /**
  * Fix overlapping cues by trimming or removing them.
  *
- * In "trim" mode, the end time of the earlier cue is adjusted to match the start time of the next cue.
- * In "remove" mode, the later cue is removed entirely.
+ * In "trim" mode, the overlapping cue is trimmed: by default the earlier cue's end is pulled back to
+ * match the start of the next cue; if the next cue is prioritized, the next cue's start is pushed
+ * forward to the end of the current cue instead.
+ * In "remove" mode, the lower-priority cue is removed entirely.
  *
  * This function assumes cues are sorted by start time. If not, it will sort them first.
  *
  * @param doc The subtitle document to process.
  * @param mode The mode to use for fixing overlaps: "trim" or "remove".
+ * @param prioritizeIds An optional array of cue IDs to prioritize when fixing overlaps. Cues with these IDs will be preserved over others when deciding which cue to trim or remove.
  * @returns A new subtitle document with overlaps fixed.
  */
 export function fixOverlaps<TFormat extends string, TMetadata>(
   doc: SubtitleDocument<TFormat, TMetadata>,
   mode: "trim" | "remove" = "trim",
+  prioritizeIds: string[] = [],
 ): SubtitleDocument<TFormat, TMetadata> {
   const sortedCues = [...doc.cues].sort((a, b) => a.start.ms - b.start.ms);
   const toRemove = new Set<string>();
@@ -25,13 +29,28 @@ export function fixOverlaps<TFormat extends string, TMetadata>(
     const next = sortedCues[i + 1];
 
     if (current.end.ms > next.start.ms) {
+      const currentPrioritized = prioritizeIds.includes(current.id);
+      const nextPrioritized = prioritizeIds.includes(next.id);
+
+      // If next is prioritized and current is not, sacrifice current; otherwise sacrifice next.
+      const sacrificeCurrent = nextPrioritized && !currentPrioritized;
+
       if (mode === "remove") {
-        toRemove.add(next.id);
+        toRemove.add(sacrificeCurrent ? current.id : next.id);
       } else {
-        sortedCues[i] = {
-          ...current,
-          end: time(next.start.ms),
-        };
+        if (sacrificeCurrent) {
+          // Preserve next: trim current's end to next's start
+          sortedCues[i] = {
+            ...current,
+            end: time(next.start.ms),
+          };
+        } else {
+          // Preserve current (default): push next's start forward to current's end
+          sortedCues[i + 1] = {
+            ...next,
+            start: time(current.end.ms),
+          };
+        }
       }
     }
   }

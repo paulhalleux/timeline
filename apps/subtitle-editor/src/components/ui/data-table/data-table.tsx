@@ -1,3 +1,5 @@
+import React from "react";
+
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   flexRender,
@@ -6,7 +8,6 @@ import {
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import clsx from "clsx";
-import React from "react";
 
 type DataTableProps<TData> = {
   data: readonly TData[];

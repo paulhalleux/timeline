@@ -1,5 +1,6 @@
 import { Store } from "@ptl/store";
 import { getMetadataValue, type SubtitleDocument } from "@ptl/subtitle";
+
 import { castDraft } from "immer";
 
 export type SubtitleEditorState = {

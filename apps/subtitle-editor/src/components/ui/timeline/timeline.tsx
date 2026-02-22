@@ -1,3 +1,5 @@
+import React from "react";
+
 import { useStoreSelector } from "@ptl/store/react";
 import {
   Timeline as BaseTimeline,
@@ -5,8 +7,8 @@ import {
   useTimeline,
   ViewportItem,
 } from "@ptl/timeline-react";
+
 import clsx from "clsx";
-import React from "react";
 
 export const TimelineRoot = ({
   children,
