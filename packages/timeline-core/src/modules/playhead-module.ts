@@ -5,6 +5,7 @@ import { type TimelineModule } from "../timeline-module";
 
 export type CreatePlayheadOptions = {
   initialPosition?: number;
+  followPlayhead?: boolean;
 };
 
 export type PlayheadState = {
@@ -31,11 +32,14 @@ export class PlayheadModule implements TimelineModule<PlayheadApi> {
   private unsubscribers: Array<() => void> = [];
   private timeline?: TimelineApi;
 
+  private followPlayhead: boolean;
+
   constructor(options: CreatePlayheadOptions = {}) {
     this.store = new Store<PlayheadState>({
       position: options.initialPosition ?? 0,
       isPlaying: false,
     });
+    this.followPlayhead = options.followPlayhead ?? false;
   }
 
   // Static Methods
@@ -122,13 +126,19 @@ export class PlayheadModule implements TimelineModule<PlayheadApi> {
   play(delta: number): void {
     if (this.rafId !== null) return; // Already playing
     let lastTime: number | null = null;
-
-    // move forward by ensuring that the delta is applied based on time elapsed
     const step = (time: number) => {
       if (lastTime !== null) {
         const elapsed = time - lastTime;
         const d = (1 / delta) * elapsed;
         this.moveForward(d * delta);
+        // Auto-follow logic
+        if (this.followPlayhead && this.timeline) {
+          const visibleRange = this.timeline.getVisibleRange();
+          const playheadPos = this.getPosition();
+          this.timeline.setCurrentPosition(
+            Math.max(0, playheadPos - visibleRange / 2),
+          );
+        }
       }
       lastTime = time;
       this.rafId = requestAnimationFrame(step);

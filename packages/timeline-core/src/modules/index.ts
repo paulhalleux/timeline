@@ -4,3 +4,4 @@ export * from "./ruler-module";
 export * from "./selection-module";
 export * from "./snap-targets-module";
 export * from "./viewport-drag-module";
+export * from "./waveform-module";

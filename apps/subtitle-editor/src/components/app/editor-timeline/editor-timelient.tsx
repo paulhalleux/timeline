@@ -8,6 +8,7 @@ import { EmptyState } from "../../ui/empty-state";
 import { Playhead, Ruler, Timeline } from "../../ui/timeline";
 import { DocumentTrack } from "./document-track.tsx";
 import { TimelineToolbar } from "./timeline-toolbar.tsx";
+import { EditorWaveformTrack } from "./waveform-track.tsx";
 
 export const EditorTimeline = () => {
   const documentList = useDocumentList();
@@ -54,13 +55,16 @@ export const EditorTimeline = () => {
                 )}
               </Ruler.Ticks>
             </Ruler.Root>
-            {tracks.map((track) => (
-              <DocumentTrack
-                key={track.id}
-                id={track.id}
-                document={track.document}
-              />
-            ))}
+            <div className="grow">
+              {tracks.map((track) => (
+                <DocumentTrack
+                  key={track.id}
+                  id={track.id}
+                  document={track.document}
+                />
+              ))}
+            </div>
+            <EditorWaveformTrack />
           </Timeline.Viewport>
         </Timeline.Root>
       </div>

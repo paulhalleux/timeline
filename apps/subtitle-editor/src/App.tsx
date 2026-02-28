@@ -5,6 +5,7 @@ import {
   RulerModule,
   Timeline,
   ViewportDragModule,
+  WaveformModule,
 } from "@ptl/timeline-core";
 import { TimelineProvider } from "@ptl/timeline-react";
 
@@ -23,7 +24,8 @@ export const App = () => {
         modules: [
           new RulerModule(),
           new ViewportDragModule(),
-          new PlayheadModule(),
+          new PlayheadModule({ followPlayhead: true }),
+          new WaveformModule(),
         ],
       }),
   );

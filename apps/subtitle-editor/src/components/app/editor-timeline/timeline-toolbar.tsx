@@ -30,6 +30,7 @@ import { useSubtitleDocument } from "../../../core/react.tsx";
 import { formatTime } from "../../../utils/format-time.ts";
 import { ToggleGroup } from "../../ui/toggle-group";
 import { Toolbar } from "../../ui/toolbar";
+import { ZoomPercentWidget } from "../../ui/zoom-percent-widget";
 
 export const TimelineToolbar = () => {
   const timeline = useTimeline();
@@ -166,9 +167,15 @@ export const TimelineToolbar = () => {
           disabled={!canZoomOut}
           onClick={handleZoomOut}
         />
-        <Toolbar.Label className="tabular-nums w-10 text-center">
-          {zoomPct}%
-        </Toolbar.Label>
+        <ZoomPercentWidget
+          value={zoomPct}
+          min={1}
+          max={100}
+          onChange={(pct) => {
+            const clampedPct = Math.max(1, Math.min(100, pct));
+            timeline.setZoom(clampedPct / 100);
+          }}
+        />
         <Toolbar.IconButton
           icon={ZoomInIcon}
           tooltip="Zoom in"

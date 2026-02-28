@@ -8,6 +8,7 @@ import {
   TimelineTrackItem,
   TimelineViewport,
 } from "./timeline.tsx";
+import { WaveformCanvas, WaveformHeader, WaveformRoot } from "./waveform.tsx";
 
 export const Timeline = {
   Root: TimelineRoot,
@@ -24,6 +25,12 @@ export const Ruler = {
   Header: RulerHeader,
   Ticks: RulerTicks,
   Tick: RulerTick,
+};
+
+export const WaveformTrack = {
+  Root: WaveformRoot,
+  Header: WaveformHeader,
+  Canvas: WaveformCanvas,
 };
 
 export { Playhead } from "./playhead.tsx";

@@ -42,7 +42,10 @@ export const TimelineViewport = ({
   ...rest
 }: React.ComponentProps<typeof BaseTimeline.Viewport>) => {
   return (
-    <BaseTimeline.Viewport className={clsx("h-full", className)} {...rest}>
+    <BaseTimeline.Viewport
+      className={clsx("h-full flex flex-col", className)}
+      {...rest}
+    >
       {children}
     </BaseTimeline.Viewport>
   );

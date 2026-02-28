@@ -6,13 +6,14 @@ import {
   getDocumentDuration,
   updateDocumentMetadata,
 } from "@ptl/subtitle";
-import type { TimelineApi } from "@ptl/timeline-core";
+import { type TimelineApi, WaveformModule } from "@ptl/timeline-core";
 import { useTimeline } from "@ptl/timeline-react";
 
 import { CaptionsIcon, PlusIcon, VideoIcon } from "lucide-react";
 
 import type { SubtitleEditorApi } from "../../../core";
 import { useSubtitleEditor } from "../../../core/react.tsx";
+import { extractAudioPeaks } from "../../../utils/audio-extract.ts";
 import { triggerFileImport } from "../../../utils/file-import.ts";
 import { Menubar } from "../../ui/menubar";
 
@@ -67,6 +68,29 @@ const importSubtitle = (api: SubtitleEditorApi, timelineApi: TimelineApi) => {
   });
 };
 
+const importVideoFile = (_api: SubtitleEditorApi, timelineApi: TimelineApi) => {
+  triggerFileImport({
+    accept: "audio/*,video/*,.mp3,.wav,.ogg,.mp4,.webm,.mkv",
+    onFiles: async (files) => {
+      const file = files[0];
+      if (!file) {
+        alert("No file selected.");
+        return;
+      }
+
+      try {
+        const { peaks, durationMs } = await extractAudioPeaks(file, 200);
+        const waveform = WaveformModule.for(timelineApi);
+        waveform.setPeaks(peaks, durationMs);
+        timelineApi.setVisibleRange(durationMs);
+      } catch (err) {
+        console.error("Failed to extract audio:", err);
+        alert("Failed to extract audio from the file.");
+      }
+    },
+  });
+};
+
 const createNewDocument =
   (format: "srt" | "vtt") =>
   (api: SubtitleEditorApi, timelineApi: TimelineApi) => {
@@ -103,7 +127,11 @@ const MENU_ITEMS: MenuItem[] = [
       {
         label: "Import",
         items: [
-          { icon: VideoIcon, label: "Import Video File" },
+          {
+            icon: VideoIcon,
+            label: "Import Video File",
+            onClick: importVideoFile,
+          },
           {
             icon: CaptionsIcon,
             label: "Import Subtitle File",
