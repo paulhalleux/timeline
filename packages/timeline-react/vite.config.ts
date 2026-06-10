@@ -1,11 +1,11 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import {defineConfig} from "vite";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
   plugins: [
     react(),
-    dts({ include: ["src"], tsconfigPath: "./tsconfig.json" }),
+    dts({include: ["src"], tsconfigPath: "./tsconfig.json"}),
   ],
   build: {
     lib: {
@@ -13,11 +13,8 @@ export default defineConfig({
       formats: ["es"],
       fileName: "index",
     },
-    rollupOptions: {
+    rolldownOptions: {
       external: ["react", "react-dom"],
-      output: {
-        interop: "auto",
-      },
     },
   },
 });
