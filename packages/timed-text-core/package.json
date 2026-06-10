@@ -19,9 +19,9 @@
   "devDependencies": {
     "@ptl/eslint-config": "^1.0.0",
     "@types/bun": "^1.3.5",
-    "eslint": "^9.39.2",
+    "eslint": "^10.4.1",
     "prettier": "^3.8.0",
-    "tsdown": "^0.20.1",
-    "typescript": "^5.9.3"
+    "tsdown": "^0.22.2",
+    "typescript": "^6.0.3"
   }
 }
