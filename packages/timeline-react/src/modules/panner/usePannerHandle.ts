@@ -10,7 +10,17 @@ type UsePannerHandleArgs = {
   style?: React.CSSProperties;
 };
 
-export const usePannerHandle = (args: UsePannerHandleArgs) => {
+type UsePannerHandleReturn = {
+  ref: React.RefCallback<HTMLDivElement>;
+  onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerUp: (event: React.PointerEvent<HTMLDivElement>) => void;
+  style: React.CSSProperties;
+};
+
+export const usePannerHandle = (
+  args: UsePannerHandleArgs,
+): UsePannerHandleReturn => {
   const [handleRef, , handleRect] = useMeasure<HTMLDivElement>();
   const { setDelta, delta, containerRect, containerRef } = usePannerContext();
   const startX = React.useRef(0);

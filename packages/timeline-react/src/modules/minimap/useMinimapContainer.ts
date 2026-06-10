@@ -10,10 +10,18 @@ type UseMinimapContainerArgs = {
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
 };
 
+type UseMinimapContainerReturn = {
+  ref: React.RefCallback<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  containerRect: DOMRect | null;
+  onWheel: (e: React.WheelEvent<HTMLDivElement>) => void;
+  onClick: (e: React.MouseEvent<HTMLDivElement>) => void;
+};
+
 export const useMinimapContainer = ({
   zoomSensitivity = 1,
   ...args
-}: UseMinimapContainerArgs) => {
+}: UseMinimapContainerArgs): UseMinimapContainerReturn => {
   const timeline = useTimeline();
   const [state, api] = useMinimap();
 
