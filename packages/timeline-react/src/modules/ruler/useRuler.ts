@@ -1,9 +1,5 @@
 import { useStore } from "@ptl/store/react";
-import {
-  type RulerApi,
-  RulerModule,
-  type RulerState,
-} from "@ptl/timeline-core";
+import { type RulerApi, RulerModule, type RulerState } from "@ptl/timeline-core";
 
 import { useTimeline } from "../../timeline";
 

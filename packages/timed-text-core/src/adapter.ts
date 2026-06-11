@@ -12,14 +12,7 @@ import type {
  * const format: TimedTextFormatId = "vtt";
  * ```
  */
-export type TimedTextFormatId =
-  | "srt"
-  | "vtt"
-  | "ass"
-  | "ssa"
-  | "ttml"
-  | "scc"
-  | "itt";
+export type TimedTextFormatId = "srt" | "vtt" | "ass" | "ssa" | "ttml" | "scc" | "itt";
 
 /**
  * Raw timed-text input passed to a format adapter.
@@ -137,9 +130,7 @@ export interface TimedTextAdapter<TDocument, TCue> {
   updateCue(document: TDocument, cueId: string, cue: TCue): TDocument;
 
   toEditor(document: TDocument): NormalizationResult;
-  fromEditor(
-    document: EditorTimedTextDocument,
-  ): DenormalizationResult<TDocument>;
+  fromEditor(document: EditorTimedTextDocument): DenormalizationResult<TDocument>;
 
   validate(document: TDocument): FormatValidationIssue[];
 }

@@ -1,7 +1,4 @@
-import type {
-  EditorTimedTextCue,
-  EditorTimedTextDocument,
-} from "../editor-model";
+import type { EditorTimedTextCue, EditorTimedTextDocument } from "../editor-model";
 import { findEditorCue } from "./utils";
 
 /**
@@ -136,8 +133,6 @@ export function findOverlappingEditorCues(
  * }
  * ```
  */
-export function hasOverlappingEditorCues(
-  document: EditorTimedTextDocument,
-): boolean {
+export function hasOverlappingEditorCues(document: EditorTimedTextDocument): boolean {
   return findOverlappingEditorCues(document).length > 0;
 }

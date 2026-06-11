@@ -100,9 +100,7 @@ export function replaceEditorTrack(
 ): EditorTimedTextDocument {
   return {
     ...document,
-    tracks: document.tracks.map((candidate) =>
-      candidate.id === trackId ? track : candidate,
-    ),
+    tracks: document.tracks.map((candidate) => (candidate.id === trackId ? track : candidate)),
   };
 }
 
@@ -155,12 +153,7 @@ export function splitPlainText(text: string): [string, string] {
   const midpoint = Math.floor(text.length / 2);
   const previousSpace = text.lastIndexOf(" ", midpoint);
   const nextSpace = text.indexOf(" ", midpoint);
-  const splitPoint =
-    previousSpace !== -1
-      ? previousSpace
-      : nextSpace !== -1
-        ? nextSpace
-        : midpoint;
+  const splitPoint = previousSpace !== -1 ? previousSpace : nextSpace !== -1 ? nextSpace : midpoint;
 
   return [text.slice(0, splitPoint).trim(), text.slice(splitPoint).trim()];
 }

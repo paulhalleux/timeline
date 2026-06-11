@@ -21,28 +21,25 @@ export function useMeasure<T extends HTMLElement>(): [
   const elementRef = React.useRef<T | null>(null);
   const previousObserver = React.useRef<ResizeObserver | null>(null);
 
-  const customRef: React.RefCallback<T> = React.useCallback(
-    (node: T | null) => {
-      elementRef.current = node;
+  const customRef: React.RefCallback<T> = React.useCallback((node: T | null) => {
+    elementRef.current = node;
 
-      if (previousObserver.current) {
-        previousObserver.current.disconnect();
-        previousObserver.current = null;
-      }
+    if (previousObserver.current) {
+      previousObserver.current.disconnect();
+      previousObserver.current = null;
+    }
 
-      if (node?.nodeType === Node.ELEMENT_NODE) {
-        const observer = new ResizeObserver(([entry]) => {
-          if (entry && entry.borderBoxSize) {
-            setRect(entry.contentRect);
-          }
-        });
+    if (node?.nodeType === Node.ELEMENT_NODE) {
+      const observer = new ResizeObserver(([entry]) => {
+        if (entry && entry.borderBoxSize) {
+          setRect(entry.contentRect);
+        }
+      });
 
-        observer.observe(node);
-        previousObserver.current = observer;
-      }
-    },
-    [],
-  );
+      observer.observe(node);
+      previousObserver.current = observer;
+    }
+  }, []);
 
   return [customRef, elementRef, rect];
 }

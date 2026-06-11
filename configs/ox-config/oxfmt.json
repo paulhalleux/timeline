@@ -1,0 +1,13 @@
+{
+  "ignorePatterns": [
+    "node_modules",
+    "node_modules/**",
+    "dist",
+    "dist/**",
+    "packages/*/dist",
+    "packages/*/dist/**",
+    "apps/*/dist",
+    "apps/*/dist/**",
+    ".idea"
+  ]
+}

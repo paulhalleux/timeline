@@ -8,12 +8,9 @@ export const usePlayheadHandle = () => {
   const timeline = useTimeline();
   const playheadApi = usePlayheadApi();
   return {
-    onPointerDown: React.useCallback(
-      (e: React.PointerEvent<HTMLDivElement>) => {
-        e.currentTarget.setPointerCapture(e.pointerId);
-      },
-      [],
-    ),
+    onPointerDown: React.useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }, []),
     onPointerMove: React.useCallback(
       (e: React.PointerEvent<HTMLDivElement>) => {
         if (!shouldApplyHorizontalMouseEvent(e)) return;

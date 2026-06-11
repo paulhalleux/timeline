@@ -1,7 +1,4 @@
-import type {
-  EditorTimedTextDocument,
-  FormatValidationIssue,
-} from "../editor-model";
+import type { EditorTimedTextDocument, FormatValidationIssue } from "../editor-model";
 
 /**
  * Optional serializable metadata for auditing, collaboration, and history UI.
@@ -72,10 +69,7 @@ export interface EditorCommand<TPayload = unknown> {
   type: string;
   payload: TPayload;
   metadata?: EditorCommandMetadata;
-  do(
-    document: EditorTimedTextDocument,
-    context?: EditorCommandContext,
-  ): EditorCommandResult;
+  do(document: EditorTimedTextDocument, context?: EditorCommandContext): EditorCommandResult;
 }
 
 /**

@@ -9,12 +9,7 @@ import { usePlayheadHandle } from "./usePlayheadHandle.ts";
 
 type PlayheadRootProps = React.ComponentProps<"div">;
 
-const PlayheadRoot = ({
-  style,
-  className,
-  children,
-  ...rest
-}: PlayheadRootProps) => {
+const PlayheadRoot = ({ style, className, children, ...rest }: PlayheadRootProps) => {
   const [{ leftPx, position, playing }] = usePlayhead();
   const translatePx = useTimelineTranslate();
   return (
@@ -38,16 +33,12 @@ const PlayheadRoot = ({
 
 type PlayheadBarProps = React.ComponentProps<"div">;
 const PlayheadBar = ({ style, className, ...rest }: PlayheadBarProps) => {
-  return (
-    <div className={clsx(styles.bar, className)} style={style} {...rest} />
-  );
+  return <div className={clsx(styles.bar, className)} style={style} {...rest} />;
 };
 
 type PlayheadHeadProps = React.ComponentProps<"div">;
 const PlayheadHead = ({ style, className, ...rest }: PlayheadHeadProps) => {
-  return (
-    <div className={clsx(styles.head, className)} style={style} {...rest} />
-  );
+  return <div className={clsx(styles.head, className)} style={style} {...rest} />;
 };
 
 const PlayheadHandle = () => {

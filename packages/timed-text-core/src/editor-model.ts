@@ -46,12 +46,7 @@ export interface EditorTimedTextTrack {
  * const kind: EditorTimedTextTrackKind = "caption";
  * ```
  */
-export type EditorTimedTextTrackKind =
-  | "subtitle"
-  | "caption"
-  | "sdh"
-  | "forced"
-  | "transcript";
+export type EditorTimedTextTrackKind = "subtitle" | "caption" | "sdh" | "forced" | "transcript";
 
 /**
  * Format-agnostic cue used by editor helpers and commands.

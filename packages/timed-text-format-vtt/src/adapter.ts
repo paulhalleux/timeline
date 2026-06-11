@@ -28,9 +28,7 @@ export const vttAdapter: TimedTextAdapter<VttDocument, VttCue> = {
   updateCue(document, cueId, cue) {
     return {
       ...document,
-      cues: document.cues.map((candidate) =>
-        candidate.id === cueId ? cue : candidate,
-      ),
+      cues: document.cues.map((candidate) => (candidate.id === cueId ? cue : candidate)),
     };
   },
   toEditor(document) {
@@ -106,10 +104,7 @@ export const vttAdapter: TimedTextAdapter<VttDocument, VttCue> = {
   },
 };
 
-function readArrayMetadata<T>(
-  document: EditorTimedTextDocument,
-  key: string,
-): T[] {
+function readArrayMetadata<T>(document: EditorTimedTextDocument, key: string): T[] {
   const value = document.metadata?.[key];
   return Array.isArray(value) ? (value as T[]) : [];
 }

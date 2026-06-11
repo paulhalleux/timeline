@@ -108,9 +108,7 @@ function parseCue(
     timingLine = lines[i]?.trim() ?? "";
   }
 
-  const timingMatch = timingLine.match(
-    /^([\d:.]+)\s*-->\s*([\d:.]+)(?:\s+(.*))?$/,
-  );
+  const timingMatch = timingLine.match(/^([\d:.]+)\s*-->\s*([\d:.]+)(?:\s+(.*))?$/);
   if (!timingMatch) {
     issues.push({
       id: `vtt_invalid_timing_${startLine + 1}`,

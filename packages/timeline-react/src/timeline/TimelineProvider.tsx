@@ -3,14 +3,11 @@ import React from "react";
 
 export const TimelineContext = React.createContext<Timeline | null>(null);
 
-export const TimelineProvider: React.FC<
-  React.PropsWithChildren<{ timeline: Timeline }>
-> = ({ timeline, children }) => {
-  return (
-    <TimelineContext.Provider value={timeline}>
-      {children}
-    </TimelineContext.Provider>
-  );
+export const TimelineProvider: React.FC<React.PropsWithChildren<{ timeline: Timeline }>> = ({
+  timeline,
+  children,
+}) => {
+  return <TimelineContext.Provider value={timeline}>{children}</TimelineContext.Provider>;
 };
 
 export const useTimeline = (): Timeline => {

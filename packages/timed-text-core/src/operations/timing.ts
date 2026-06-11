@@ -1,11 +1,7 @@
 import type { EditorTimedTextDocument } from "../editor-model";
 import type { EditorOperationResult } from "./results";
 import type { UpdateEditorCueData } from "./transform";
-import {
-  mapEditorCues,
-  sortEditorCuesByTime,
-  updateEditorCue,
-} from "./transform";
+import { mapEditorCues, sortEditorCuesByTime, updateEditorCue } from "./transform";
 
 /**
  * Strategy used by {@link fixEditorOverlaps}.
@@ -54,8 +50,7 @@ export function updateEditorCueTiming(
       errors: [
         {
           code: "cue.invalid-timing",
-          message:
-            "Cannot update cue timing because startMs must be before endMs.",
+          message: "Cannot update cue timing because startMs must be before endMs.",
           cueId,
         },
       ],
@@ -186,8 +181,7 @@ export function fixEditorOverlaps(
 
         if (current.endMs <= next.startMs) continue;
 
-        const sacrificeCurrent =
-          prioritized.has(next.id) && !prioritized.has(current.id);
+        const sacrificeCurrent = prioritized.has(next.id) && !prioritized.has(current.id);
 
         if (mode === "remove") {
           toRemove.add(sacrificeCurrent ? current.id : next.id);
@@ -200,10 +194,7 @@ export function fixEditorOverlaps(
 
       return {
         ...track,
-        cues:
-          mode === "remove"
-            ? cues.filter((cue) => !toRemove.has(cue.id))
-            : cues,
+        cues: mode === "remove" ? cues.filter((cue) => !toRemove.has(cue.id)) : cues,
       };
     }),
   };

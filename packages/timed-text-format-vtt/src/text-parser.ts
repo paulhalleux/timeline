@@ -24,9 +24,7 @@ export function parseStyledText(text: string): CueContent[] {
       if (lines[i]) {
         const style = getCurrentStyle();
         result.push(
-          Object.keys(style).length > 0
-            ? styledContent(lines[i], style)
-            : textContent(lines[i]),
+          Object.keys(style).length > 0 ? styledContent(lines[i], style) : textContent(lines[i]),
         );
       }
       if (i < lines.length - 1) {

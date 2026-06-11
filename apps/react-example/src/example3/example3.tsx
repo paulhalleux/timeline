@@ -61,15 +61,10 @@ export const Example3 = () => {
             </Timeline.Overlay>
             <Timeline.Viewport>
               <Ruler.Root className={styles.ruler}>
-                <Ruler.Header className={styles.rulerHeader}>
-                  Ruler
-                </Ruler.Header>
+                <Ruler.Header className={styles.rulerHeader}>Ruler</Ruler.Header>
                 <Ruler.Ticks>
                   {({ unit, left, width }) => (
-                    <div
-                      className={styles.tickContainer}
-                      style={{ width, left }}
-                    >
+                    <div className={styles.tickContainer} style={{ width, left }}>
                       <div className={styles.tickLabel}>{unit}</div>
                     </div>
                   )}
@@ -77,11 +72,7 @@ export const Example3 = () => {
               </Ruler.Root>
               <div>
                 {tracks.map(({ id, items }) => (
-                  <Track.Root
-                    key={id}
-                    height={40}
-                    style={{ borderBottom: "1px solid #ccc" }}
-                  >
+                  <Track.Root key={id} height={40} style={{ borderBottom: "1px solid #ccc" }}>
                     <Track.Header
                       style={{
                         background: "#f0f0f0",

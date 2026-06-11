@@ -1,7 +1,4 @@
-import type {
-  EditorTimedTextCue,
-  EditorTimedTextDocument,
-} from "../editor-model";
+import type { EditorTimedTextCue, EditorTimedTextDocument } from "../editor-model";
 import type { EditorOperationResult } from "./results";
 import { operationFailure, operationSuccess } from "./results";
 import { clampIndex, findEditorTrack } from "./utils";
@@ -64,22 +61,13 @@ export function replaceEditorCueRange(
   }
 
   const cueIdSet = new Set(cueIds);
-  const firstMatchedIndex = trackResult.track.cues.findIndex((cue) =>
-    cueIdSet.has(cue.id),
-  );
+  const firstMatchedIndex = trackResult.track.cues.findIndex((cue) => cueIdSet.has(cue.id));
   const replacementIndex = clampIndex(
-    index ??
-      (firstMatchedIndex === -1
-        ? trackResult.track.cues.length
-        : firstMatchedIndex),
+    index ?? (firstMatchedIndex === -1 ? trackResult.track.cues.length : firstMatchedIndex),
     trackResult.track.cues.length,
   );
-  const removedCues = trackResult.track.cues.filter((cue) =>
-    cueIdSet.has(cue.id),
-  );
-  const remainingCues = trackResult.track.cues.filter(
-    (cue) => !cueIdSet.has(cue.id),
-  );
+  const removedCues = trackResult.track.cues.filter((cue) => cueIdSet.has(cue.id));
+  const remainingCues = trackResult.track.cues.filter((cue) => !cueIdSet.has(cue.id));
   const insertionIndex = clampIndex(replacementIndex, remainingCues.length);
   const nextCues = [
     ...remainingCues.slice(0, insertionIndex),

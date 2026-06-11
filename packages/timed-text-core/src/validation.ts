@@ -1,7 +1,4 @@
-import type {
-  EditorTimedTextDocument,
-  FormatValidationIssue,
-} from "./editor-model";
+import type { EditorTimedTextDocument, FormatValidationIssue } from "./editor-model";
 
 /**
  * Context shared by native format validation rules.
@@ -30,10 +27,7 @@ export interface FormatValidationContext {
  */
 export interface FormatValidationRule<TDocument> {
   id: string;
-  run(
-    document: TDocument,
-    context?: FormatValidationContext,
-  ): FormatValidationIssue[];
+  run(document: TDocument, context?: FormatValidationContext): FormatValidationIssue[];
 }
 
 /**

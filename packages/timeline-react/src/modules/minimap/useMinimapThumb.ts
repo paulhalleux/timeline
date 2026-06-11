@@ -64,8 +64,7 @@ export const useMinimapThumb = ({ minWidth, ...args }: UseMinimapThumbArgs) => {
         return;
       }
 
-      const positionRatio =
-        (state.visibleStartRatio * rect.width + e.movementX) / rect.width;
+      const positionRatio = (state.visibleStartRatio * rect.width + e.movementX) / rect.width;
 
       api.setVisibleStartRatio(positionRatio);
       args.onPointerMove?.(e);
@@ -79,8 +78,7 @@ export const useMinimapThumb = ({ minWidth, ...args }: UseMinimapThumbArgs) => {
     }
 
     const width = state.visibleSizeRatio * containerRect.width;
-    const actualWidth =
-      containerRect.width - Math.max(0, (minWidth ?? 0) - width);
+    const actualWidth = containerRect.width - Math.max(0, (minWidth ?? 0) - width);
 
     return {
       position: "absolute",
@@ -91,13 +89,7 @@ export const useMinimapThumb = ({ minWidth, ...args }: UseMinimapThumbArgs) => {
       minWidth,
       ...args.style,
     };
-  }, [
-    containerRect?.width,
-    state.visibleSizeRatio,
-    state.visibleStartRatio,
-    minWidth,
-    args.style,
-  ]);
+  }, [containerRect?.width, state.visibleSizeRatio, state.visibleStartRatio, minWidth, args.style]);
 
   return {
     onClick,

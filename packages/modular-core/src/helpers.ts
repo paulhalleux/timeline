@@ -10,10 +10,7 @@ import type { Module, ModuleClass } from "./module";
  * @template T - The module instance type
  * @template TCore - The core API type
  */
-export type ModuleWithFor<
-  T extends Module,
-  TCore extends CoreApi<unknown>,
-> = ModuleClass<T> & {
+export type ModuleWithFor<T extends Module, TCore extends CoreApi<unknown>> = ModuleClass<T> & {
   /**
    * Gets this module instance from the given core.
    *

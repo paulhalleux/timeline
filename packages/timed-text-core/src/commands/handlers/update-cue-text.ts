@@ -42,18 +42,14 @@ export type UpdateCueTextCommand = EditorCommand<UpdateCueTextPayload>;
  * const result = updateCueTextCommand("cue-1", "Hello").do(document);
  * ```
  */
-export function updateCueTextCommand(
-  cueId: string,
-  text: string,
-): UpdateCueTextCommand {
+export function updateCueTextCommand(cueId: string, text: string): UpdateCueTextCommand {
   return {
     type: "cue/update-text",
     payload: { cueId, text },
 
     do(this: UpdateCueTextCommand, document) {
       const result = updateEditorCue(document, cueId, { text });
-      if (!result.ok)
-        return commandFailureFromOperation(document, this, result);
+      if (!result.ok) return commandFailureFromOperation(document, this, result);
 
       return cueUpdateSuccess(
         this,

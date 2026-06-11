@@ -1,7 +1,4 @@
-import type {
-  EditorOperationSuccess,
-  UpdateEditorCueData,
-} from "../../operations";
+import type { EditorOperationSuccess, UpdateEditorCueData } from "../../operations";
 import { commandSuccess } from "../results";
 import type { EditorCommand, EditorCommandResult } from "../types";
 import type { UpdateCueTextCommand } from "./update-cue-text";

@@ -45,11 +45,7 @@ export type Chunk = {
  * @param chunkWidthPx Chunk width in pixels.
  * @returns Computed chunk.
  */
-export const computeChunk = (
-  current: number,
-  pxPerUnit: number,
-  chunkWidthPx: number,
-): Chunk => {
+export const computeChunk = (current: number, pxPerUnit: number, chunkWidthPx: number): Chunk => {
   const range = chunkWidthPx / pxPerUnit;
   const index = Math.floor(current / range);
   const start = Math.floor(index * range);

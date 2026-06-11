@@ -187,8 +187,7 @@ export class Timeline extends Core<TimelineState> implements TimelineApi {
 
     // Compute new visibleRange
     const newVisibleRange = max - normalizedValue * (max - min);
-    const deltaRange =
-      newVisibleRange - this.viewport.select((s) => s.visibleRange);
+    const deltaRange = newVisibleRange - this.viewport.select((s) => s.visibleRange);
     const centerDelta = (1 / viewportWidthPx) * normalizedCenterPx;
 
     // Set new viewport range

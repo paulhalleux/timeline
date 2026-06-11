@@ -59,8 +59,7 @@ export function splitCueCommand(payload: SplitCuePayload): SplitCueCommand {
         secondCueId: payload.secondCueId,
         secondText: payload.secondText,
       });
-      if (!result.ok)
-        return commandFailureFromOperation(document, this, result);
+      if (!result.ok) return commandFailureFromOperation(document, this, result);
 
       return commandSuccess(result.document, this, {
         undoCommand: replaceCueRangeCommand({
