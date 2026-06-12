@@ -135,9 +135,20 @@ export type ActionGuard<TContext> = (
 ) => boolean | ActionGuardResult;
 
 /**
+ * Requires a trigger to originate from a concrete action surface id.
+ */
+export interface ActionSurfaceFocusRequirement {
+  surfaceId: string;
+}
+
+/**
  * Whether a trigger must originate from a focused/active action surface.
  */
-export type ActionFocusRequirement = "none" | "optional" | "required";
+export type ActionFocusRequirement =
+  | "none"
+  | "optional"
+  | "required"
+  | ActionSurfaceFocusRequirement;
 
 export type ActionTriggerFocus = Partial<
   Record<ActionSource, ActionFocusRequirement>
@@ -170,7 +181,9 @@ export interface ActionDescriptor {
    *
    * Example: `{ shortcut: "required", menu: "none" }` means shortcuts only
    * run when a registered ActionSurface matches, while menubar invocations do
-   * not need a focused surface. Missing triggers default to `"optional"`.
+   * not need a focused surface. Use `{ shortcut: { surfaceId: "cue-list" } }`
+   * when an action belongs to one concrete surface. Missing triggers default to
+   * `"optional"`.
    */
   triggerFocus?: ActionTriggerFocus;
 }

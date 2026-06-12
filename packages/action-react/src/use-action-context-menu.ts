@@ -6,6 +6,7 @@ import type {
   ActionRunResult,
 } from "@ptl/action-core";
 import type { ActionRunner } from "./action-runner";
+import { useActionRunner } from "./action-context";
 import { createActionContextMenuItems } from "./context-menu-items";
 import {
   closedActionContextMenuState,
@@ -14,7 +15,6 @@ import {
 
 export interface UseActionContextMenuOptions {
   actions?: readonly ActionDescriptor[];
-  surfaceId?: string;
   getPayload?: (
     action: ActionDescriptor,
     state: ActionContextMenuState,
@@ -34,12 +34,13 @@ export interface UseActionContextMenuResult {
  *
  * Render `items` however your UI library expects; calling `run(item.action)`
  * invokes the action with source `contextMenu`, the original mouse event, and
- * the registered action surface id when provided.
+ * the clicked DOM target so ActionScope can resolve the active surface.
  */
 export function useActionContextMenu(
-  runner: ActionRunner,
+  runner?: ActionRunner,
   options: UseActionContextMenuOptions = {},
 ): UseActionContextMenuResult {
+  const resolvedRunner = useActionRunner(runner);
   const [menu, setMenu] = useState<ActionContextMenuState>(
     closedActionContextMenuState,
   );
@@ -53,10 +54,9 @@ export function useActionContextMenu(
         y: event.clientY,
         event: event.nativeEvent,
         target: event.target,
-        surfaceId: options.surfaceId,
       });
     },
-    [options.surfaceId],
+    [],
   );
 
   const close = useCallback(() => {
@@ -68,30 +68,33 @@ export function useActionContextMenu(
       source: "contextMenu",
       event: menu.event,
       target: menu.target,
-      surfaceId: menu.surfaceId,
     }),
-    [menu.event, menu.surfaceId, menu.target],
+    [menu.event, menu.target],
   );
 
   const items = useMemo(
     () =>
       menu.open
-        ? createActionContextMenuItems(runner, invocation, options.actions)
+        ? createActionContextMenuItems(
+            resolvedRunner,
+            invocation,
+            options.actions,
+          )
         : [],
-    [invocation, menu.open, options.actions, runner],
+    [invocation, menu.open, options.actions, resolvedRunner],
   );
 
   const run = useCallback(
     async (action: ActionDescriptor) => {
       const payload = options.getPayload?.(action, menu);
-      const result = await runner.run(action.id, {
+      const result = await resolvedRunner.run(action.id, {
         ...invocation,
         ...(payload === undefined ? {} : { payload }),
       });
       close();
       return result;
     },
-    [close, invocation, menu, options, runner],
+    [close, invocation, menu, options, resolvedRunner],
   );
 
   return { menu, items, onContextMenu, close, run };

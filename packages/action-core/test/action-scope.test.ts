@@ -50,6 +50,46 @@ describe("action scopes", () => {
     expect(menu).toEqual({ ok: true, actionId: action.id, value: 4 });
   });
 
+  test("supports actions tied to one concrete surface", async () => {
+    const context: TestContext = { value: 2 };
+    const action: ActionDefinition<TestContext, number, { delta: number }> = {
+      id: "test.surfaceIncrement",
+      title: "Surface increment",
+      category: "Test",
+      triggerFocus: { shortcut: { surfaceId: "editor" } },
+      run(ctx, invocation) {
+        return ctx.value + (invocation.payload?.delta ?? 0);
+      },
+    };
+    const scope = new ActionScope({
+      id: "test",
+      getContext: () => context,
+      actions: [action],
+    });
+
+    scope.registerSurface({ id: "other" });
+    scope.registerSurface({ id: "editor" });
+
+    const wrongSurface = await scope.runAction(action, {
+      source: "shortcut",
+      surfaceId: "other",
+      payload: { delta: 2 },
+    });
+    expect(wrongSurface.ok).toBe(false);
+    expect(wrongSurface.reason).toBe("surface-unavailable");
+
+    const matchingSurface = await scope.runAction(action, {
+      source: "shortcut",
+      surfaceId: "editor",
+      payload: { delta: 2 },
+    });
+    expect(matchingSurface).toEqual({
+      ok: true,
+      actionId: action.id,
+      value: 4,
+    });
+  });
+
   test("typed registry invokes actions by autocomplete-friendly keys", async () => {
     const context: TestContext = { value: 4 };
     const multiply: ActionDefinition<TestContext, number, { by: number }> = {

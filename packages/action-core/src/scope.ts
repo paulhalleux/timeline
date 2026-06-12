@@ -158,6 +158,15 @@ export class ActionScope<TContext extends ActionContext = ActionContext>
     return surface.isActive?.() ?? true;
   }
 
+  private isFocusRequirementSatisfied(
+    requirement: Exclude<ActionFocusRequirement, "none" | "optional">,
+    surface: ActionSurface | undefined,
+  ): boolean {
+    if (!surface) return false;
+    if (requirement === "required") return true;
+    return surface.id === requirement.surfaceId;
+  }
+
   private getInvocationFocusState(
     action: ActionDescriptor,
     invocation: ActionInvocation,
@@ -167,10 +176,14 @@ export class ActionScope<TContext extends ActionContext = ActionContext>
     const requirement: ActionFocusRequirement =
       action.triggerFocus?.[invocation.source] ?? "optional";
 
-    if (requirement !== "required") return { ok: true };
+    if (requirement === "none" || requirement === "optional") {
+      return { ok: true };
+    }
 
     const surface = this.resolveSurface(invocation);
-    if (surface) return { ok: true };
+    if (this.isFocusRequirementSatisfied(requirement, surface)) {
+      return { ok: true };
+    }
 
     return {
       ok: false,

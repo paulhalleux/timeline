@@ -4,7 +4,6 @@ export interface ActionContextMenuState {
   y: number;
   event?: MouseEvent;
   target?: EventTarget | null;
-  surfaceId?: string;
 }
 
 export const closedActionContextMenuState: ActionContextMenuState = {

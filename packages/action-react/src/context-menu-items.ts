@@ -1,5 +1,6 @@
 import type {
   ActionDescriptor,
+  ActionFocusRequirement,
   ActionInvocation,
   ActionState,
 } from "@ptl/action-core";
@@ -37,9 +38,14 @@ function canAppearForContextMenu(
   action: ActionDescriptor,
   invocation: ActionInvocation,
 ): boolean {
+  const requirement = action.triggerFocus?.[invocation.source] ?? "optional";
   return (
-    action.triggerFocus?.[invocation.source] !== "required" ||
+    !requiresSurface(requirement) ||
     invocation.target !== undefined ||
     invocation.surfaceId !== undefined
   );
+}
+
+function requiresSurface(requirement: ActionFocusRequirement): boolean {
+  return requirement === "required" || typeof requirement === "object";
 }

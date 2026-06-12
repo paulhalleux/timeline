@@ -1,3 +1,12 @@
+export { Actions } from "./actions";
+export { ActionProvider } from "./action-provider";
+export type { ActionProviderProps } from "./action-provider";
+export { ActionSurface } from "./action-surface";
+export type { ActionSurfaceProps } from "./action-surface";
+export { ActionHotkeys } from "./action-hotkeys";
+export type { ActionHotkeysProps } from "./action-hotkeys";
+export { useActionRunner, useCurrentActionSurface } from "./action-context";
+export type { ActionSurfaceContextValue } from "./action-context";
 export type { ActionRunner } from "./action-runner";
 export { createHTMLElementActionSurface } from "./html-action-surface";
 export type { HTMLElementActionSurfaceOptions } from "./html-action-surface";

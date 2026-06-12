@@ -37,6 +37,7 @@ export type {
   ActionRunResult,
   ActionRunSuccess,
   ActionSurface,
+  ActionSurfaceFocusRequirement,
   ActionFocusRequirement,
   ActionTriggerFocus,
   ActionSource,
