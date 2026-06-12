@@ -11,7 +11,8 @@
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
     "lint": "oxlint apps packages configs",
-    "lint:fix": "oxlint apps packages configs --fix"
+    "lint:fix": "oxlint apps packages configs --fix",
+    "ui:add": "bun run --cwd packages/ui shadcn:add"
   },
   "devDependencies": {
     "lerna": "^9.0.7",
