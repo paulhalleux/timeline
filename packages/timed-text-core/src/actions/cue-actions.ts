@@ -1,3 +1,6 @@
+import type { ActionDefinition } from "@ptl/action-core";
+
+import type { EditorTimedTextCue } from "../editor-model";
 import {
   createEditorCue,
   deleteEditorCue,
@@ -8,66 +11,84 @@ import {
   updateEditorCue,
   updateEditorCueTiming,
 } from "../operations";
+import type {
+  CreateEditorCueInput,
+  MergeEditorCuesOptions,
+  SplitEditorCueOptions,
+} from "../operations";
 import { requirePayload } from "./helpers";
 import {
   TIMED_TEXT_ACTION_CATEGORY,
   TIMED_TEXT_ACTION_SOURCE,
-  TIMED_TEXT_CREATE_CUE_ACTION_ID,
-  TIMED_TEXT_DELETE_CUE_ACTION_ID,
-  TIMED_TEXT_INSERT_CUE_ACTION_ID,
-  TIMED_TEXT_MERGE_CUES_ACTION_ID,
-  TIMED_TEXT_REPLACE_CUE_RANGE_ACTION_ID,
-  TIMED_TEXT_SPLIT_CUE_ACTION_ID,
-  TIMED_TEXT_UPDATE_CUE_TEXT_ACTION_ID,
-  TIMED_TEXT_UPDATE_CUE_TIMING_ACTION_ID,
-} from "./ids";
-import type {
-  CreateCueActionPayload,
-  CreateCueActionResult,
-  DeleteCueActionPayload,
-  DeleteCueActionResult,
-  InsertCueActionPayload,
-  InsertCueActionResult,
-  MergeCuesActionPayload,
-  MergeCuesActionResult,
-  ReplaceCueRangeActionPayload,
-  ReplaceCueRangeActionResult,
-  SplitCueActionPayload,
-  SplitCueActionResult,
-  TimedTextActionDefinition,
-  UpdateCueTextActionPayload,
-  UpdateCueTextActionResult,
-  UpdateCueTimingActionPayload,
-  UpdateCueTimingActionResult,
-} from "./types";
+} from "./metadata";
+import type { TimedTextActionContext } from "./context";
 
-export const createCueAction: TimedTextActionDefinition<
-  CreateCueActionResult,
+export type CreateCueActionPayload = CreateEditorCueInput;
+
+export interface InsertCueActionPayload {
+  trackId: string;
+  cue: EditorTimedTextCue;
+  index?: number;
+}
+
+export interface DeleteCueActionPayload {
+  cueId: string;
+}
+
+export interface UpdateCueTextActionPayload {
+  cueId: string;
+  text: string;
+}
+
+export interface UpdateCueTimingActionPayload {
+  cueId: string;
+  startMs: number;
+  endMs: number;
+}
+
+export interface ReplaceCueRangeActionPayload {
+  trackId: string;
+  cueIds: readonly string[];
+  cues: readonly EditorTimedTextCue[];
+  index?: number;
+}
+
+export interface SplitCueActionPayload
+  extends Omit<SplitEditorCueOptions, "createId"> {
+  cueId: string;
+  atMs: number;
+}
+
+export interface MergeCuesActionPayload extends MergeEditorCuesOptions {
+  cueIds: readonly string[];
+}
+
+export const createCueAction: ActionDefinition<
+  TimedTextActionContext,
+  ReturnType<typeof createEditorCue>,
   CreateCueActionPayload
 > = {
   category: TIMED_TEXT_ACTION_CATEGORY,
-  id: TIMED_TEXT_CREATE_CUE_ACTION_ID,
+  id: "timedText.cue.create",
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Create cue",
   run(context, invocation) {
-    const payload = requirePayload(
-      TIMED_TEXT_CREATE_CUE_ACTION_ID,
-      invocation,
-    );
+    const payload = requirePayload(createCueAction, invocation);
     return createEditorCue(payload, context.createId);
   },
 };
 
-export const insertCueAction: TimedTextActionDefinition<
-  InsertCueActionResult,
+export const insertCueAction: ActionDefinition<
+  TimedTextActionContext,
+  ReturnType<typeof insertEditorCue>,
   InsertCueActionPayload
 > = {
   category: TIMED_TEXT_ACTION_CATEGORY,
-  id: TIMED_TEXT_INSERT_CUE_ACTION_ID,
+  id: "timedText.cue.insert",
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Insert cue",
   run(context, invocation) {
-    const payload = requirePayload(TIMED_TEXT_INSERT_CUE_ACTION_ID, invocation);
+    const payload = requirePayload(insertCueAction, invocation);
     return insertEditorCue(
       context.getDocument(),
       payload.trackId,
@@ -77,12 +98,13 @@ export const insertCueAction: TimedTextActionDefinition<
   },
 };
 
-export const deleteCueAction: TimedTextActionDefinition<
-  DeleteCueActionResult,
+export const deleteCueAction: ActionDefinition<
+  TimedTextActionContext,
+  ReturnType<typeof deleteEditorCue>,
   DeleteCueActionPayload
 > = {
   category: TIMED_TEXT_ACTION_CATEGORY,
-  id: TIMED_TEXT_DELETE_CUE_ACTION_ID,
+  id: "timedText.cue.delete",
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Delete cue",
   keybindings: [{ keys: "Delete", preventDefault: true }],
@@ -96,43 +118,39 @@ export const deleteCueAction: TimedTextActionDefinition<
     menu: "none",
   },
   run(context, invocation) {
-    const payload = requirePayload(TIMED_TEXT_DELETE_CUE_ACTION_ID, invocation);
+    const payload = requirePayload(deleteCueAction, invocation);
     return deleteEditorCue(context.getDocument(), payload.cueId);
   },
 };
 
-export const updateCueTextAction: TimedTextActionDefinition<
-  UpdateCueTextActionResult,
+export const updateCueTextAction: ActionDefinition<
+  TimedTextActionContext,
+  ReturnType<typeof updateEditorCue>,
   UpdateCueTextActionPayload
 > = {
   category: TIMED_TEXT_ACTION_CATEGORY,
-  id: TIMED_TEXT_UPDATE_CUE_TEXT_ACTION_ID,
+  id: "timedText.cue.updateText",
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Update cue text",
   run(context, invocation) {
-    const payload = requirePayload(
-      TIMED_TEXT_UPDATE_CUE_TEXT_ACTION_ID,
-      invocation,
-    );
+    const payload = requirePayload(updateCueTextAction, invocation);
     return updateEditorCue(context.getDocument(), payload.cueId, {
       text: payload.text,
     });
   },
 };
 
-export const updateCueTimingAction: TimedTextActionDefinition<
-  UpdateCueTimingActionResult,
+export const updateCueTimingAction: ActionDefinition<
+  TimedTextActionContext,
+  ReturnType<typeof updateEditorCueTiming>,
   UpdateCueTimingActionPayload
 > = {
   category: TIMED_TEXT_ACTION_CATEGORY,
-  id: TIMED_TEXT_UPDATE_CUE_TIMING_ACTION_ID,
+  id: "timedText.cue.updateTiming",
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Update cue timing",
   run(context, invocation) {
-    const payload = requirePayload(
-      TIMED_TEXT_UPDATE_CUE_TIMING_ACTION_ID,
-      invocation,
-    );
+    const payload = requirePayload(updateCueTimingAction, invocation);
     return updateEditorCueTiming(
       context.getDocument(),
       payload.cueId,
@@ -142,19 +160,17 @@ export const updateCueTimingAction: TimedTextActionDefinition<
   },
 };
 
-export const replaceCueRangeAction: TimedTextActionDefinition<
-  ReplaceCueRangeActionResult,
+export const replaceCueRangeAction: ActionDefinition<
+  TimedTextActionContext,
+  ReturnType<typeof replaceEditorCueRange>,
   ReplaceCueRangeActionPayload
 > = {
   category: TIMED_TEXT_ACTION_CATEGORY,
-  id: TIMED_TEXT_REPLACE_CUE_RANGE_ACTION_ID,
+  id: "timedText.cue.replaceRange",
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Replace cue range",
   run(context, invocation) {
-    const payload = requirePayload(
-      TIMED_TEXT_REPLACE_CUE_RANGE_ACTION_ID,
-      invocation,
-    );
+    const payload = requirePayload(replaceCueRangeAction, invocation);
     return replaceEditorCueRange(
       context.getDocument(),
       payload.trackId,
@@ -165,12 +181,13 @@ export const replaceCueRangeAction: TimedTextActionDefinition<
   },
 };
 
-export const splitCueAction: TimedTextActionDefinition<
-  SplitCueActionResult,
+export const splitCueAction: ActionDefinition<
+  TimedTextActionContext,
+  ReturnType<typeof splitEditorCue>,
   SplitCueActionPayload
 > = {
   category: TIMED_TEXT_ACTION_CATEGORY,
-  id: TIMED_TEXT_SPLIT_CUE_ACTION_ID,
+  id: "timedText.cue.split",
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Split cue",
   keybindings: [{ keys: "Mod+Shift+S", preventDefault: true }],
@@ -184,7 +201,7 @@ export const splitCueAction: TimedTextActionDefinition<
     menu: "none",
   },
   run(context, invocation) {
-    const payload = requirePayload(TIMED_TEXT_SPLIT_CUE_ACTION_ID, invocation);
+    const payload = requirePayload(splitCueAction, invocation);
     return splitEditorCue(context.getDocument(), payload.cueId, payload.atMs, {
       createId: context.createId,
       firstText: payload.firstText,
@@ -195,12 +212,13 @@ export const splitCueAction: TimedTextActionDefinition<
   },
 };
 
-export const mergeCuesAction: TimedTextActionDefinition<
-  MergeCuesActionResult,
+export const mergeCuesAction: ActionDefinition<
+  TimedTextActionContext,
+  ReturnType<typeof mergeEditorCues>,
   MergeCuesActionPayload
 > = {
   category: TIMED_TEXT_ACTION_CATEGORY,
-  id: TIMED_TEXT_MERGE_CUES_ACTION_ID,
+  id: "timedText.cue.merge",
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Merge cues",
   keybindings: [{ keys: "Mod+M", preventDefault: true }],
@@ -214,7 +232,7 @@ export const mergeCuesAction: TimedTextActionDefinition<
     menu: "none",
   },
   run(context, invocation) {
-    const payload = requirePayload(TIMED_TEXT_MERGE_CUES_ACTION_ID, invocation);
+    const payload = requirePayload(mergeCuesAction, invocation);
     return mergeEditorCues(context.getDocument(), payload.cueIds, {
       separator: payload.separator,
       textCombination: payload.textCombination,
@@ -233,13 +251,4 @@ export const cueActions = {
   mergeCues: mergeCuesAction,
 };
 
-export const defaultCueActions: TimedTextActionDefinition[] = [
-  createCueAction,
-  insertCueAction,
-  deleteCueAction,
-  updateCueTextAction,
-  updateCueTimingAction,
-  replaceCueRangeAction,
-  splitCueAction,
-  mergeCuesAction,
-];
+export const defaultCueActions = Object.values(cueActions);

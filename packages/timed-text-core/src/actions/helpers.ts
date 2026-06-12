@@ -1,24 +1,23 @@
-import type { ActionGuardResult, ActionInvocation } from "@ptl/action-core";
+import type {
+  ActionDescriptor,
+  ActionGuardResult,
+  ActionInvocation,
+} from "@ptl/action-core";
 
 import type { EditorTimedTextDocument } from "../editor-model";
 import { operationSuccess } from "../operations";
-import type {
-  TimedTextActionContext,
-  TimedTextDocumentActionResult,
-} from "./types";
+import type { TimedTextActionContext } from "./context";
 
-export function documentActionResult(
-  document: EditorTimedTextDocument,
-): TimedTextDocumentActionResult {
+export function documentActionResult(document: EditorTimedTextDocument) {
   return operationSuccess(document, undefined);
 }
 
 export function requirePayload<TPayload>(
-  actionId: string,
+  action: Pick<ActionDescriptor, "id">,
   invocation: ActionInvocation<TPayload>,
 ): TPayload {
   if (invocation.payload === undefined) {
-    throw new Error(`Action "${actionId}" requires a payload.`);
+    throw new Error(`Action "${action.id}" requires a payload.`);
   }
 
   return invocation.payload;

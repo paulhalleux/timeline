@@ -1,3 +1,5 @@
+import type { ActionDefinition } from "@ptl/action-core";
+
 import {
   adjustEditorGaps,
   fixEditorOverlaps,
@@ -6,33 +8,45 @@ import {
   snapEditorCuesToFrames,
   sortEditorCuesByTime,
 } from "../operations";
+import type { AdjustGapMode, FixOverlapMode } from "../operations";
 import { documentActionResult, requirePayload } from "./helpers";
 import {
   TIMED_TEXT_ACTION_CATEGORY,
   TIMED_TEXT_ACTION_SOURCE,
-  TIMED_TEXT_ADJUST_GAPS_ACTION_ID,
-  TIMED_TEXT_FIX_OVERLAPS_ACTION_ID,
-  TIMED_TEXT_SCALE_CUES_ACTION_ID,
-  TIMED_TEXT_SHIFT_CUES_ACTION_ID,
-  TIMED_TEXT_SNAP_CUES_TO_FRAMES_ACTION_ID,
-  TIMED_TEXT_SORT_CUES_BY_TIME_ACTION_ID,
-} from "./ids";
-import type {
-  AdjustGapsActionPayload,
-  FixOverlapsActionPayload,
-  ScaleCuesActionPayload,
-  ShiftCuesActionPayload,
-  SnapCuesToFramesActionPayload,
-  TimedTextActionDefinition,
-  TimedTextDocumentActionResult,
-} from "./types";
+} from "./metadata";
+import type { TimedTextActionContext } from "./context";
 
-export const shiftCuesAction: TimedTextActionDefinition<
-  TimedTextDocumentActionResult,
+export interface ShiftCuesActionPayload {
+  offsetMs: number;
+  cueIds?: readonly string[];
+}
+
+export interface ScaleCuesActionPayload {
+  factor: number;
+  anchorMs?: number;
+}
+
+export interface SnapCuesToFramesActionPayload {
+  frameRate: number;
+}
+
+export interface FixOverlapsActionPayload {
+  mode?: FixOverlapMode;
+  prioritizeIds?: readonly string[];
+}
+
+export interface AdjustGapsActionPayload {
+  gapMs: number;
+  mode?: AdjustGapMode;
+}
+
+export const shiftCuesAction: ActionDefinition<
+  TimedTextActionContext,
+  ReturnType<typeof documentActionResult>,
   ShiftCuesActionPayload
 > = {
   category: TIMED_TEXT_ACTION_CATEGORY,
-  id: TIMED_TEXT_SHIFT_CUES_ACTION_ID,
+  id: "timedText.cues.shift",
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Shift cues",
   presentation: { menu: { path: ["Timing", "Shift cues"], order: 10 } },
@@ -42,19 +56,20 @@ export const shiftCuesAction: TimedTextActionDefinition<
     menu: "none",
   },
   run(context, invocation) {
-    const payload = requirePayload(TIMED_TEXT_SHIFT_CUES_ACTION_ID, invocation);
+    const payload = requirePayload(shiftCuesAction, invocation);
     return documentActionResult(
       shiftEditorCues(context.getDocument(), payload.offsetMs, payload.cueIds),
     );
   },
 };
 
-export const scaleCuesAction: TimedTextActionDefinition<
-  TimedTextDocumentActionResult,
+export const scaleCuesAction: ActionDefinition<
+  TimedTextActionContext,
+  ReturnType<typeof documentActionResult>,
   ScaleCuesActionPayload
 > = {
   category: TIMED_TEXT_ACTION_CATEGORY,
-  id: TIMED_TEXT_SCALE_CUES_ACTION_ID,
+  id: "timedText.cues.scale",
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Scale cues",
   presentation: { menu: { path: ["Timing", "Scale cues"], order: 20 } },
@@ -64,19 +79,20 @@ export const scaleCuesAction: TimedTextActionDefinition<
     menu: "none",
   },
   run(context, invocation) {
-    const payload = requirePayload(TIMED_TEXT_SCALE_CUES_ACTION_ID, invocation);
+    const payload = requirePayload(scaleCuesAction, invocation);
     return documentActionResult(
       scaleEditorCues(context.getDocument(), payload.factor, payload.anchorMs),
     );
   },
 };
 
-export const snapCuesToFramesAction: TimedTextActionDefinition<
-  TimedTextDocumentActionResult,
+export const snapCuesToFramesAction: ActionDefinition<
+  TimedTextActionContext,
+  ReturnType<typeof documentActionResult>,
   SnapCuesToFramesActionPayload
 > = {
   category: TIMED_TEXT_ACTION_CATEGORY,
-  id: TIMED_TEXT_SNAP_CUES_TO_FRAMES_ACTION_ID,
+  id: "timedText.cues.snapToFrames",
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Snap cues to frames",
   presentation: {
@@ -88,22 +104,20 @@ export const snapCuesToFramesAction: TimedTextActionDefinition<
     menu: "none",
   },
   run(context, invocation) {
-    const payload = requirePayload(
-      TIMED_TEXT_SNAP_CUES_TO_FRAMES_ACTION_ID,
-      invocation,
-    );
+    const payload = requirePayload(snapCuesToFramesAction, invocation);
     return documentActionResult(
       snapEditorCuesToFrames(context.getDocument(), payload.frameRate),
     );
   },
 };
 
-export const fixOverlapsAction: TimedTextActionDefinition<
-  TimedTextDocumentActionResult,
+export const fixOverlapsAction: ActionDefinition<
+  TimedTextActionContext,
+  ReturnType<typeof documentActionResult>,
   FixOverlapsActionPayload
 > = {
   category: TIMED_TEXT_ACTION_CATEGORY,
-  id: TIMED_TEXT_FIX_OVERLAPS_ACTION_ID,
+  id: "timedText.cues.fixOverlaps",
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Fix overlaps",
   presentation: { menu: { path: ["Timing", "Fix overlaps"], order: 40 } },
@@ -113,10 +127,7 @@ export const fixOverlapsAction: TimedTextActionDefinition<
     menu: "none",
   },
   run(context, invocation) {
-    const payload = requirePayload(
-      TIMED_TEXT_FIX_OVERLAPS_ACTION_ID,
-      invocation,
-    );
+    const payload = requirePayload(fixOverlapsAction, invocation);
     return documentActionResult(
       fixEditorOverlaps(
         context.getDocument(),
@@ -127,12 +138,13 @@ export const fixOverlapsAction: TimedTextActionDefinition<
   },
 };
 
-export const adjustGapsAction: TimedTextActionDefinition<
-  TimedTextDocumentActionResult,
+export const adjustGapsAction: ActionDefinition<
+  TimedTextActionContext,
+  ReturnType<typeof documentActionResult>,
   AdjustGapsActionPayload
 > = {
   category: TIMED_TEXT_ACTION_CATEGORY,
-  id: TIMED_TEXT_ADJUST_GAPS_ACTION_ID,
+  id: "timedText.cues.adjustGaps",
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Adjust gaps",
   presentation: { menu: { path: ["Timing", "Adjust gaps"], order: 50 } },
@@ -142,22 +154,20 @@ export const adjustGapsAction: TimedTextActionDefinition<
     menu: "none",
   },
   run(context, invocation) {
-    const payload = requirePayload(
-      TIMED_TEXT_ADJUST_GAPS_ACTION_ID,
-      invocation,
-    );
+    const payload = requirePayload(adjustGapsAction, invocation);
     return documentActionResult(
       adjustEditorGaps(context.getDocument(), payload.gapMs, payload.mode),
     );
   },
 };
 
-export const sortCuesByTimeAction: TimedTextActionDefinition<
-  TimedTextDocumentActionResult,
+export const sortCuesByTimeAction: ActionDefinition<
+  TimedTextActionContext,
+  ReturnType<typeof documentActionResult>,
   void
 > = {
   category: TIMED_TEXT_ACTION_CATEGORY,
-  id: TIMED_TEXT_SORT_CUES_BY_TIME_ACTION_ID,
+  id: "timedText.cues.sortByTime",
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Sort cues by time",
   presentation: {
@@ -182,11 +192,4 @@ export const timingActions = {
   sortCuesByTime: sortCuesByTimeAction,
 };
 
-export const defaultTimingActions: TimedTextActionDefinition[] = [
-  shiftCuesAction,
-  scaleCuesAction,
-  snapCuesToFramesAction,
-  fixOverlapsAction,
-  adjustGapsAction,
-  sortCuesByTimeAction,
-];
+export const defaultTimingActions = Object.values(timingActions);
