@@ -4,6 +4,7 @@ import type {
   ActionGuardResult,
   ActionId,
   ActionInvocation,
+  ActionInvocationInput,
   ActionListOptions,
   ActionRegisterOptions,
   ActionRunResult,
@@ -130,6 +131,13 @@ export class ActionRegistry<TContext extends ActionContext = ActionContext> {
       };
     }
 
+    return this.getActionState(action, context);
+  }
+
+  getActionState(
+    action: ActionDefinition<TContext>,
+    context: TContext,
+  ): ActionState {
     const visible = normalizeGuardResult(action.visibleWhen?.(context));
     if (!visible.ok) {
       return {
@@ -164,36 +172,84 @@ export class ActionRegistry<TContext extends ActionContext = ActionContext> {
       };
     }
 
-    const state = this.getState(id, context);
+    return this.runRegisteredAction(action, context, invocation);
+  }
+
+  private async runRegisteredAction(
+    action: ActionDefinition<TContext>,
+    context: TContext,
+    invocation: ActionInvocation,
+  ): Promise<ActionRunResult> {
+    const state = this.getActionState(action, context);
     if (!state.visible) {
       return {
         ok: false,
-        actionId: id,
+        actionId: action.id,
         reason: "hidden",
-        message: state.hiddenReason ?? `Action "${id}" is hidden.`,
+        message: state.hiddenReason ?? `Action "${action.id}" is hidden.`,
       };
     }
     if (!state.enabled) {
       return {
         ok: false,
-        actionId: id,
+        actionId: action.id,
         reason: "disabled",
-        message: state.disabledReason ?? `Action "${id}" is disabled.`,
+        message: state.disabledReason ?? `Action "${action.id}" is disabled.`,
       };
     }
 
     try {
       const value = await action.run(context, invocation);
-      return { ok: true, actionId: id, value };
+      return { ok: true, actionId: action.id, value };
     } catch (error) {
       return {
         ok: false,
-        actionId: id,
+        actionId: action.id,
         reason: "failed",
         message:
           error instanceof Error
             ? error.message
-            : `Action "${id}" failed during execution.`,
+            : `Action "${action.id}" failed during execution.`,
+        error,
+      };
+    }
+  }
+
+  async runAction<TResult, TPayload>(
+    action: ActionDefinition<TContext, TResult, TPayload>,
+    context: TContext,
+    invocation: ActionInvocationInput<TPayload>,
+  ): Promise<ActionRunResult<TResult>> {
+    const state = this.getActionState(action, context);
+    if (!state.visible) {
+      return {
+        ok: false,
+        actionId: action.id,
+        reason: "hidden",
+        message: state.hiddenReason ?? `Action "${action.id}" is hidden.`,
+      };
+    }
+    if (!state.enabled) {
+      return {
+        ok: false,
+        actionId: action.id,
+        reason: "disabled",
+        message: state.disabledReason ?? `Action "${action.id}" is disabled.`,
+      };
+    }
+
+    try {
+      const value = await action.run(context, invocation);
+      return { ok: true, actionId: action.id, value };
+    } catch (error) {
+      return {
+        ok: false,
+        actionId: action.id,
+        reason: "failed",
+        message:
+          error instanceof Error
+            ? error.message
+            : `Action "${action.id}" failed during execution.`,
         error,
       };
     }

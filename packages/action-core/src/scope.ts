@@ -5,6 +5,7 @@ import type {
   ActionDescriptor,
   ActionId,
   ActionInvocation,
+  ActionInvocationInput,
   ActionListOptions,
   ActionRegisterOptions,
   ActionRunResult,
@@ -87,6 +88,13 @@ export class ActionScope<TContext extends ActionContext = ActionContext>
 
   run(id: ActionId, invocation?: ActionInvocation): Promise<ActionRunResult> {
     return this.registry.run(id, this.getContext(), invocation);
+  }
+
+  runAction<TResult, TPayload>(
+    action: ActionDefinition<TContext, TResult, TPayload>,
+    invocation: ActionInvocationInput<TPayload>,
+  ): Promise<ActionRunResult<TResult>> {
+    return this.registry.runAction(action, this.getContext(), invocation);
   }
 }
 

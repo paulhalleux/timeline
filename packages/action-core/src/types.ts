@@ -85,6 +85,16 @@ export interface ActionInvocation<TPayload = unknown> {
 }
 
 /**
+ * Invocation input used when an action's payload type is known.
+ *
+ * Payloads are required for actions whose payload type is not `void`, and
+ * omitted/optional for payload-less actions.
+ */
+export type ActionInvocationInput<TPayload> = [TPayload] extends [void]
+  ? Omit<ActionInvocation<TPayload>, "payload"> & { payload?: TPayload }
+  : ActionInvocation<TPayload> & { payload: TPayload };
+
+/**
  * Minimal host context shape. Applications usually extend this with their own
  * services, stores, timeline/editor instances, or selected entity accessors.
  */
@@ -142,6 +152,22 @@ export interface ActionDefinition<
     invocation: ActionInvocation<TPayload>,
   ): TResult | Promise<TResult>;
 }
+
+export type ActionResult<TAction> = TAction extends ActionDefinition<
+  infer _TContext,
+  infer TResult,
+  infer _TPayload
+>
+  ? TResult
+  : never;
+
+export type ActionPayload<TAction> = TAction extends ActionDefinition<
+  infer _TContext,
+  infer _TResult,
+  infer TPayload
+>
+  ? TPayload
+  : never;
 
 /**
  * Resolved action state for a concrete context.
