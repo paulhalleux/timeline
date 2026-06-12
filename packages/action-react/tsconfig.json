@@ -12,9 +12,7 @@
     "noEmit": true,
     "outDir": "dist",
     "resolveJsonModule": true,
-    "types": [
-      "bun"
-    ],
+    "jsx": "react-jsx",
     "ignoreDeprecations": "6.0"
   },
   "include": [

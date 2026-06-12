@@ -12,9 +12,6 @@
     "noEmit": true,
     "outDir": "dist",
     "resolveJsonModule": true,
-    "types": [
-      "bun"
-    ],
     "ignoreDeprecations": "6.0"
   },
   "include": [

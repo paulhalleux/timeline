@@ -1,7 +1,7 @@
 import type { TimedTextFormatId } from "./adapter";
 
 /**
- * Format-agnostic document model used by editor helpers and commands.
+ * Format-agnostic document model used by editor helpers and actions.
  *
  * @example
  * ```ts
@@ -49,7 +49,7 @@ export interface EditorTimedTextTrack {
 export type EditorTimedTextTrackKind = "subtitle" | "caption" | "sdh" | "forced" | "transcript";
 
 /**
- * Format-agnostic cue used by editor helpers and commands.
+ * Format-agnostic cue used by editor helpers and actions.
  *
  * @example
  * ```ts
