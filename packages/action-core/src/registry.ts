@@ -18,9 +18,9 @@ function normalizeGuardResult(
   return value;
 }
 
-function compareActions(
-  a: ActionDefinition<ActionContext>,
-  b: ActionDefinition<ActionContext>,
+function compareActions<TContext extends ActionContext>(
+  a: ActionDefinition<TContext>,
+  b: ActionDefinition<TContext>,
 ): number {
   const order = (a.order ?? 0) - (b.order ?? 0);
   if (order !== 0) return order;
@@ -116,12 +116,7 @@ export class ActionRegistry<TContext extends ActionContext = ActionContext> {
       result.push(action);
     }
 
-    return result.sort((a, b) =>
-      compareActions(
-        a as ActionDefinition<ActionContext>,
-        b as ActionDefinition<ActionContext>,
-      ),
-    );
+    return result.sort(compareActions);
   }
 
   getState(id: ActionId, context: TContext): ActionState {
@@ -153,14 +148,12 @@ export class ActionRegistry<TContext extends ActionContext = ActionContext> {
     };
   }
 
-  async run<TResult = unknown, TPayload = unknown>(
+  async run(
     id: ActionId,
     context: TContext,
-    invocation: ActionInvocation<TPayload> = { source: "api" },
-  ): Promise<ActionRunResult<TResult>> {
-    const action = this.actions.get(id) as
-      | ActionDefinition<TContext, TResult, TPayload>
-      | undefined;
+    invocation: ActionInvocation = { source: "api" },
+  ): Promise<ActionRunResult> {
+    const action = this.actions.get(id);
 
     if (!action) {
       return {

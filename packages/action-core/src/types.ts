@@ -109,6 +109,20 @@ export type ActionGuard<TContext> = (
 ) => boolean | ActionGuardResult;
 
 /**
+ * UI-facing metadata shared by all action definitions.
+ */
+export interface ActionDescriptor {
+  id: ActionId;
+  title: string;
+  category: ActionCategory;
+  description?: string;
+  source?: string;
+  order?: number;
+  keybindings?: readonly ActionKeyBinding[];
+  presentation?: ActionPresentation;
+}
+
+/**
  * User-triggerable intent that can be invoked from buttons, menus, command
  * palettes, shortcuts, tests, or plugins.
  *
@@ -120,15 +134,7 @@ export interface ActionDefinition<
   TContext extends ActionContext = ActionContext,
   TResult = unknown,
   TPayload = unknown,
-> {
-  id: ActionId;
-  title: string;
-  category: ActionCategory;
-  description?: string;
-  source?: string;
-  order?: number;
-  keybindings?: readonly ActionKeyBinding[];
-  presentation?: ActionPresentation;
+> extends ActionDescriptor {
   visibleWhen?: ActionGuard<TContext>;
   enabledWhen?: ActionGuard<TContext>;
   run(

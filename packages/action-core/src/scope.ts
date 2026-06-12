@@ -2,6 +2,7 @@ import { ActionRegistry } from "./registry";
 import type {
   ActionContext,
   ActionDefinition,
+  ActionDescriptor,
   ActionId,
   ActionInvocation,
   ActionListOptions,
@@ -21,12 +22,25 @@ export interface ActionScopeOptions<TContext extends ActionContext> {
 }
 
 /**
+ * Public, context-erased shape consumed by dynamic dispatchers.
+ */
+export interface ActionScopeBridge {
+  readonly id: string;
+  list(): ActionDescriptor[];
+  get(id: ActionId): ActionDescriptor | undefined;
+  getState(id: ActionId): ActionState;
+  run(id: ActionId, invocation?: ActionInvocation): Promise<ActionRunResult>;
+}
+
+/**
  * Typed action scope that binds a registry to the context needed by its actions.
  *
  * Use scopes when an application has multiple action contexts, for example a
  * global shell context, a timeline context, and a timed-text editor context.
  */
-export class ActionScope<TContext extends ActionContext = ActionContext> {
+export class ActionScope<TContext extends ActionContext = ActionContext>
+  implements ActionScopeBridge
+{
   readonly id: string;
   readonly registry: ActionRegistry<TContext>;
   private readonly getContextValue: ActionContextProvider<TContext>;
@@ -59,6 +73,10 @@ export class ActionScope<TContext extends ActionContext = ActionContext> {
     return this.registry.registerMany(actions, options);
   }
 
+  get(id: ActionId): ActionDefinition<TContext> | undefined {
+    return this.registry.get(id);
+  }
+
   list(options: Omit<ActionListOptions<TContext>, "context"> = {}) {
     return this.registry.list({ ...options, context: this.getContext() });
   }
@@ -67,15 +85,8 @@ export class ActionScope<TContext extends ActionContext = ActionContext> {
     return this.registry.getState(id, this.getContext());
   }
 
-  run<TResult = unknown, TPayload = unknown>(
-    id: ActionId,
-    invocation?: ActionInvocation<TPayload>,
-  ): Promise<ActionRunResult<TResult>> {
-    return this.registry.run<TResult, TPayload>(
-      id,
-      this.getContext(),
-      invocation,
-    );
+  run(id: ActionId, invocation?: ActionInvocation): Promise<ActionRunResult> {
+    return this.registry.run(id, this.getContext(), invocation);
   }
 }
 

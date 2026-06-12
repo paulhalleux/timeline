@@ -1,16 +1,15 @@
-import type { ActionScope } from "./scope";
+import type { ActionScopeBridge } from "./scope";
 import type {
-  ActionContext,
-  ActionDefinition,
+  ActionDescriptor,
   ActionId,
   ActionInvocation,
   ActionRunResult,
   ActionState,
 } from "./types";
 
-export interface ActionDispatchMatch<TContext extends ActionContext> {
-  scope: ActionScope<TContext>;
-  action: ActionDefinition<TContext>;
+export interface ActionDispatchMatch {
+  scope: ActionScopeBridge;
+  action: ActionDescriptor;
 }
 
 /**
@@ -21,19 +20,16 @@ export interface ActionDispatchMatch<TContext extends ActionContext> {
  * where the action id is only known at runtime.
  */
 export class ActionDispatcher {
-  private readonly scopes = new Map<string, ActionScope<ActionContext>>();
+  private readonly scopes = new Map<string, ActionScopeBridge>();
 
-  registerScope<TContext extends ActionContext>(
-    scope: ActionScope<TContext>,
-  ): () => void {
+  registerScope(scope: ActionScopeBridge): () => void {
     if (this.scopes.has(scope.id)) {
       throw new Error(`Action scope "${scope.id}" is already registered.`);
     }
 
-    const erasedScope = scope as unknown as ActionScope<ActionContext>;
-    this.scopes.set(scope.id, erasedScope);
+    this.scopes.set(scope.id, scope);
     return () => {
-      if (this.scopes.get(scope.id) === erasedScope) {
+      if (this.scopes.get(scope.id) === scope) {
         this.scopes.delete(scope.id);
       }
     };
@@ -43,19 +39,17 @@ export class ActionDispatcher {
     return this.scopes.delete(scopeId);
   }
 
-  getScope<TContext extends ActionContext>(
-    scopeId: string,
-  ): ActionScope<TContext> | undefined {
-    return this.scopes.get(scopeId) as ActionScope<TContext> | undefined;
+  getScope(scopeId: string): ActionScopeBridge | undefined {
+    return this.scopes.get(scopeId);
   }
 
-  list(): ActionDefinition<ActionContext>[] {
+  list(): ActionDescriptor[] {
     return Array.from(this.scopes.values(), (scope) => scope.list()).flat();
   }
 
-  find(id: ActionId): ActionDispatchMatch<ActionContext> | undefined {
+  find(id: ActionId): ActionDispatchMatch | undefined {
     for (const scope of this.scopes.values()) {
-      const action = scope.registry.get(id);
+      const action = scope.get(id);
       if (action) return { scope, action };
     }
 
@@ -76,10 +70,10 @@ export class ActionDispatcher {
     return match.scope.getState(id);
   }
 
-  async run<TResult = unknown, TPayload = unknown>(
+  async run(
     id: ActionId,
-    invocation?: ActionInvocation<TPayload>,
-  ): Promise<ActionRunResult<TResult>> {
+    invocation?: ActionInvocation,
+  ): Promise<ActionRunResult> {
     const match = this.find(id);
     if (!match) {
       return {
@@ -90,6 +84,6 @@ export class ActionDispatcher {
       };
     }
 
-    return match.scope.run<TResult, TPayload>(id, invocation);
+    return match.scope.run(id, invocation);
   }
 }

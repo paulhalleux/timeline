@@ -7,11 +7,13 @@ export type {
 export type {
   ActionContextProvider,
   ActionScopeOptions,
+  ActionScopeBridge,
 } from "./scope";
 export type {
   ActionCategory,
   ActionContext,
   ActionDefinition,
+  ActionDescriptor,
   ActionGuard,
   ActionGuardResult,
   ActionId,
