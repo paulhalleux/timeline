@@ -3,7 +3,8 @@
 React primitives for `@ptl/flex-layout`. The package is intentionally headless:
 it owns interaction wiring (selection, resize, drag/drop, context menus and
 hidden-item overflow), while your app owns markup details, icons, styling and
-persistence.
+persistence. Resize behavior is delegated to `react-resizable-panels`; drag/drop
+registration is delegated to Atlassian Pragmatic drag and drop.
 
 The API is inspired by JetBrains-style flexible side toolbars, but it is not an
 IDE shell and does not require your product to expose a tree. Internally the core
@@ -17,8 +18,8 @@ resize and drop behavior deterministic; the React package exposes that area as a
   split props such as `panels`, `defaultValue`, `value`, `onLayoutChange`,
   `toolbars`, and `storageKey` instead of one monolithic options object.
 - `FlexLayout.Workspace` renders the current docked panel area.
-- `FlexLayout.Split` and `FlexLayout.ResizeHandle` implement pointer-based split
-  resizing for the workspace.
+- `FlexLayout.Split` and `FlexLayout.ResizeHandle` use `react-resizable-panels`
+  for accessible pointer and keyboard resizing in the workspace.
 - `FlexLayout.Tabset`, `FlexLayout.TabList`, and `FlexLayout.Tab` implement tab
   selection and native drag/drop docking.
 - `FlexLayout.Panel` renders the active panel with a composition renderer; panel
@@ -30,6 +31,8 @@ resize and drop behavior deterministic; the React package exposes that area as a
   right-clicked for a hide / move-to menu, and selected to activate their panel.
 - Tabs can be dragged between panels or reordered within a tabset by dropping on
   the left or right half of another tab, matching JetBrains-like tab movement.
+  The primitives register draggable and drop targets with Pragmatic drag and drop
+  while preserving native HTML drag/drop fallbacks for hosts that need them.
 - `FlexLayout.ToolbarOverflow` renders a built-in `…` trigger that re-adds hidden
   panels.
 - `FlexLayout.CloseTrigger` and `FlexLayout.HiddenPanels` are available when you
@@ -185,7 +188,9 @@ near the left, right, top, or bottom edge of a tabset to dock it into a new spli
 Drop a tab on the left or right half of another tab to reorder within the same
 tabset. Drag toolbar items between `top-left`, `top-right`, `bottom-left`, and
 `bottom-right`; render those corners through left/right/top/bottom toolbar sides.
-Resize handles are inserted between split children automatically.
+Resize handles are rendered through `PanelResizeHandle` from
+`react-resizable-panels`, and split size changes are persisted back into the
+headless layout state.
 
 ## Styling
 

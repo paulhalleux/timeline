@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "module": "./dist/index.js",
   "types": "./dist/src/index.d.ts",
-  "description": "React primitives for @ptl/flex-layout with built-in dock drag and resize behavior",
+  "description": "React primitives for @ptl/flex-layout",
   "exports": {
     ".": {
       "import": "./dist/index.js",
@@ -19,9 +19,11 @@
     "dist"
   ],
   "dependencies": {
+    "@atlaskit/pragmatic-drag-and-drop": "^1.7.10",
     "@ptl/flex-layout": "^0.0.0",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "react-resizable-panels": "^4.11.2"
   },
   "devDependencies": {
     "@ptl/eslint-config": "^1.0.0",

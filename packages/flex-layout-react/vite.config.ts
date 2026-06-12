@@ -11,7 +11,14 @@ export default defineConfig({
       fileName: "index",
     },
     rolldownOptions: {
-      external: ["@ptl/flex-layout", "react", "react-dom"],
+      external: [
+        "@atlaskit/pragmatic-drag-and-drop/combine",
+        "@atlaskit/pragmatic-drag-and-drop/element/adapter",
+        "@ptl/flex-layout",
+        "react",
+        "react-dom",
+        "react-resizable-panels",
+      ],
     },
   },
 });

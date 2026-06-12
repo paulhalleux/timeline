@@ -16,9 +16,20 @@ import {
   type FlexTabsetNode,
   type FlexToolbarCorner,
   type FlexToolbarGroup,
+  type FlexToolbarItemLocation,
   type FlexToolbarSide,
 } from "@ptl/flex-layout";
+import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
+import {
+  draggable as pragmaticDraggable,
+  dropTargetForElements,
+} from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import React from "react";
+import {
+  Panel as ResizablePanel,
+  PanelGroup as ResizablePanelGroup,
+  PanelResizeHandle as ResizablePanelResizeHandle,
+} from "react-resizable-panels";
 import { FlexRender } from "./render";
 import {
   FlexLayoutContext,
@@ -31,6 +42,15 @@ import {
 } from "./context";
 
 export { FlexRender } from "./render";
+const pragmaticPanelIdKey = "flexPanelId";
+
+type PragmaticInput = {
+  readonly clientX: number;
+  readonly clientY: number;
+};
+
+type PragmaticDropLocation = FlexDropLocation | FlexToolbarItemLocation;
+
 export type {
   FlexHiddenItemRenderer,
   FlexLayoutContextValue,
@@ -321,55 +341,54 @@ function FlexLayoutWorkspace({ node, style, ...rest }: FlexLayoutWorkspaceProps)
 }
 
 function FlexLayoutSplit({ node, style, ...rest }: FlexLayoutSplitProps) {
+  const { dispatch, state } = useFlexLayoutContext();
+  const totalSize = node.children.reduce((total, child) => total + child.size, 0);
+
   return (
-    <div
+    <ResizablePanelGroup
       data-flex-layout-split=""
       data-orientation={node.direction}
-      style={{
-        display: "flex",
-        flex: 1,
-        minHeight: 0,
-        minWidth: 0,
-        flexDirection: node.direction === "horizontal" ? "row" : "column",
-        ...style,
+      direction={node.direction}
+      style={{ display: "flex", flex: 1, minHeight: 0, minWidth: 0, ...style }}
+      onLayout={(sizes) => {
+        dispatch({
+          type: "resizeSplit",
+          splitId: node.id,
+          sizes: sizes.map((size) => size / 100),
+        });
       }}
       {...rest}
     >
       {node.children.map((child, index) => (
         <React.Fragment key={child.node.id}>
-          <div
+          <ResizablePanel
+            id={child.node.id}
+            order={index}
+            defaultSize={toPanelPercent(child.size, totalSize)}
+            minSize={toConstraintPercent(child.node, state.panels, "min")}
+            maxSize={toConstraintPercent(child.node, state.panels, "max")}
             data-flex-layout-split-child=""
-            style={{
-              display: "flex",
-              flexBasis: 0,
-              flexGrow: child.size,
-              minHeight: 0,
-              minWidth: 0,
-              overflow: "hidden",
-            }}
+            style={{ display: "flex", minHeight: 0, minWidth: 0, overflow: "hidden" }}
           >
             {renderNode(child.node)}
-          </div>
+          </ResizablePanel>
           {index < node.children.length - 1 ? (
             <FlexLayoutResizeHandle split={node} beforeIndex={index} />
           ) : null}
         </React.Fragment>
       ))}
-    </div>
+    </ResizablePanelGroup>
   );
 }
 
 function FlexLayoutResizeHandle({
   split,
-  beforeIndex,
+  beforeIndex: _beforeIndex,
   style,
-  onPointerDown,
   ...rest
 }: FlexLayoutResizeHandleProps) {
-  const { dispatch } = useFlexLayoutContext();
-
   return (
-    <div
+    <ResizablePanelResizeHandle
       role="separator"
       aria-orientation={split.direction}
       data-flex-layout-resize-handle=""
@@ -379,45 +398,6 @@ function FlexLayoutResizeHandle({
         touchAction: "none",
         cursor: split.direction === "horizontal" ? "col-resize" : "row-resize",
         ...style,
-      }}
-      onPointerDown={(event) => {
-        onPointerDown?.(event);
-        if (event.defaultPrevented) return;
-        event.preventDefault();
-        const container = event.currentTarget.parentElement;
-        const rect = container?.getBoundingClientRect();
-        if (!rect) return;
-
-        const axisSize = split.direction === "horizontal" ? rect.width : rect.height;
-        if (axisSize <= 0) return;
-
-        const start = split.direction === "horizontal" ? event.clientX : event.clientY;
-        const pointerId = event.pointerId;
-        event.currentTarget.setPointerCapture(pointerId);
-        const initialSizes = split.children.map((child) => child.size);
-
-        const onPointerMove = (moveEvent: PointerEvent) => {
-          const current =
-            split.direction === "horizontal" ? moveEvent.clientX : moveEvent.clientY;
-          const delta = (current - start) / axisSize;
-          const sizes = [...initialSizes];
-          sizes[beforeIndex] = Math.max(0, initialSizes[beforeIndex]! + delta);
-          sizes[beforeIndex + 1] = Math.max(
-            0,
-            initialSizes[beforeIndex + 1]! - delta,
-          );
-          dispatch({ type: "resizeSplit", splitId: split.id, sizes });
-        };
-
-        const onPointerUp = () => {
-          window.removeEventListener("pointermove", onPointerMove);
-          window.removeEventListener("pointerup", onPointerUp);
-          window.removeEventListener("pointercancel", onPointerUp);
-        };
-
-        window.addEventListener("pointermove", onPointerMove);
-        window.addEventListener("pointerup", onPointerUp);
-        window.addEventListener("pointercancel", onPointerUp);
       }}
       {...rest}
     />
@@ -432,6 +412,7 @@ function FlexLayoutTabset({
   ...rest
 }: FlexLayoutTabsetProps) {
   const { draggedPanelId, dispatch, state } = useFlexLayoutContext();
+  const tabsetRef = React.useRef<HTMLElement>(null);
 
   const getLocation = React.useCallback(
     (event: React.DragEvent<HTMLElement>): FlexDropLocation | null => {
@@ -445,8 +426,28 @@ function FlexLayoutTabset({
     [draggedPanelId, node],
   );
 
+  usePragmaticPanelDrop(
+    tabsetRef,
+    React.useCallback(
+      (input, element) => ({
+        targetPanelId: getActivePanelId(node),
+        placement: getDropPlacementFromInput(input, element),
+      }),
+      [node],
+    ),
+    React.useCallback(
+      (panelId, location) => canDropPanel(state, panelId, location).accepted,
+      [state],
+    ),
+    React.useCallback(
+      (panelId, location) => dispatch({ type: "movePanel", panelId, location }),
+      [dispatch],
+    ),
+  );
+
   return (
     <section
+      ref={tabsetRef}
       data-flex-layout-tabset=""
       style={{
         display: "flex",
@@ -510,9 +511,29 @@ function FlexLayoutTab({
   const panel = state.panels[panelId];
   const active = getActivePanelId(tabset) === panelId;
   const canMove = panel?.constraints?.canMove !== false;
+  const tabRef = React.useRef<HTMLButtonElement>(null);
+
+  usePragmaticPanelDraggable(tabRef, panelId, canMove, setDraggedPanelId);
+  usePragmaticPanelDrop(
+    tabRef,
+    React.useCallback(
+      (input, element) =>
+        getTabDropLocationFromInput(input, element, tabset, draggedPanelId, panelId),
+      [draggedPanelId, panelId, tabset],
+    ),
+    React.useCallback(
+      (draggedId, location) => canDropPanel(state, draggedId, location).accepted,
+      [state],
+    ),
+    React.useCallback(
+      (draggedId, location) => dispatch({ type: "movePanel", panelId: draggedId, location }),
+      [dispatch],
+    ),
+  );
 
   return (
     <button
+      ref={tabRef}
       type="button"
       role="tab"
       aria-selected={active}
@@ -686,9 +707,25 @@ function FlexLayoutToolbarCorner({
 }: FlexLayoutToolbarCornerProps) {
   const { draggedPanelId, dispatch, state } = useFlexLayoutContext();
   const groups = state.toolbars[corner];
+  const cornerRef = React.useRef<HTMLDivElement>(null);
+
+  usePragmaticPanelDrop(
+    cornerRef,
+    React.useCallback(() => ({ corner }), [corner]),
+    React.useCallback(
+      (panelId) => state.panels[panelId]?.constraints?.canMove !== false,
+      [state.panels],
+    ),
+    React.useCallback(
+      (panelId, location) =>
+        dispatch({ type: "moveToolbarItem", panelId, location }),
+      [dispatch],
+    ),
+  );
 
   return (
     <div
+      ref={cornerRef}
       data-flex-layout-toolbar-corner=""
       data-corner={corner}
       style={{
@@ -787,12 +824,36 @@ function FlexLayoutToolbarItem({
   const active = findActivePanelId(state.root) === panelId;
   const hidden = state.hiddenPanelIds.includes(panelId);
   const canMove = panel?.constraints?.canMove !== false;
+  const itemRef = React.useRef<HTMLButtonElement>(null);
+
+  usePragmaticPanelDraggable(itemRef, panelId, canMove, setDraggedPanelId);
+  usePragmaticPanelDrop(
+    itemRef,
+    React.useCallback(
+      (input, element) => ({
+        corner,
+        groupId,
+        index: getToolbarDropIndexFromInput(input, element, index),
+      }),
+      [corner, groupId, index],
+    ),
+    React.useCallback(
+      (draggedId) => state.panels[draggedId]?.constraints?.canMove !== false,
+      [state.panels],
+    ),
+    React.useCallback(
+      (draggedId, location) =>
+        dispatch({ type: "moveToolbarItem", panelId: draggedId, location }),
+      [dispatch],
+    ),
+  );
 
   if (!panel || hidden) return null;
 
   return (
     <span data-flex-layout-toolbar-item-wrapper="">
       <button
+        ref={itemRef}
         type="button"
         data-flex-layout-toolbar-item=""
         data-active={active ? "" : undefined}
@@ -1012,6 +1073,72 @@ export const FlexLayout = {
   FlexRender,
 };
 
+function usePragmaticPanelDraggable<TElement extends HTMLElement>(
+  ref: React.RefObject<TElement | null>,
+  panelId: FlexPanelId,
+  enabled: boolean,
+  setDraggedPanelId: (panelId: FlexPanelId | null) => void,
+) {
+  React.useEffect(() => {
+    const element = ref.current;
+    if (!element || !enabled) return undefined;
+
+    return combine(
+      pragmaticDraggable({
+        element,
+        getInitialData: () => ({ [pragmaticPanelIdKey]: panelId }),
+        onDragStart: () => setDraggedPanelId(panelId),
+        onDrop: () => setDraggedPanelId(null),
+      }),
+    );
+  }, [enabled, panelId, ref, setDraggedPanelId]);
+}
+
+function usePragmaticPanelDrop<
+  TElement extends HTMLElement,
+  TLocation extends PragmaticDropLocation,
+>(
+  ref: React.RefObject<TElement | null>,
+  getLocation: (input: PragmaticInput, element: TElement) => TLocation,
+  canDropLocation: (panelId: FlexPanelId, location: TLocation) => boolean,
+  onPanelDrop: (panelId: FlexPanelId, location: TLocation) => void,
+) {
+  React.useEffect(() => {
+    const element = ref.current;
+    if (!element) return undefined;
+
+    return dropTargetForElements({
+      element,
+      getData: ({ input }: { readonly input: PragmaticInput }) => ({
+        flexDropLocation: getLocation(input, element),
+      }),
+      canDrop: ({ source, self }: { readonly source: unknown; readonly self: unknown }) => {
+        const panelId = readPragmaticPanelId(source);
+        const location = readPragmaticLocation<TLocation>(self);
+        return !!panelId && !!location && canDropLocation(panelId, location);
+      },
+      onDrop: ({ source, self }: { readonly source: unknown; readonly self: unknown }) => {
+        const panelId = readPragmaticPanelId(source);
+        const location = readPragmaticLocation<TLocation>(self);
+        if (panelId && location) onPanelDrop(panelId, location);
+      },
+    });
+  }, [canDropLocation, getLocation, onPanelDrop, ref]);
+}
+
+function readPragmaticPanelId(source: unknown): FlexPanelId | null {
+  const data = (source as { readonly data?: Record<string, unknown> }).data;
+  const panelId = data?.[pragmaticPanelIdKey];
+  return typeof panelId === "string" ? panelId : null;
+}
+
+function readPragmaticLocation<TLocation extends PragmaticDropLocation>(
+  self: unknown,
+): TLocation | null {
+  const data = (self as { readonly data?: Record<string, unknown> }).data;
+  return (data?.flexDropLocation as TLocation | undefined) ?? null;
+}
+
 function readStoredLayout<TMeta>(
   storageKey: string | undefined,
   storage: FlexLayoutStorage | undefined,
@@ -1063,6 +1190,32 @@ function mergeLayoutPanels<TMeta>(
   };
 }
 
+function toPanelPercent(size: number, totalSize: number): number {
+  return totalSize > 0 ? (size / totalSize) * 100 : 100;
+}
+
+function toConstraintPercent<TMeta>(
+  node: FlexLayoutNode,
+  panels: FlexLayoutState<TMeta>["panels"],
+  constraint: "min" | "max",
+): number | undefined {
+  const values = collectNodePanelIds(node)
+    .map((panelId) => panels[panelId]?.constraints)
+    .map((constraints) =>
+      constraint === "min" ? constraints?.minSize : constraints?.maxSize,
+    )
+    .filter((value): value is number => typeof value === "number");
+
+  if (values.length === 0) return undefined;
+  const value = constraint === "min" ? Math.max(...values) : Math.min(...values);
+  return value <= 1 ? value * 100 : value;
+}
+
+function collectNodePanelIds(node: FlexLayoutNode): readonly FlexPanelId[] {
+  if (node.type === "tabset") return node.panels;
+  return node.children.flatMap((child) => collectNodePanelIds(child.node));
+}
+
 function renderNode(node: FlexLayoutNode): React.ReactNode {
   if (node.type === "split") return <FlexLayoutSplit node={node} />;
   return <FlexLayoutTabset node={node} />;
@@ -1100,10 +1253,50 @@ function getTabDropLocation(
   };
 }
 
+function getTabDropLocationFromInput(
+  input: PragmaticInput,
+  element: HTMLElement,
+  tabset: FlexTabsetNode,
+  draggedPanelId: FlexPanelId | null,
+  targetPanelId: FlexPanelId,
+): FlexDropLocation {
+  const rect = element.getBoundingClientRect();
+  const x = (input.clientX - rect.left) / Math.max(1, rect.width);
+  const panels = draggedPanelId
+    ? tabset.panels.filter((id) => id !== draggedPanelId)
+    : tabset.panels;
+  const targetIndex = Math.max(0, panels.indexOf(targetPanelId));
+
+  return {
+    targetPanelId,
+    placement: "center",
+    index: x > 0.5 ? targetIndex + 1 : targetIndex,
+  };
+}
+
+function getDropPlacementFromInput(
+  input: PragmaticInput,
+  element: HTMLElement,
+): FlexDropPlacement {
+  const rect = element.getBoundingClientRect();
+  return getDropPlacementFromPoint(input.clientX, input.clientY, rect);
+}
+
 function getDropPlacement(event: React.DragEvent<HTMLElement>): FlexDropPlacement {
-  const rect = event.currentTarget.getBoundingClientRect();
-  const x = (event.clientX - rect.left) / Math.max(1, rect.width);
-  const y = (event.clientY - rect.top) / Math.max(1, rect.height);
+  return getDropPlacementFromPoint(
+    event.clientX,
+    event.clientY,
+    event.currentTarget.getBoundingClientRect(),
+  );
+}
+
+function getDropPlacementFromPoint(
+  clientX: number,
+  clientY: number,
+  rect: DOMRect,
+): FlexDropPlacement {
+  const x = (clientX - rect.left) / Math.max(1, rect.width);
+  const y = (clientY - rect.top) / Math.max(1, rect.height);
   const edge = 0.25;
 
   if (x < edge) return "left";
@@ -1114,9 +1307,38 @@ function getDropPlacement(event: React.DragEvent<HTMLElement>): FlexDropPlacemen
 }
 
 function getToolbarDropIndex(event: React.DragEvent<HTMLElement>, index: number): number {
-  const rect = event.currentTarget.getBoundingClientRect();
-  const y = (event.clientY - rect.top) / Math.max(1, rect.height);
-  return y > 0.5 ? index + 1 : index;
+  return getToolbarDropIndexFromPoint(
+    event.clientX,
+    event.clientY,
+    event.currentTarget.getBoundingClientRect(),
+    index,
+  );
+}
+
+function getToolbarDropIndexFromInput(
+  input: PragmaticInput,
+  element: HTMLElement,
+  index: number,
+): number {
+  return getToolbarDropIndexFromPoint(
+    input.clientX,
+    input.clientY,
+    element.getBoundingClientRect(),
+    index,
+  );
+}
+
+function getToolbarDropIndexFromPoint(
+  clientX: number,
+  clientY: number,
+  rect: DOMRect,
+  index: number,
+): number {
+  const vertical = rect.height >= rect.width;
+  const position = vertical
+    ? (clientY - rect.top) / Math.max(1, rect.height)
+    : (clientX - rect.left) / Math.max(1, rect.width);
+  return position > 0.5 ? index + 1 : index;
 }
 
 function writeDraggedPanelId(event: React.DragEvent, panelId: FlexPanelId) {
