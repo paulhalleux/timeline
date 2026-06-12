@@ -1,0 +1,5 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "extends": ["./configs/ox-config/react.oxlintrc.json"],
+  "ignorePatterns": ["node_modules/**", "**/dist/**", ".idea/**"]
+}

@@ -1,9 +1,5 @@
 import { useStore } from "@ptl/store/react";
-import {
-  type WaveformApi,
-  WaveformModule,
-  type WaveformState,
-} from "@ptl/timeline-core";
+import { type WaveformApi, WaveformModule, type WaveformState } from "@ptl/timeline-core";
 
 import { useTimeline } from "../../timeline";
 

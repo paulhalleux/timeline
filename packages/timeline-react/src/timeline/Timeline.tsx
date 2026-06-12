@@ -15,11 +15,7 @@ const TimelineRoot = ({ children, className, ...rest }: TimelineRootProps) => {
 };
 
 type TimelineLayersProps = React.ComponentProps<"div">;
-const TimelineLayers = ({
-  children,
-  className,
-  ...rest
-}: TimelineLayersProps) => {
+const TimelineLayers = ({ children, className, ...rest }: TimelineLayersProps) => {
   return (
     <div className={clsx(styles.layers, className)} {...rest}>
       {children}
@@ -55,43 +51,25 @@ export const TimelineLayer = ({
 };
 
 type TimelineViewportProps = React.ComponentProps<"div">;
-const TimelineViewport = ({
-  children,
-  className,
-  ...rest
-}: TimelineViewportProps) => {
+const TimelineViewport = ({ children, className, ...rest }: TimelineViewportProps) => {
   const timeline = useTimeline();
   const mounted = useTimelineStore((tl) => tl.getViewport().isConnected());
 
   return (
-    <div
-      ref={(el) => timeline.connect(el)}
-      className={clsx(styles.viewport, className)}
-      {...rest}
-    >
+    <div ref={(el) => timeline.connect(el)} className={clsx(styles.viewport, className)} {...rest}>
       {mounted ? children : null}
     </div>
   );
 };
 
 type TimelineOverlayProps = React.ComponentProps<"div">;
-const TimelineOverlay = ({
-  children,
-  className,
-  style,
-  ...rest
-}: TimelineOverlayProps) => {
-  const leftOffset = useTimelineStore((state) =>
-    state.getViewport().getHeaderOffsetPx(),
-  );
+const TimelineOverlay = ({ children, className, style, ...rest }: TimelineOverlayProps) => {
+  const leftOffset = useTimelineStore((state) => state.getViewport().getHeaderOffsetPx());
 
   return (
     <div
       className={clsx(styles.overlay, className)}
-      style={React.useMemo(
-        () => ({ left: leftOffset, ...style }),
-        [leftOffset, style],
-      )}
+      style={React.useMemo(() => ({ left: leftOffset, ...style }), [leftOffset, style])}
       {...rest}
     >
       {children}

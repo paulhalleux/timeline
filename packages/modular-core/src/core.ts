@@ -218,9 +218,7 @@ export class Core<TState> implements CoreApi<TState> {
    * @throws Error if the module is not registered
    */
   getModule<T extends Module>(moduleClass: ModuleClass<T>): T {
-    const module = this.modules.find(
-      (m) => (m.constructor as ModuleClass).id === moduleClass.id,
-    );
+    const module = this.modules.find((m) => (m.constructor as ModuleClass).id === moduleClass.id);
     if (!module) {
       throw new Error(`Module ${moduleClass.id} not found`);
     }
@@ -234,9 +232,7 @@ export class Core<TState> implements CoreApi<TState> {
    * @returns True if the module is registered
    */
   hasModule<T extends Module>(moduleClass: ModuleClass<T>): boolean {
-    return this.modules.some(
-      (m) => (m.constructor as ModuleClass).id === moduleClass.id,
-    );
+    return this.modules.some((m) => (m.constructor as ModuleClass).id === moduleClass.id);
   }
 
   /**

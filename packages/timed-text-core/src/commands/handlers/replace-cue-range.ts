@@ -51,9 +51,7 @@ export type ReplaceCueRangeCommand = EditorCommand<ReplaceCueRangePayload>;
  * });
  * ```
  */
-export function replaceCueRangeCommand(
-  payload: ReplaceCueRangePayload,
-): ReplaceCueRangeCommand {
+export function replaceCueRangeCommand(payload: ReplaceCueRangePayload): ReplaceCueRangeCommand {
   return {
     type: "cue/replace-range",
     payload,
@@ -66,8 +64,7 @@ export function replaceCueRangeCommand(
         payload.cues,
         payload.index,
       );
-      if (!result.ok)
-        return commandFailureFromOperation(document, this, result);
+      if (!result.ok) return commandFailureFromOperation(document, this, result);
 
       return commandSuccess(result.document, this, {
         undoCommand: replaceCueRangeCommand({

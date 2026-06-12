@@ -215,31 +215,31 @@ class Timeline extends Core<TimelineState> {
 
 ### Core<TState>
 
-| Method | Description |
-|--------|-------------|
-| `getStore()` | Returns the internal Store instance |
-| `getState()` | Returns the current state |
-| `select(selector)` | Selects a subset of state |
-| `subscribe(listener)` | Subscribes to state changes |
-| `registerModule(module)` | Registers a module |
-| `unregisterModule(module)` | Unregisters a module |
-| `getModule(ModuleClass)` | Gets a registered module by class |
-| `hasModule(ModuleClass)` | Checks if a module is registered |
-| `getModules()` | Returns all registered modules |
-| `destroy()` | Destroys the core and detaches all modules |
+| Method                     | Description                                |
+| -------------------------- | ------------------------------------------ |
+| `getStore()`               | Returns the internal Store instance        |
+| `getState()`               | Returns the current state                  |
+| `select(selector)`         | Selects a subset of state                  |
+| `subscribe(listener)`      | Subscribes to state changes                |
+| `registerModule(module)`   | Registers a module                         |
+| `unregisterModule(module)` | Unregisters a module                       |
+| `getModule(ModuleClass)`   | Gets a registered module by class          |
+| `hasModule(ModuleClass)`   | Checks if a module is registered           |
+| `getModules()`             | Returns all registered modules             |
+| `destroy()`                | Destroys the core and detaches all modules |
 
 ### Module<TApi, TCoreApi>
 
-| Property/Method | Description |
-|-----------------|-------------|
-| `attach(core)` | Called when the module is registered |
-| `detach()` | Called when the module is unregistered or core is destroyed |
+| Property/Method | Description                                                 |
+| --------------- | ----------------------------------------------------------- |
+| `attach(core)`  | Called when the module is registered                        |
+| `detach()`      | Called when the module is unregistered or core is destroyed |
 
 ### ModuleClass<T>
 
-| Property | Description |
-|----------|-------------|
-| `id` | Static unique identifier for the module type |
+| Property | Description                                  |
+| -------- | -------------------------------------------- |
+| `id`     | Static unique identifier for the module type |
 
 ## License
 

@@ -1,7 +1,4 @@
-import type {
-  EditorTimedTextDocument,
-  EditorTimedTextTrack,
-} from "./editor-model";
+import type { EditorTimedTextDocument, EditorTimedTextTrack } from "./editor-model";
 
 /**
  * Create a normalized editor document.
@@ -48,12 +45,8 @@ export function createEditorDocument(input: {
  * const durationMs = getEditorDocumentDuration(document);
  * ```
  */
-export function getEditorDocumentDuration(
-  document: EditorTimedTextDocument,
-): number {
-  const endTimes = document.tracks.flatMap((track) =>
-    track.cues.map((cue) => cue.endMs),
-  );
+export function getEditorDocumentDuration(document: EditorTimedTextDocument): number {
+  const endTimes = document.tracks.flatMap((track) => track.cues.map((cue) => cue.endMs));
   return endTimes.length === 0 ? 0 : Math.max(...endTimes);
 }
 

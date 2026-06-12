@@ -1,7 +1,4 @@
-import type {
-  EditorTimedTextCue,
-  EditorTimedTextDocument,
-} from "../editor-model";
+import type { EditorTimedTextCue, EditorTimedTextDocument } from "../editor-model";
 import type { EditorOperationResult } from "./results";
 import { operationFailure, operationSuccess } from "./results";
 import { findEditorCue } from "./utils";
@@ -124,10 +121,7 @@ export function mergeEditorCues(
   });
 }
 
-function combineText(
-  cues: readonly EditorTimedTextCue[],
-  options: MergeEditorCuesOptions,
-): string {
+function combineText(cues: readonly EditorTimedTextCue[], options: MergeEditorCuesOptions): string {
   switch (options.textCombination ?? "concat") {
     case "first":
       return cues[0].text;

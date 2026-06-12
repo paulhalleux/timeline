@@ -36,7 +36,7 @@
     // "types": ["node", "vite/client"],                 // Type declaration files to include
     // "allowUmdGlobalAccess": true,                     // Allow accessing UMD globals from modules
     // "moduleSuffixes": [],                             // List of file name suffixes for module resolution
-     "allowImportingTsExtensions": true,               // Allow imports with TypeScript file extensions
+    "allowImportingTsExtensions": true, // Allow imports with TypeScript file extensions
     // "resolvePackageJsonExports": true,                // Use package.json 'exports' for resolution
     // "resolvePackageJsonImports": true,                // Use package.json 'imports' for resolution
     // "customConditions": [],                           // Custom conditions for resolving imports
@@ -104,7 +104,7 @@
 
     /* Completeness */
     // "skipDefaultLibCheck": true,                      // Skip type checking of default library declaration files
-    "skipLibCheck": false, // Skip type checking of all declaration files
+    "skipLibCheck": false // Skip type checking of all declaration files
   },
   "include": ["src", "tests", "stories", ".storybook"],
   "exclude": ["dist", "tests-results", "storybook-static"],

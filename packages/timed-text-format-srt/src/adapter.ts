@@ -27,9 +27,7 @@ export const srtAdapter: TimedTextAdapter<SrtDocument, SrtCue> = {
   updateCue(document, cueId, cue) {
     return {
       ...document,
-      cues: document.cues.map((candidate) =>
-        candidate.id === cueId ? cue : candidate,
-      ),
+      cues: document.cues.map((candidate) => (candidate.id === cueId ? cue : candidate)),
     };
   },
   toEditor(document) {

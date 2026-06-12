@@ -24,10 +24,7 @@ export const useStore = <T>(store: Store<T>): T => {
  * @param selector - A function that selects/derives a value from the store state.
  * @returns The derived value.
  */
-export const useStoreSelector = <T, R>(
-  store: Store<T>,
-  selector: (state: T) => R,
-): R => {
+export const useStoreSelector = <T, R>(store: Store<T>, selector: (state: T) => R): R => {
   const latestRef = React.useRef<R>(selector(store.get()));
 
   const getSnapshot = React.useCallback(() => {
@@ -69,9 +66,7 @@ export const useStoreCombine = <R, S extends Store<unknown>[]>(
   );
 
   const getSnapshot = React.useCallback(() => {
-    const selected = selector(
-      stores.map((store) => store.get()) as ExtractStoreTypes<S>,
-    );
+    const selected = selector(stores.map((store) => store.get()) as ExtractStoreTypes<S>);
     if (isEqual(latestRef.current, selected)) {
       return latestRef.current;
     }

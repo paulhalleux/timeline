@@ -1,27 +1,28 @@
 {
   "name": "@ptl/timed-text-format-srt",
-  "type": "module",
   "version": "0.0.0",
+  "description": "SubRip/SRT parser, serializer, validation, cue operations, and timed-text adapter",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
-  "description": "SubRip/SRT parser, serializer, validation, cue operations, and timed-text adapter",
   "exports": {
     "types": "./dist/index.d.mts",
     "import": "./dist/index.mjs"
   },
   "scripts": {
-    "build": "tsdown src/index.ts"
+    "build": "tsdown src/index.ts",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix"
   },
-  "files": [
-    "dist"
-  ],
   "dependencies": {
     "@ptl/timed-text-core": "^0.0.0"
   },
   "devDependencies": {
-    "@ptl/eslint-config": "^1.0.0",
-    "eslint": "^10.4.1",
-    "prettier": "^3.8.0",
     "tsdown": "^0.22.2",
     "typescript": "^6.0.3"
   }

@@ -74,7 +74,7 @@ export class WaveformModule implements TimelineModule<WaveformApi> {
     if (!peaks || duration <= 0 || widthPx <= 0) return [];
 
     const totalSamples = peaks.length;
-    const result: number[] = new Array(Math.ceil(widthPx));
+    const result: number[] = Array.from({ length: Math.ceil(widthPx) });
 
     for (let px = 0; px < result.length; px++) {
       // Map this pixel to a time range
@@ -83,10 +83,7 @@ export class WaveformModule implements TimelineModule<WaveformApi> {
 
       // Map time range to sample indices
       const s0 = Math.max(0, Math.floor((t0 / duration) * totalSamples));
-      const s1 = Math.min(
-        totalSamples - 1,
-        Math.ceil((t1 / duration) * totalSamples),
-      );
+      const s1 = Math.min(totalSamples - 1, Math.ceil((t1 / duration) * totalSamples));
 
       // Find the max peak in this sample range
       let max = 0;

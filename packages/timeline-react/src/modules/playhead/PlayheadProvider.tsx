@@ -24,9 +24,7 @@ export const PlayheadProvider = ({
 export const usePlayheadContext = () => {
   const context = React.useContext(PlayheadContext);
   if (!context) {
-    throw new Error(
-      "usePlayheadContext must be used within a PlayheadProvider",
-    );
+    throw new Error("usePlayheadContext must be used within a PlayheadProvider");
   }
   return context;
 };

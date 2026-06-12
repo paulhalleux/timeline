@@ -1,9 +1,5 @@
 import type { EditorTimedTextDocument } from "../editor-model";
-import type {
-  EditorCommand,
-  EditorCommandContext,
-  EditorCommandResult,
-} from "./types";
+import type { EditorCommand, EditorCommandContext, EditorCommandResult } from "./types";
 
 /**
  * Apply a command to an editor document by calling its `do` method.

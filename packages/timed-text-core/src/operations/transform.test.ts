@@ -1,21 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
 import type { EditorTimedTextDocument } from "../editor-model";
-import {
-  createEditorCue,
-  deleteEditorCue,
-  insertEditorCue,
-  updateEditorCue,
-} from "./transform";
+import { createEditorCue, deleteEditorCue, insertEditorCue, updateEditorCue } from "./transform";
 
 describe("editor cue transforms", () => {
   test("creates cues with injected ids", () => {
-    expect(
-      createEditorCue(
-        { startMs: 10, endMs: 20, text: "Hello" },
-        () => "cue-fixed",
-      ),
-    ).toEqual({
+    expect(createEditorCue({ startMs: 10, endMs: 20, text: "Hello" }, () => "cue-fixed")).toEqual({
       id: "cue-fixed",
       startMs: 10,
       endMs: 20,
@@ -35,10 +25,7 @@ describe("editor cue transforms", () => {
     expect(inserted.ok).toBe(true);
     if (!inserted.ok) return;
     expect(document.tracks[0].cues.map((item) => item.id)).toEqual(["a"]);
-    expect(inserted.document.tracks[0].cues.map((item) => item.id)).toEqual([
-      "a",
-      "b",
-    ]);
+    expect(inserted.document.tracks[0].cues.map((item) => item.id)).toEqual(["a", "b"]);
 
     const updated = updateEditorCue(inserted.document, "b", { text: "Next" });
     expect(updated.ok).toBe(true);
@@ -50,9 +37,7 @@ describe("editor cue transforms", () => {
     expect(deleted.ok).toBe(true);
     if (!deleted.ok) return;
     expect(deleted.data.index).toBe(1);
-    expect(deleted.document.tracks[0].cues.map((item) => item.id)).toEqual([
-      "a",
-    ]);
+    expect(deleted.document.tracks[0].cues.map((item) => item.id)).toEqual(["a"]);
   });
 });
 

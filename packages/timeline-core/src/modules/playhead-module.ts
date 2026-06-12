@@ -135,9 +135,7 @@ export class PlayheadModule implements TimelineModule<PlayheadApi> {
         if (this.followPlayhead && this.timeline) {
           const visibleRange = this.timeline.getVisibleRange();
           const playheadPos = this.getPosition();
-          this.timeline.setCurrentPosition(
-            Math.max(0, playheadPos - visibleRange / 2),
-          );
+          this.timeline.setCurrentPosition(Math.max(0, playheadPos - visibleRange / 2));
         }
       }
       lastTime = time;

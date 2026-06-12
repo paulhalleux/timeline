@@ -15,10 +15,7 @@ import type { TimedTextAdapter, TimedTextFormatId } from "./adapter";
  * ```
  */
 export class TimedTextFormatRegistry {
-  private readonly adapters = new Map<
-    TimedTextFormatId,
-    TimedTextAdapter<unknown, unknown>
-  >();
+  private readonly adapters = new Map<TimedTextFormatId, TimedTextAdapter<unknown, unknown>>();
 
   /**
    * Register or replace an adapter for its format id.
@@ -33,10 +30,7 @@ export class TimedTextFormatRegistry {
    * ```
    */
   register<TDocument, TCue>(adapter: TimedTextAdapter<TDocument, TCue>): void {
-    this.adapters.set(
-      adapter.format,
-      adapter as TimedTextAdapter<unknown, unknown>,
-    );
+    this.adapters.set(adapter.format, adapter as TimedTextAdapter<unknown, unknown>);
   }
 
   /**
@@ -72,13 +66,9 @@ export class TimedTextFormatRegistry {
    * const adapter = registry.findByExtension(".vtt");
    * ```
    */
-  findByExtension(
-    extension: string,
-  ): TimedTextAdapter<unknown, unknown> | undefined {
+  findByExtension(extension: string): TimedTextAdapter<unknown, unknown> | undefined {
     const normalized = extension.toLowerCase().replace(/^\./, "");
-    return [...this.adapters.values()].find((adapter) =>
-      adapter.extensions.includes(normalized),
-    );
+    return [...this.adapters.values()].find((adapter) => adapter.extensions.includes(normalized));
   }
 
   /**

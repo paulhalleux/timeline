@@ -5,10 +5,7 @@ import { formatVttTimestamp } from "./time";
 import type { VttDocument } from "./types";
 import { validateVtt } from "./validation";
 
-export function serializeVtt(
-  document: VttDocument,
-  options: SerializeOptions = {},
-) {
+export function serializeVtt(document: VttDocument, options: SerializeOptions = {}) {
   const newline = options.newline ?? "\n";
   const lines: string[] = [document.header ?? "WEBVTT", ""];
 

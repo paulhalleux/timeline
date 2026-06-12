@@ -1,8 +1,5 @@
 import { generateId } from "../document";
-import type {
-  EditorTimedTextCue,
-  EditorTimedTextDocument,
-} from "../editor-model";
+import type { EditorTimedTextCue, EditorTimedTextDocument } from "../editor-model";
 import type { EditorOperationResult } from "./results";
 import { operationFailure, operationSuccess } from "./results";
 import { clampIndex, findEditorCue, findEditorTrack, insertAt } from "./utils";
@@ -127,11 +124,7 @@ export function createEditorCue(
  */
 export function mapEditorCues(
   document: EditorTimedTextDocument,
-  mapper: (
-    cue: EditorTimedTextCue,
-    cueIndex: number,
-    trackId: string,
-  ) => EditorTimedTextCue,
+  mapper: (cue: EditorTimedTextCue, cueIndex: number, trackId: string) => EditorTimedTextCue,
 ): EditorTimedTextDocument {
   return {
     ...document,
@@ -156,19 +149,13 @@ export function mapEditorCues(
  */
 export function filterEditorCues(
   document: EditorTimedTextDocument,
-  predicate: (
-    cue: EditorTimedTextCue,
-    cueIndex: number,
-    trackId: string,
-  ) => boolean,
+  predicate: (cue: EditorTimedTextCue, cueIndex: number, trackId: string) => boolean,
 ): EditorTimedTextDocument {
   return {
     ...document,
     tracks: document.tracks.map((track) => ({
       ...track,
-      cues: track.cues.filter((cue, cueIndex) =>
-        predicate(cue, cueIndex, track.id),
-      ),
+      cues: track.cues.filter((cue, cueIndex) => predicate(cue, cueIndex, track.id)),
     })),
   };
 }
@@ -184,9 +171,7 @@ export function filterEditorCues(
  * const ordered = sortEditorCuesByTime(document);
  * ```
  */
-export function sortEditorCuesByTime(
-  document: EditorTimedTextDocument,
-): EditorTimedTextDocument {
+export function sortEditorCuesByTime(document: EditorTimedTextDocument): EditorTimedTextDocument {
   return {
     ...document,
     tracks: document.tracks.map((track) => ({
@@ -368,9 +353,7 @@ export function updateEditorCue(
  * const emptyDocument = clearEditorCues(document);
  * ```
  */
-export function clearEditorCues(
-  document: EditorTimedTextDocument,
-): EditorTimedTextDocument {
+export function clearEditorCues(document: EditorTimedTextDocument): EditorTimedTextDocument {
   return {
     ...document,
     tracks: document.tracks.map((track) => ({ ...track, cues: [] })),

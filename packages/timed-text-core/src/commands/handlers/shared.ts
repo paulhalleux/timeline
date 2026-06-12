@@ -1,7 +1,4 @@
-import type {
-  EditorCommandContext,
-  NormalizedEditorCommandContext,
-} from "../types";
+import type { EditorCommandContext, NormalizedEditorCommandContext } from "../types";
 
 /**
  * Normalize optional command dependencies.

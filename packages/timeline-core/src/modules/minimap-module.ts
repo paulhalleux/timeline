@@ -25,9 +25,7 @@ export type MinimapOptions = {
    * @param timeline - The TimelineApi instance.
    * @returns The total range value or an object containing range and overflow.
    */
-  computeTotalRange?: (
-    timeline: TimelineApi,
-  ) => number | { range: number; overflow: number };
+  computeTotalRange?: (timeline: TimelineApi) => number | { range: number; overflow: number };
 };
 
 export type MinimapApi = {
@@ -158,11 +156,7 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
       return;
     }
 
-    const {
-      visibleSizeRatio,
-      totalRange,
-      overflowAmount = 0,
-    } = this.getStore().get();
+    const { visibleSizeRatio, totalRange, overflowAmount = 0 } = this.getStore().get();
     const normalizedLeftDelta = Math.max(
       visibleSizeRatio / 2,
       Math.min(1 - visibleSizeRatio / 2, leftDelta),
@@ -185,8 +179,7 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
       return;
     }
 
-    const { visibleSizeRatio, visibleStartRatio, totalRange } =
-      this.getStore().get();
+    const { visibleSizeRatio, visibleStartRatio, totalRange } = this.getStore().get();
 
     const maxVisibleRange = timeline.getViewport().getMaxVisibleRange();
     const minVisibleRange = timeline.getViewport().getMinVisibleRange();
@@ -195,19 +188,11 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
     const minSizeRatio = (1 / totalRange) * minVisibleRange;
 
     if (side === "right") {
-      this.setVisibleSizeRatio(
-        Math.min(visibleSizeRatio + delta, 1 - visibleStartRatio),
-      );
+      this.setVisibleSizeRatio(Math.min(visibleSizeRatio + delta, 1 - visibleStartRatio));
     } else {
-      const newSizeRatio = Math.max(
-        Math.min(visibleSizeRatio + delta, maxSizeRatio),
-        minSizeRatio,
-      );
+      const newSizeRatio = Math.max(Math.min(visibleSizeRatio + delta, maxSizeRatio), minSizeRatio);
       const newStartRatio = Math.max(0, visibleStartRatio - delta);
-      const clampedStartRatio = Math.max(
-        0,
-        Math.min(1 - newSizeRatio, newStartRatio),
-      );
+      const clampedStartRatio = Math.max(0, Math.min(1 - newSizeRatio, newStartRatio));
       timeline.setCurrentPosition(totalRange * clampedStartRatio);
       timeline.setVisibleRange(totalRange * newSizeRatio);
     }
@@ -288,10 +273,7 @@ export class MinimapModule implements TimelineModule<MinimapApi> {
     const visibleStartRatio = (1 / totalRange) * current;
 
     this.getStore().update((state) => {
-      state.visibleStartRatio = Math.max(
-        0,
-        Math.min(1 - visibleSizeRatio, visibleStartRatio),
-      );
+      state.visibleStartRatio = Math.max(0, Math.min(1 - visibleSizeRatio, visibleStartRatio));
       state.visibleSizeRatio = visibleSizeRatio;
     });
   }

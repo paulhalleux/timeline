@@ -1,27 +1,28 @@
 {
   "name": "@ptl/modular-core",
-  "type": "module",
   "version": "0.0.0",
+  "description": "A modular architecture library for building composable applications with a core store and pluggable modules",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
-  "description": "A modular architecture library for building composable applications with a core store and pluggable modules",
   "exports": {
     "types": "./dist/index.d.mts",
     "import": "./dist/index.mjs"
   },
   "scripts": {
-    "build": "tsdown src/index.ts"
+    "build": "tsdown src/index.ts",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix"
   },
-  "files": [
-    "dist"
-  ],
   "dependencies": {
     "@ptl/store": "^0.0.0"
   },
   "devDependencies": {
-    "@ptl/eslint-config": "^1.0.0",
-    "eslint": "^10.4.1",
-    "prettier": "^3.8.0",
     "tsdown": "^0.22.2",
     "typescript": "^6.0.3"
   }

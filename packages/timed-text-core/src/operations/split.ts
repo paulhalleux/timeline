@@ -1,7 +1,4 @@
-import type {
-  EditorTimedTextCue,
-  EditorTimedTextDocument,
-} from "../editor-model";
+import type { EditorTimedTextCue, EditorTimedTextDocument } from "../editor-model";
 import type { EditorOperationResult } from "./results";
 import { operationFailure, operationSuccess } from "./results";
 import { findEditorCue, splitPlainText } from "./utils";
@@ -126,10 +123,7 @@ export function splitEditorCue(
   });
 }
 
-function distributeText(
-  text: string,
-  options: SplitEditorCueOptions,
-): [string, string] {
+function distributeText(text: string, options: SplitEditorCueOptions): [string, string] {
   if (options.firstText !== undefined || options.secondText !== undefined) {
     return [options.firstText ?? "", options.secondText ?? ""];
   }

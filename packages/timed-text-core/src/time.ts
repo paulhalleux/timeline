@@ -62,9 +62,7 @@ export function timeFromComponents({
   seconds,
   milliseconds,
 }: TimeComponents): Time {
-  return time(
-    hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds,
-  );
+  return time(hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds);
 }
 
 /**

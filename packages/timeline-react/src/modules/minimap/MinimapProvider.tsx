@@ -5,16 +5,12 @@ export type MinimapContextType = {
   containerRect: DOMRect | null;
 };
 
-export const MinimapContext = React.createContext<MinimapContextType | null>(
-  null,
-);
+export const MinimapContext = React.createContext<MinimapContextType | null>(null);
 
 export const useMinimapContext = () => {
   const context = React.useContext(MinimapContext);
   if (!context) {
-    throw new Error(
-      "Minimap components must be used within a Minimap.Root component",
-    );
+    throw new Error("Minimap components must be used within a Minimap.Root component");
   }
   return context;
 };

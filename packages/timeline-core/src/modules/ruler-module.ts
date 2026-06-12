@@ -31,10 +31,7 @@ export type RulerApi = {
 export const createDefaultTickIntervalGenerator =
   (minIntervalWidth: number) =>
   (timeline: TimelineApi): number => {
-    return getTickIntervalTime(
-      (time) => timeline.unitToPx(time),
-      minIntervalWidth,
-    );
+    return getTickIntervalTime((time) => timeline.unitToPx(time), minIntervalWidth);
   };
 
 /**
@@ -52,8 +49,7 @@ export class RulerModule implements TimelineModule<RulerApi> {
 
   constructor(options: Partial<RulerOptions> = {}) {
     this.options = {
-      getTickInterval:
-        options.getTickInterval ?? createDefaultTickIntervalGenerator(100),
+      getTickInterval: options.getTickInterval ?? createDefaultTickIntervalGenerator(100),
     };
 
     this.store = new Store<RulerState>({
@@ -187,10 +183,7 @@ function* getAvailableDurationMills(): Generator<number, void, unknown> {
  * @param expectedWidth - The minimum pixel distance between ticks.
  * @returns The selected tick interval time.
  */
-function getTickIntervalTime(
-  unitToPx: (time: number) => number,
-  expectedWidth: number,
-): number {
+function getTickIntervalTime(unitToPx: (time: number) => number, expectedWidth: number): number {
   for (const duration of getAvailableDurationMills()) {
     const width = unitToPx(duration);
     if (width >= expectedWidth) {
@@ -207,11 +200,7 @@ function getTickIntervalTime(
  * @param tickIntervalTime - The interval between ticks.
  * @returns An array of tick positions.
  */
-function computeTicks(
-  start: number,
-  end: number,
-  tickIntervalTime: number,
-): number[] {
+function computeTicks(start: number, end: number, tickIntervalTime: number): number[] {
   const ticks: number[] = [];
 
   const firstTick = Math.ceil(start / tickIntervalTime) * tickIntervalTime;

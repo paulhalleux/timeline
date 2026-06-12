@@ -1,11 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import type { EditorTimedTextDocument } from "../editor-model";
-import {
-  fixEditorOverlaps,
-  shiftEditorCues,
-  updateEditorCueTiming,
-} from "./timing";
+import { fixEditorOverlaps, shiftEditorCues, updateEditorCueTiming } from "./timing";
 
 describe("editor timing operations", () => {
   test("validates cue timing updates", () => {
@@ -19,9 +15,7 @@ describe("editor timing operations", () => {
   test("shifts selected cues", () => {
     const shifted = shiftEditorCues(fixtureDocument(), 250, ["b"]);
 
-    expect(shifted.tracks[0].cues.map((cue) => cue.startMs)).toEqual([
-      0, 1_250,
-    ]);
+    expect(shifted.tracks[0].cues.map((cue) => cue.startMs)).toEqual([0, 1_250]);
   });
 
   test("fixes overlaps per track", () => {

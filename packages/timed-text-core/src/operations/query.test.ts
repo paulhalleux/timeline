@@ -13,9 +13,11 @@ describe("editor cue queries", () => {
     const document = fixtureDocument();
 
     expect(getEditorCueAt(document, 750)?.id).toBe("a");
-    expect(
-      getEditorCuesInRange(document, 1_400, 2_600).map((cue) => cue.id),
-    ).toEqual(["a", "b", "c"]);
+    expect(getEditorCuesInRange(document, 1_400, 2_600).map((cue) => cue.id)).toEqual([
+      "a",
+      "b",
+      "c",
+    ]);
   });
 
   test("detects overlaps per track", () => {

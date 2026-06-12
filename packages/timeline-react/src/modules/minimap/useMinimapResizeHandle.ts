@@ -13,10 +13,7 @@ type UseMinimapResizeHandleArgs = {
   style?: React.CSSProperties;
 };
 
-export const useMinimapResizeHandle = ({
-  position,
-  ...args
-}: UseMinimapResizeHandleArgs) => {
+export const useMinimapResizeHandle = ({ position, ...args }: UseMinimapResizeHandleArgs) => {
   const { containerRect } = useMinimapContext();
   const [, api] = useMinimap();
 

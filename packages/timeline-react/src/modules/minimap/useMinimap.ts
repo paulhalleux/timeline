@@ -1,9 +1,5 @@
 import { useStore } from "@ptl/store/react";
-import {
-  type MinimapApi,
-  MinimapModule,
-  type MinimapState,
-} from "@ptl/timeline-core";
+import { type MinimapApi, MinimapModule, type MinimapState } from "@ptl/timeline-core";
 
 import { useTimeline } from "../../timeline";
 

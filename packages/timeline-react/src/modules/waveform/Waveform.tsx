@@ -66,15 +66,9 @@ const WaveformCanvas = ({
   const [{ peaks, duration }] = useWaveform();
 
   const chunkWidth = useTimelineStore((tl) => tl.getChunkWidthPx());
-  const viewportWidth = useTimelineStore((tl) =>
-    tl.getViewport().select((s) => s.widthPx),
-  );
-  const chunkStart = useTimelineStore((tl) =>
-    tl.getStore().select((s) => s.chunkStart),
-  );
-  const chunkDuration = useTimelineStore((tl) =>
-    tl.getStore().select((s) => s.chunkDuration),
-  );
+  const viewportWidth = useTimelineStore((tl) => tl.getViewport().select((s) => s.widthPx));
+  const chunkStart = useTimelineStore((tl) => tl.getStore().select((s) => s.chunkStart));
+  const chunkDuration = useTimelineStore((tl) => tl.getStore().select((s) => s.chunkDuration));
 
   React.useEffect(() => {
     const canvas = canvasRef.current;
@@ -104,14 +98,8 @@ const WaveformCanvas = ({
     const endMs = chunkStart + chunkDuration;
     // Clamp the end to the audio duration
     const clampedEndMs = Math.min(endMs, duration);
-    const clampedDrawWidth = Math.round(
-      drawWidth * ((clampedEndMs - startMs) / (endMs - startMs)),
-    );
-    const barData = waveform.getPeaksForRange(
-      startMs,
-      clampedEndMs,
-      clampedDrawWidth,
-    );
+    const clampedDrawWidth = Math.round(drawWidth * ((clampedEndMs - startMs) / (endMs - startMs)));
+    const barData = waveform.getPeaksForRange(startMs, clampedEndMs, clampedDrawWidth);
 
     // Draw waveform only for the region with audio
     ctx.fillStyle = color;
@@ -123,16 +111,7 @@ const WaveformCanvas = ({
       const halfBar = barHeight / 2;
       ctx.fillRect(i, centerY - halfBar, 1, barHeight || 0.5);
     }
-  }, [
-    peaks,
-    duration,
-    chunkWidth,
-    chunkStart,
-    chunkDuration,
-    heightProp,
-    color,
-    timeline,
-  ]);
+  }, [peaks, duration, chunkWidth, chunkStart, chunkDuration, heightProp, color, timeline]);
 
   return (
     <Translate
@@ -146,6 +125,7 @@ const WaveformCanvas = ({
       {...rest}
     >
       <canvas
+        aria-label="Waveform"
         ref={canvasRef}
         style={{
           display: "block",

@@ -71,9 +71,7 @@ export class SnapTargetsModule implements TimelineModule<SnapTargetsApi> {
    */
   getTargets(): SnapTarget[] {
     return this.store.select((state) =>
-      Object.values(state.targets).flatMap((typeMap) =>
-        Array.from(typeMap.values()),
-      ),
+      Object.values(state.targets).flatMap((typeMap) => Array.from(typeMap.values())),
     );
   }
 

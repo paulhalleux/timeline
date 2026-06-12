@@ -12,9 +12,7 @@ type ViewportItemProps = React.ComponentProps<"div"> & {
 export const ViewportItem = React.memo(
   ({ start, end, style, className, ...rest }: ViewportItemProps) => {
     const left = useTimelineStore((timeline) => timeline.projectToChunk(start));
-    const width = useTimelineStore((timeline) =>
-      timeline.unitToPx(end - start),
-    );
+    const width = useTimelineStore((timeline) => timeline.unitToPx(end - start));
     return (
       <div
         className={clsx(styles.item, className)}

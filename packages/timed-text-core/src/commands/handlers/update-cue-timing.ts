@@ -56,8 +56,7 @@ export function updateCueTimingCommand(
 
     do(this: UpdateCueTimingCommand, document) {
       const result = updateEditorCueTiming(document, cueId, startMs, endMs);
-      if (!result.ok)
-        return commandFailureFromOperation(document, this, result);
+      if (!result.ok) return commandFailureFromOperation(document, this, result);
 
       return cueUpdateSuccess(
         this,

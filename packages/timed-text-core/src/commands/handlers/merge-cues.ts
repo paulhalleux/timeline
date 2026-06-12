@@ -49,8 +49,7 @@ export function mergeCuesCommand(payload: MergeCuesPayload): MergeCuesCommand {
       const result = mergeEditorCues(document, payload.cueIds, {
         separator: payload.separator,
       });
-      if (!result.ok)
-        return commandFailureFromOperation(document, this, result);
+      if (!result.ok) return commandFailureFromOperation(document, this, result);
 
       return commandSuccess(result.document, this, {
         undoCommand: replaceCueRangeCommand({

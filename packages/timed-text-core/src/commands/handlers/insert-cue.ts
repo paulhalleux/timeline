@@ -50,14 +50,8 @@ export function insertCueCommand(payload: InsertCuePayload): InsertCueCommand {
     payload,
 
     do(this: InsertCueCommand, document) {
-      const result = insertEditorCue(
-        document,
-        payload.trackId,
-        payload.cue,
-        payload.index,
-      );
-      if (!result.ok)
-        return commandFailureFromOperation(document, this, result);
+      const result = insertEditorCue(document, payload.trackId, payload.cue, payload.index);
+      if (!result.ok) return commandFailureFromOperation(document, this, result);
 
       return commandSuccess(result.document, this, {
         undoCommand: deleteCueCommand(result.data.cue.id),

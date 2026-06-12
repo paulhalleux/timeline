@@ -34,10 +34,7 @@ export const useMinimapContainer = ({
 
       const delta = e.deltaY;
       const zoomChange = (delta > 0 ? -0.05 : 0.05) * zoomSensitivity;
-      const newZoom = Math.min(
-        1,
-        Math.max(0, timeline.getZoomLevel() + zoomChange),
-      );
+      const newZoom = Math.min(1, Math.max(0, timeline.getZoomLevel() + zoomChange));
 
       timeline.setZoom(newZoom, viewportWidthPx / 2);
       timeline.setCurrentPosition(

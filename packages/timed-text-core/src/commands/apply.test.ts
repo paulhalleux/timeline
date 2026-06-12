@@ -14,10 +14,7 @@ describe("editor commands", () => {
     const result = applyEditorCommand(fixtureDocument(), command);
 
     expect(result.ok).toBe(true);
-    expect(result.document.tracks[0].cues.map((item) => item.id)).toEqual([
-      "a",
-      "b",
-    ]);
+    expect(result.document.tracks[0].cues.map((item) => item.id)).toEqual(["a", "b"]);
     expect(JSON.parse(JSON.stringify(result.undoCommand))).toEqual({
       type: "cue/delete",
       payload: { cueId: "b" },
@@ -28,9 +25,7 @@ describe("editor commands", () => {
 
     const undone = result.undoCommand.do(result.document);
     expect(undone.ok).toBe(true);
-    expect(undone.document.tracks[0].cues.map((item) => item.id)).toEqual([
-      "a",
-    ]);
+    expect(undone.document.tracks[0].cues.map((item) => item.id)).toEqual(["a"]);
   });
 
   test("undoes text updates through the returned undo command", () => {

@@ -52,15 +52,9 @@ type RulerTicksProps = Omit<React.ComponentProps<"div">, "children"> & {
   }>;
 };
 
-export const RulerTicks = ({
-  children: Tick,
-  style,
-  ...rest
-}: RulerTicksProps) => {
+export const RulerTicks = ({ children: Tick, style, ...rest }: RulerTicksProps) => {
   const [{ prevIntervalTime, ticks }] = useRuler();
-  const tickWidth = useTimelineStore((timeline) =>
-    timeline.unitToPx(prevIntervalTime),
-  );
+  const tickWidth = useTimelineStore((timeline) => timeline.unitToPx(prevIntervalTime));
   const viewportWidth = useTimelineStore((timeline) =>
     timeline.getViewport().select((s) => s.widthPx),
   );
@@ -77,9 +71,7 @@ export const RulerTicks = ({
       {...rest}
     >
       {Tick &&
-        ticks.map((unit) => (
-          <RenderTick key={unit} unit={unit} width={tickWidth} Render={Tick} />
-        ))}
+        ticks.map((unit) => <RenderTick key={unit} unit={unit} width={tickWidth} Render={Tick} />)}
     </Translate>
   );
 };
@@ -93,9 +85,7 @@ const RenderTick = ({
   width: number;
   Render: Required<RulerTicksProps>["children"];
 }) => {
-  const left = useTimelineStore((timeline) =>
-    RulerModule.for(timeline).getTickOffset(unit),
-  );
+  const left = useTimelineStore((timeline) => RulerModule.for(timeline).getTickOffset(unit));
   return <Render key={unit} unit={unit} width={width} left={left} />;
 };
 

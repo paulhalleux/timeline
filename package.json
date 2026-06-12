@@ -7,11 +7,17 @@
     "configs/*"
   ],
   "scripts": {
-    "build": "lerna run build"
+    "build": "lerna run build",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint apps packages configs",
+    "lint:fix": "oxlint apps packages configs --fix",
+    "ui:add": "bun run --cwd packages/ui shadcn:add"
   },
   "devDependencies": {
-    "eslint": "^10.4.1",
     "lerna": "^9.0.7",
+    "oxfmt": "^0.54.0",
+    "oxlint": "^1.69.0",
     "typescript": "^6.0.3",
     "vite": "^8.0.16"
   },

@@ -42,8 +42,7 @@ export function deleteCueCommand(cueId: string): DeleteCueCommand {
     payload: { cueId },
     do(this: DeleteCueCommand, document) {
       const result = deleteEditorCue(document, cueId);
-      if (!result.ok)
-        return commandFailureFromOperation(document, this, result);
+      if (!result.ok) return commandFailureFromOperation(document, this, result);
 
       return commandSuccess(result.document, this, {
         undoCommand: insertCueCommand({
