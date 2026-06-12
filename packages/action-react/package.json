@@ -1,0 +1,36 @@
+{
+  "name": "@ptl/action-react",
+  "type": "module",
+  "version": "0.0.0",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "description": "React adapters for @ptl/action-core scopes, context menus, and TanStack Hotkeys",
+  "exports": {
+    "types": "./dist/index.d.mts",
+    "import": "./dist/index.mjs"
+  },
+  "scripts": {
+    "build": "tsdown src/index.ts",
+    "test": "bun test test/**/*.test.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@ptl/action-core": "^0.0.0"
+  },
+  "peerDependencies": {
+    "@tanstack/react-hotkeys": ">=0.2.0",
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@ptl/eslint-config": "^1.0.0",
+    "@tanstack/hotkeys": ">=0.2.0",
+    "@tanstack/react-hotkeys": ">=0.2.0",
+    "@types/react": "^19.2.10",
+    "eslint": "^10.4.1",
+    "prettier": "^3.8.0",
+    "tsdown": "^0.22.2",
+    "typescript": "^6.0.3"
+  }
+}

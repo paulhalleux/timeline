@@ -49,6 +49,16 @@ export interface ActionMenuPlacement {
 }
 
 /**
+ * Context-menu placement metadata. Context menu renderers may use `path` for
+ * nested menus or `group` for flat sectioned menus.
+ */
+export interface ActionContextMenuPlacement {
+  path?: readonly string[];
+  group?: string;
+  order?: number;
+}
+
+/**
  * Toolbar placement metadata. Consumers decide how to render groups.
  */
 export interface ActionToolbarPlacement {
@@ -71,6 +81,7 @@ export interface ActionPaletteOptions {
 export interface ActionPresentation {
   icon?: string;
   menu?: ActionMenuPlacement;
+  contextMenu?: ActionContextMenuPlacement;
   toolbar?: ActionToolbarPlacement;
   palette?: ActionPaletteOptions;
 }

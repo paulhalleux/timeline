@@ -85,6 +85,16 @@ export const deleteCueAction: TimedTextActionDefinition<
   id: TIMED_TEXT_DELETE_CUE_ACTION_ID,
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Delete cue",
+  keybindings: [{ keys: "Delete", preventDefault: true }],
+  presentation: {
+    contextMenu: { group: "Edit", order: 10 },
+    menu: { path: ["Edit", "Delete cue"], order: 30 },
+  },
+  triggerScopes: {
+    shortcut: "required",
+    contextMenu: "required",
+    menu: "none",
+  },
   run(context, invocation) {
     const payload = requirePayload(TIMED_TEXT_DELETE_CUE_ACTION_ID, invocation);
     return deleteEditorCue(context.getDocument(), payload.cueId);
@@ -163,6 +173,16 @@ export const splitCueAction: TimedTextActionDefinition<
   id: TIMED_TEXT_SPLIT_CUE_ACTION_ID,
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Split cue",
+  keybindings: [{ keys: "Mod+Shift+S", preventDefault: true }],
+  presentation: {
+    contextMenu: { group: "Cue", order: 20 },
+    menu: { path: ["Cue", "Split cue"], order: 20 },
+  },
+  triggerScopes: {
+    shortcut: "required",
+    contextMenu: "required",
+    menu: "none",
+  },
   run(context, invocation) {
     const payload = requirePayload(TIMED_TEXT_SPLIT_CUE_ACTION_ID, invocation);
     return splitEditorCue(context.getDocument(), payload.cueId, payload.atMs, {
@@ -183,6 +203,16 @@ export const mergeCuesAction: TimedTextActionDefinition<
   id: TIMED_TEXT_MERGE_CUES_ACTION_ID,
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Merge cues",
+  keybindings: [{ keys: "Mod+M", preventDefault: true }],
+  presentation: {
+    contextMenu: { group: "Cue", order: 30 },
+    menu: { path: ["Cue", "Merge cues"], order: 30 },
+  },
+  triggerScopes: {
+    shortcut: "required",
+    contextMenu: "required",
+    menu: "none",
+  },
   run(context, invocation) {
     const payload = requirePayload(TIMED_TEXT_MERGE_CUES_ACTION_ID, invocation);
     return mergeEditorCues(context.getDocument(), payload.cueIds, {

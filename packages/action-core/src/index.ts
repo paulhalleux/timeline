@@ -17,6 +17,7 @@ export type {
 export type {
   ActionCategory,
   ActionContext,
+  ActionContextMenuPlacement,
   ActionDefinition,
   ActionDescriptor,
   ActionGuard,
@@ -35,6 +36,9 @@ export type {
   ActionRunFailure,
   ActionRunResult,
   ActionRunSuccess,
+  ActionScopeElement,
+  ActionScopeRequirement,
+  ActionTriggerScope,
   ActionSource,
   ActionState,
   ActionToolbarPlacement,
