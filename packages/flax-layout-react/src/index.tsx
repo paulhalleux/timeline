@@ -10,7 +10,6 @@ import {
   type FlaxLayoutOptions,
   type FlaxLayoutResult,
   type FlaxLayoutState,
-  type FlaxPanelDefinition,
   type FlaxPanelId,
   type FlaxSplitNode,
   type FlaxTabsetNode,
@@ -19,21 +18,27 @@ import {
   type FlaxToolbarSide,
 } from "@ptl/flax-layout";
 import React from "react";
+import { FlaxRender, FlexRender } from "./render";
+import {
+  FlaxLayoutContext,
+  useFlaxLayoutContext,
+  type FlaxHiddenItemRenderer,
+  type FlaxLayoutContextValue,
+  type FlaxPanelRenderer,
+  type FlaxRenderers,
+  type FlaxToolbarItemRenderer,
+} from "./context";
 
-export type FlaxPanelRenderer<TMeta = unknown> = (context: {
-  readonly panel: FlaxPanelDefinition<TMeta>;
-  readonly state: FlaxLayoutState<TMeta>;
-  readonly dispatch: (action: FlaxLayoutAction<TMeta>) => FlaxLayoutResult<TMeta>;
-}) => React.ReactNode;
-
-export type FlaxToolbarItemRenderer<TMeta = unknown> = (context: {
-  readonly panel: FlaxPanelDefinition<TMeta>;
-  readonly corner: FlaxToolbarCorner;
-  readonly active: boolean;
-  readonly hidden: boolean;
-  readonly state: FlaxLayoutState<TMeta>;
-  readonly dispatch: (action: FlaxLayoutAction<TMeta>) => FlaxLayoutResult<TMeta>;
-}) => React.ReactNode;
+export { FlaxRender, FlexRender } from "./render";
+export type {
+  FlaxHiddenItemRenderer,
+  FlaxLayoutContextValue,
+  FlaxPanelRenderer,
+  FlaxRenderHiddenItemContext,
+  FlaxRenderItemContext,
+  FlaxRenderPanelContext,
+  FlaxToolbarItemRenderer,
+} from "./context";
 
 export interface FlaxLayoutRootProps<TMeta = unknown>
   extends Omit<React.ComponentProps<"div">, "children"> {
@@ -46,13 +51,18 @@ export interface FlaxLayoutRootProps<TMeta = unknown>
     action: FlaxLayoutAction<TMeta>,
     result: FlaxLayoutResult<TMeta>,
   ) => void;
-  readonly renderPanel: FlaxPanelRenderer<TMeta>;
+  /** @deprecated Use `<FlaxRender.Panel>{panel => ...}</FlaxRender.Panel>` instead. */
+  readonly renderPanel?: FlaxPanelRenderer<TMeta>;
+  /** @deprecated Use `<FlaxRender.Item>{item => ...}</FlaxRender.Item>` instead. */
   readonly renderToolbarItem?: FlaxToolbarItemRenderer<TMeta>;
 }
 
-export interface FlaxLayoutTreeProps extends React.ComponentProps<"div"> {
+export interface FlaxLayoutWorkspaceProps extends React.ComponentProps<"div"> {
   readonly node?: FlaxLayoutNode | null;
 }
+
+/** @deprecated Use `FlaxLayoutWorkspaceProps` with `FlaxLayout.Workspace`. */
+export type FlaxLayoutTreeProps = FlaxLayoutWorkspaceProps;
 
 export interface FlaxLayoutSplitProps extends React.ComponentProps<"div"> {
   readonly node: FlaxSplitNode;
@@ -91,10 +101,8 @@ export interface FlaxLayoutCloseTriggerProps
 
 export interface FlaxLayoutHiddenPanelsProps
   extends React.ComponentProps<"div"> {
-  readonly renderHiddenPanel?: (context: {
-    readonly panel: FlaxPanelDefinition;
-    readonly show: () => void;
-  }) => React.ReactNode;
+  /** @deprecated Use `<FlaxRender.HiddenItem>{item => ...}</FlaxRender.HiddenItem>` instead. */
+  readonly renderHiddenPanel?: FlaxHiddenItemRenderer;
 }
 
 export interface FlaxLayoutToolbarSideProps
@@ -130,19 +138,6 @@ export interface FlaxLayoutToolbarOverflowProps
   readonly children?: React.ReactNode;
 }
 
-export interface FlaxLayoutContextValue<TMeta = unknown> {
-  readonly state: FlaxLayoutState<TMeta>;
-  readonly renderPanel: FlaxPanelRenderer<TMeta>;
-  readonly renderToolbarItem?: FlaxToolbarItemRenderer<TMeta>;
-  readonly dispatch: (action: FlaxLayoutAction<TMeta>) => FlaxLayoutResult<TMeta>;
-  readonly draggedPanelId: FlaxPanelId | null;
-  readonly setDraggedPanelId: (panelId: FlaxPanelId | null) => void;
-}
-
-const FlaxLayoutContext = React.createContext<FlaxLayoutContextValue | null>(
-  null,
-);
-
 function FlaxLayoutRoot<TMeta = unknown>({
   children,
   defaultState,
@@ -163,6 +158,7 @@ function FlaxLayoutRoot<TMeta = unknown>({
   const [draggedPanelId, setDraggedPanelId] = React.useState<FlaxPanelId | null>(
     null,
   );
+  const [renderers, setRenderers] = React.useState<FlaxRenderers<TMeta>>({});
   const state = controlledState ?? uncontrolledState;
 
   const dispatch = React.useCallback(
@@ -178,16 +174,47 @@ function FlaxLayoutRoot<TMeta = unknown>({
     [controlledState, onDispatch, onStateChange, state],
   );
 
-  const value = React.useMemo<FlaxLayoutContextValue<TMeta>>(
+  const registerRenderer = React.useCallback(
+    <TSlot extends keyof FlaxRenderers<TMeta>>(
+      slot: TSlot,
+      renderer: NonNullable<FlaxRenderers<TMeta>[TSlot]>,
+    ) => {
+      setRenderers((current) =>
+        current[slot] === renderer ? current : { ...current, [slot]: renderer },
+      );
+
+      return () => {
+        setRenderers((current) => {
+          if (current[slot] !== renderer) return current;
+          return Object.fromEntries(
+            Object.entries(current).filter(([key]) => key !== slot),
+          ) as FlaxRenderers<TMeta>;
+        });
+      };
+    },
+    [],
+  );
+
+  const value = React.useMemo(
     () => ({
       state,
       renderPanel,
       renderToolbarItem,
+      renderers,
+      registerRenderer,
       dispatch,
       draggedPanelId,
       setDraggedPanelId,
     }),
-    [dispatch, draggedPanelId, renderPanel, renderToolbarItem, state],
+    [
+      dispatch,
+      draggedPanelId,
+      registerRenderer,
+      renderPanel,
+      renderToolbarItem,
+      renderers,
+      state,
+    ],
   );
 
   return (
@@ -200,7 +227,7 @@ function FlaxLayoutRoot<TMeta = unknown>({
         {children ?? (
           <>
             <FlaxLayoutToolbarSide side="left" />
-            <FlaxLayoutTree />
+            <FlaxLayoutWorkspace />
             <FlaxLayoutToolbarSide side="right" />
           </>
         )}
@@ -209,13 +236,13 @@ function FlaxLayoutRoot<TMeta = unknown>({
   );
 }
 
-function FlaxLayoutTree({ node, style, ...rest }: FlaxLayoutTreeProps) {
+function FlaxLayoutWorkspace({ node, style, ...rest }: FlaxLayoutWorkspaceProps) {
   const { state } = useFlaxLayoutContext();
   const treeNode = node === undefined ? state.root : node;
 
   return (
     <div
-      data-flax-layout-tree=""
+      data-flax-layout-workspace=""
       style={{ display: "flex", flex: 1, minHeight: 0, minWidth: 0, ...style }}
       {...rest}
     >
@@ -223,6 +250,9 @@ function FlaxLayoutTree({ node, style, ...rest }: FlaxLayoutTreeProps) {
     </div>
   );
 }
+
+/** @deprecated Use `FlaxLayout.Workspace`. */
+const FlaxLayoutTree = FlaxLayoutWorkspace;
 
 function FlaxLayoutSplit({ node, style, ...rest }: FlaxLayoutSplitProps) {
   return (
@@ -444,13 +474,22 @@ function FlaxLayoutTab({
 }
 
 function FlaxLayoutPanel({ node, ...rest }: FlaxLayoutPanelProps) {
-  const { dispatch, renderPanel, state } = useFlaxLayoutContext();
+  const { dispatch, renderers, renderPanel, state } = useFlaxLayoutContext();
   const panelId = getActivePanelId(node);
   const panel = state.panels[panelId];
+  const renderer = renderers.panel ?? renderPanel;
 
   return (
     <div role="tabpanel" data-flax-layout-panel="" {...rest}>
-      {panel ? renderPanel({ panel, state, dispatch }) : null}
+      {panel
+        ? renderer?.({
+            panel,
+            panelId,
+            state,
+            dispatch,
+            hide: () => dispatch({ type: "hidePanel", panelId }),
+          }) ?? panel.title ?? panel.id
+        : null}
     </div>
   );
 }
@@ -486,7 +525,8 @@ function FlaxLayoutHiddenPanels({
   renderHiddenPanel,
   ...rest
 }: FlaxLayoutHiddenPanelsProps) {
-  const { dispatch, state } = useFlaxLayoutContext();
+  const { dispatch, renderers, state } = useFlaxLayoutContext();
+  const renderer = renderers.hiddenItem ?? renderHiddenPanel;
 
   return (
     <div data-flax-layout-hidden-panels="" {...rest}>
@@ -496,8 +536,8 @@ function FlaxLayoutHiddenPanels({
         const show = () => dispatch({ type: "showPanel", panelId });
         return (
           <React.Fragment key={panelId}>
-            {renderHiddenPanel ? (
-              renderHiddenPanel({ panel, show })
+            {renderer ? (
+              renderer({ panel, panelId, state, dispatch, show })
             ) : (
               <button type="button" onClick={show} data-flax-layout-hidden-panel="">
                 {panel.title ?? panel.id}
@@ -626,6 +666,7 @@ function FlaxLayoutToolbarItem({
   const {
     dispatch,
     renderToolbarItem,
+    renderers,
     setDraggedPanelId,
     draggedPanelId,
     state,
@@ -690,7 +731,25 @@ function FlaxLayoutToolbarItem({
         {...rest}
       >
         {children ??
-          renderToolbarItem?.({ panel, corner, active, hidden, state, dispatch }) ??
+          (renderers.item ?? renderToolbarItem)?.({
+            panel,
+            panelId,
+            corner,
+            groupId,
+            index,
+            active,
+            hidden,
+            state,
+            dispatch,
+            select: () => dispatch({ type: "selectPanel", panelId }),
+            hide: () => dispatch({ type: "hidePanel", panelId }),
+            moveToCorner: (nextCorner) =>
+              dispatch({
+                type: "moveToolbarItem",
+                panelId,
+                location: { corner: nextCorner },
+              }),
+          }) ??
           panel.title ??
           panel.id}
       </button>
@@ -760,7 +819,7 @@ function FlaxLayoutToolbarOverflow({
   children,
   ...rest
 }: FlaxLayoutToolbarOverflowProps) {
-  const { dispatch, state } = useFlaxLayoutContext();
+  const { dispatch, renderers, state } = useFlaxLayoutContext();
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -783,19 +842,27 @@ function FlaxLayoutToolbarOverflow({
           {state.hiddenPanelIds.map((panelId) => {
             const panel = state.panels[panelId];
             if (!panel) return null;
+            const show = () => {
+              const result = dispatch({ type: "showPanel", panelId });
+              if (result.accepted) setOpen(false);
+              return result;
+            };
+
             return (
-              <button
-                key={panelId}
-                type="button"
-                role="menuitem"
-                data-flax-layout-toolbar-overflow-item=""
-                onClick={() => {
-                  dispatch({ type: "showPanel", panelId });
-                  setOpen(false);
-                }}
-              >
-                {panel.title ?? panel.id}
-              </button>
+              <React.Fragment key={panelId}>
+                {renderers.hiddenItem ? (
+                  renderers.hiddenItem({ panel, panelId, state, dispatch, show })
+                ) : (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    data-flax-layout-toolbar-overflow-item=""
+                    onClick={show}
+                  >
+                    {panel.title ?? panel.id}
+                  </button>
+                )}
+              </React.Fragment>
             );
           })}
         </div>
@@ -814,6 +881,8 @@ export function useFlaxLayoutState<TMeta = unknown>(): FlaxLayoutState<TMeta> {
 
 export const FlaxLayout = {
   Root: FlaxLayoutRoot,
+  Workspace: FlaxLayoutWorkspace,
+  /** @deprecated Use `Workspace`. */
   Tree: FlaxLayoutTree,
   Split: FlaxLayoutSplit,
   ResizeHandle: FlaxLayoutResizeHandle,
@@ -830,15 +899,9 @@ export const FlaxLayout = {
   ToolbarSeparator: FlaxLayoutToolbarSeparator,
   ToolbarItemMenu: FlaxLayoutToolbarItemMenu,
   ToolbarOverflow: FlaxLayoutToolbarOverflow,
+  Render: FlaxRender,
+  FlexRender,
 };
-
-function useFlaxLayoutContext<TMeta = unknown>(): FlaxLayoutContextValue<TMeta> {
-  const context = React.useContext(FlaxLayoutContext);
-  if (!context) {
-    throw new Error("FlaxLayout primitives must be rendered inside FlaxLayout.Root");
-  }
-  return context as FlaxLayoutContextValue<TMeta>;
-}
 
 function renderNode(node: FlaxLayoutNode): React.ReactNode {
   if (node.type === "split") return <FlaxLayoutSplit node={node} />;
