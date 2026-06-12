@@ -1,0 +1,40 @@
+{
+  "name": "@ptl/flax-layout-react",
+  "type": "module",
+  "version": "0.0.0",
+  "module": "./dist/index.js",
+  "types": "./dist/src/index.d.ts",
+  "description": "React primitives for @ptl/flax-layout with built-in dock drag and resize behavior",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/src/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "vite build -m lib",
+    "lint": "eslint ."
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@ptl/flax-layout": "^0.0.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@ptl/eslint-config": "^1.0.0",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.10",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "eslint": "^10.4.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^17.2.0",
+    "prettier": "^3.8.4",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16",
+    "vite-plugin-dts": "^5.0.2"
+  }
+}
