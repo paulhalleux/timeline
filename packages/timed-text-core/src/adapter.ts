@@ -113,7 +113,7 @@ export interface DenormalizationResult<TDocument> {
  * Adapter contract for one timed-text format.
  *
  * Adapters own format-specific parsing, serialization, validation, and
- * conversion. Generic helpers and commands operate only on
+ * conversion. Generic helpers and actions operate only on
  * {@link EditorTimedTextDocument} and should not depend on adapter internals.
  *
  * @typeParam TDocument - Native format document type.

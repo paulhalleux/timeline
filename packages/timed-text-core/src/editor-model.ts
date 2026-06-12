@@ -1,7 +1,7 @@
 import type { TimedTextFormatId } from "./adapter";
 
 /**
- * Format-agnostic document model used by editor helpers and commands.
+ * Format-agnostic document model used by editor helpers and actions.
  *
  * @example
  * ```ts
@@ -54,7 +54,7 @@ export type EditorTimedTextTrackKind =
   | "transcript";
 
 /**
- * Format-agnostic cue used by editor helpers and commands.
+ * Format-agnostic cue used by editor helpers and actions.
  *
  * @example
  * ```ts

@@ -4,8 +4,6 @@ import {
   type ActionDefinition,
   type ActionGuardResult,
   type ActionInvocation,
-  type ActionKeyBinding,
-  type ActionPresentation,
   type ActionScope,
 } from "@ptl/action-core";
 
@@ -41,6 +39,11 @@ export const TIMED_TEXT_ACTION_IDS = {
   mergeCues: "timedText.cue.merge",
 } as const;
 
+const TIMED_TEXT_ACTION_DEFAULTS = {
+  category: "Timed Text",
+  source: "@ptl/timed-text-core",
+} as const;
+
 /**
  * Optional selection service commonly used by cue-oriented timed-text actions.
  */
@@ -71,27 +74,6 @@ export type TimedTextActionDefinition<
 > = ActionDefinition<TimedTextActionContext, TResult, TPayload>;
 
 export type TimedTextActionScope = ActionScope<TimedTextActionContext>;
-
-export interface TimedTextActionOptions<TResult, TPayload> {
-  id: string;
-  title: string;
-  category?: string;
-  description?: string;
-  source?: string;
-  order?: number;
-  keybindings?: readonly ActionKeyBinding[];
-  presentation?: ActionPresentation;
-  visibleWhen?: (
-    context: TimedTextActionContext,
-  ) => boolean | ActionGuardResult;
-  enabledWhen?: (
-    context: TimedTextActionContext,
-  ) => boolean | ActionGuardResult;
-  run(
-    context: TimedTextActionContext,
-    invocation: ActionInvocation<TPayload>,
-  ): TResult | Promise<TResult>;
-}
 
 export interface InsertCueActionPayload {
   trackId: string;
@@ -133,27 +115,6 @@ export type UpdateCueTimingActionResult =
 export type SplitCueActionResult = EditorOperationResult<SplitEditorCueData>;
 export type MergeCuesActionResult = EditorOperationResult<MergeEditorCuesData>;
 
-/**
- * Define a timed-text action with the default timed-text category and source.
- */
-export function defineTimedTextAction<TResult = unknown, TPayload = unknown>(
-  options: TimedTextActionOptions<TResult, TPayload>,
-): TimedTextActionDefinition<TResult, TPayload> {
-  return {
-    id: options.id,
-    title: options.title,
-    category: options.category ?? "Timed Text",
-    description: options.description,
-    source: options.source ?? "@ptl/timed-text-core",
-    order: options.order,
-    keybindings: options.keybindings,
-    presentation: options.presentation,
-    visibleWhen: options.visibleWhen,
-    enabledWhen: options.enabledWhen,
-    run: options.run,
-  };
-}
-
 export function createTimedTextActionScope(options: {
   getContext: () => TimedTextActionContext;
   actions?: Iterable<TimedTextActionDefinition>;
@@ -178,43 +139,45 @@ function requirePayload<TPayload>(
 }
 
 export const timedTextActions = {
-  insertCue: defineTimedTextAction<InsertCueActionResult, InsertCueActionPayload>(
-    {
-      id: TIMED_TEXT_ACTION_IDS.insertCue,
-      title: "Insert cue",
-      run(context, invocation) {
-        const payload = requirePayload(
-          TIMED_TEXT_ACTION_IDS.insertCue,
-          invocation,
-        );
-        return insertEditorCue(
-          context.getDocument(),
-          payload.trackId,
-          payload.cue,
-          payload.index,
-        );
-      },
+  insertCue: {
+    ...TIMED_TEXT_ACTION_DEFAULTS,
+    id: TIMED_TEXT_ACTION_IDS.insertCue,
+    title: "Insert cue",
+    run(context, invocation) {
+      const payload = requirePayload(
+        TIMED_TEXT_ACTION_IDS.insertCue,
+        invocation,
+      );
+      return insertEditorCue(
+        context.getDocument(),
+        payload.trackId,
+        payload.cue,
+        payload.index,
+      );
     },
-  ),
+  } satisfies TimedTextActionDefinition<
+    InsertCueActionResult,
+    InsertCueActionPayload
+  >,
 
-  deleteCue: defineTimedTextAction<DeleteCueActionResult, DeleteCueActionPayload>(
-    {
-      id: TIMED_TEXT_ACTION_IDS.deleteCue,
-      title: "Delete cue",
-      run(context, invocation) {
-        const payload = requirePayload(
-          TIMED_TEXT_ACTION_IDS.deleteCue,
-          invocation,
-        );
-        return deleteEditorCue(context.getDocument(), payload.cueId);
-      },
+  deleteCue: {
+    ...TIMED_TEXT_ACTION_DEFAULTS,
+    id: TIMED_TEXT_ACTION_IDS.deleteCue,
+    title: "Delete cue",
+    run(context, invocation) {
+      const payload = requirePayload(
+        TIMED_TEXT_ACTION_IDS.deleteCue,
+        invocation,
+      );
+      return deleteEditorCue(context.getDocument(), payload.cueId);
     },
-  ),
+  } satisfies TimedTextActionDefinition<
+    DeleteCueActionResult,
+    DeleteCueActionPayload
+  >,
 
-  updateCueText: defineTimedTextAction<
-    UpdateCueTextActionResult,
-    UpdateCueTextActionPayload
-  >({
+  updateCueText: {
+    ...TIMED_TEXT_ACTION_DEFAULTS,
     id: TIMED_TEXT_ACTION_IDS.updateCueText,
     title: "Update cue text",
     run(context, invocation) {
@@ -226,12 +189,13 @@ export const timedTextActions = {
         text: payload.text,
       });
     },
-  }),
+  } satisfies TimedTextActionDefinition<
+    UpdateCueTextActionResult,
+    UpdateCueTextActionPayload
+  >,
 
-  updateCueTiming: defineTimedTextAction<
-    UpdateCueTimingActionResult,
-    UpdateCueTimingActionPayload
-  >({
+  updateCueTiming: {
+    ...TIMED_TEXT_ACTION_DEFAULTS,
     id: TIMED_TEXT_ACTION_IDS.updateCueTiming,
     title: "Update cue timing",
     run(context, invocation) {
@@ -246,9 +210,13 @@ export const timedTextActions = {
         payload.endMs,
       );
     },
-  }),
+  } satisfies TimedTextActionDefinition<
+    UpdateCueTimingActionResult,
+    UpdateCueTimingActionPayload
+  >,
 
-  splitCue: defineTimedTextAction<SplitCueActionResult, SplitCueActionPayload>({
+  splitCue: {
+    ...TIMED_TEXT_ACTION_DEFAULTS,
     id: TIMED_TEXT_ACTION_IDS.splitCue,
     title: "Split cue",
     run(context, invocation) {
@@ -264,25 +232,30 @@ export const timedTextActions = {
         textDistribution: payload.textDistribution,
       });
     },
-  }),
+  } satisfies TimedTextActionDefinition<
+    SplitCueActionResult,
+    SplitCueActionPayload
+  >,
 
-  mergeCues: defineTimedTextAction<MergeCuesActionResult, MergeCuesActionPayload>(
-    {
-      id: TIMED_TEXT_ACTION_IDS.mergeCues,
-      title: "Merge cues",
-      run(context, invocation) {
-        const payload = requirePayload(
-          TIMED_TEXT_ACTION_IDS.mergeCues,
-          invocation,
-        );
-        return mergeEditorCues(context.getDocument(), payload.cueIds, {
-          separator: payload.separator,
-          textCombination: payload.textCombination,
-        });
-      },
+  mergeCues: {
+    ...TIMED_TEXT_ACTION_DEFAULTS,
+    id: TIMED_TEXT_ACTION_IDS.mergeCues,
+    title: "Merge cues",
+    run(context, invocation) {
+      const payload = requirePayload(
+        TIMED_TEXT_ACTION_IDS.mergeCues,
+        invocation,
+      );
+      return mergeEditorCues(context.getDocument(), payload.cueIds, {
+        separator: payload.separator,
+        textCombination: payload.textCombination,
+      });
     },
-  ),
-} satisfies Record<string, TimedTextActionDefinition>;
+  } satisfies TimedTextActionDefinition<
+    MergeCuesActionResult,
+    MergeCuesActionPayload
+  >,
+};
 
 export const defaultTimedTextActions = Object.values(timedTextActions);
 

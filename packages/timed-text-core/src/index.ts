@@ -1,6 +1,5 @@
 export * from "./actions";
 export * from "./adapter";
-export * from "./commands";
 export * from "./content";
 export * from "./document";
 export * from "./editor-model";
