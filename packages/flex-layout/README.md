@@ -1,4 +1,4 @@
-# @ptl/flax-layout
+# @ptl/flex-layout
 
 Headless dockable layout state for flexible panel shells inspired by
 JetBrains-style rearrangement. The package owns no DOM, CSS, pointer events,
@@ -26,13 +26,13 @@ command palettes can decide how panels look and how interactions are captured.
 
 ```ts
 import {
-  FlaxLayoutController,
-  createFlaxLayout,
+  FlexLayoutController,
+  createFlexLayout,
   getToolbarPanelIds,
   getVisiblePanelIds,
-} from "@ptl/flax-layout";
+} from "@ptl/flex-layout";
 
-const layout = createFlaxLayout({
+const layout = createFlexLayout({
   panels: [
     { id: "project", title: "Project" },
     { id: "editor", title: "Editor", constraints: { canClose: false } },
@@ -45,7 +45,7 @@ const layout = createFlaxLayout({
   },
 });
 
-const controller = new FlaxLayoutController(layout);
+const controller = new FlexLayoutController(layout);
 
 controller.subscribe((state) => {
   renderWorkspace(state.root, getVisiblePanelIds(state));

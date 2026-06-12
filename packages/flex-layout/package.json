@@ -1,5 +1,5 @@
 {
-  "name": "@ptl/flax-layout",
+  "name": "@ptl/flex-layout",
   "type": "module",
   "version": "0.0.0",
   "module": "./dist/index.mjs",

@@ -1,19 +1,19 @@
 import { describe, expect, test } from "bun:test";
 
 import {
-  FlaxLayoutController,
-  applyFlaxLayoutAction,
-  createFlaxLayout,
+  FlexLayoutController,
+  applyFlexLayoutAction,
+  createFlexLayout,
   createSplit,
   createTabset,
   findPanelTabset,
   getToolbarPanelIds,
   getVisiblePanelIds,
   getVisibleToolbarPanelIds,
-  type FlaxLayoutState,
+  type FlexLayoutState,
 } from "./index";
 
-describe("flax layout", () => {
+describe("flex layout", () => {
   test("creates a headless tabset from visible panels", () => {
     const state = fixtureLayout();
 
@@ -22,7 +22,7 @@ describe("flax layout", () => {
   });
 
   test("hides and shows panels without rendering assumptions", () => {
-    const hidden = applyFlaxLayoutAction(fixtureLayout(), {
+    const hidden = applyFlexLayoutAction(fixtureLayout(), {
       type: "hidePanel",
       panelId: "terminal",
     });
@@ -32,7 +32,7 @@ describe("flax layout", () => {
     expect(getVisiblePanelIds(hidden.state)).toEqual(["project", "editor"]);
     expect(hidden.state.hiddenPanelIds).toContain("terminal");
 
-    const shown = applyFlaxLayoutAction(hidden.state, {
+    const shown = applyFlexLayoutAction(hidden.state, {
       type: "showPanel",
       panelId: "terminal",
       location: { targetPanelId: "project", placement: "right" },
@@ -46,7 +46,7 @@ describe("flax layout", () => {
   });
 
   test("moves panels into tabsets or directional splits", () => {
-    const movedToTabs = applyFlaxLayoutAction(fixtureLayout(), {
+    const movedToTabs = applyFlexLayoutAction(fixtureLayout(), {
       type: "movePanel",
       panelId: "terminal",
       location: { targetPanelId: "project", placement: "center" },
@@ -60,7 +60,7 @@ describe("flax layout", () => {
       "editor",
     ]);
 
-    const movedToSplit = applyFlaxLayoutAction(movedToTabs.state, {
+    const movedToSplit = applyFlexLayoutAction(movedToTabs.state, {
       type: "movePanel",
       panelId: "terminal",
       location: { targetPanelId: "editor", placement: "bottom" },
@@ -72,7 +72,7 @@ describe("flax layout", () => {
   });
 
   test("rejects constrained panel operations", () => {
-    const hidden = applyFlaxLayoutAction(fixtureLayout(), {
+    const hidden = applyFlexLayoutAction(fixtureLayout(), {
       type: "hidePanel",
       panelId: "editor",
     });
@@ -81,7 +81,7 @@ describe("flax layout", () => {
       reason: "Panel cannot be hidden: editor",
     });
 
-    const moved = applyFlaxLayoutAction(fixtureLayout(), {
+    const moved = applyFlexLayoutAction(fixtureLayout(), {
       type: "movePanel",
       panelId: "project",
       location: { targetPanelId: "editor", placement: "bottom" },
@@ -93,7 +93,7 @@ describe("flax layout", () => {
   });
 
   test("resizes split children while applying panel size constraints", () => {
-    const state = createFlaxLayout({
+    const state = createFlexLayout({
       panels: [
         { id: "left", constraints: { minSize: 0.25 } },
         { id: "right", constraints: { maxSize: 0.6 } },
@@ -108,7 +108,7 @@ describe("flax layout", () => {
       ),
     });
 
-    const resized = applyFlaxLayoutAction(state, {
+    const resized = applyFlexLayoutAction(state, {
       type: "resizeSplit",
       splitId: "main-split",
       sizes: [0.1, 0.9],
@@ -123,7 +123,7 @@ describe("flax layout", () => {
 
 
   test("creates grouped side toolbar state with separators between groups", () => {
-    const state = createFlaxLayout({
+    const state = createFlexLayout({
       panels: [
         { id: "project" },
         { id: "search" },
@@ -153,7 +153,7 @@ describe("flax layout", () => {
 
   test("moves toolbar items between the four page corners", () => {
     const state = fixtureLayout();
-    const moved = applyFlaxLayoutAction(state, {
+    const moved = applyFlexLayoutAction(state, {
       type: "moveToolbarItem",
       panelId: "terminal",
       location: { corner: "bottom-right", groupId: "tools", index: 0 },
@@ -172,7 +172,7 @@ describe("flax layout", () => {
   });
 
   test("controller exposes a small subscription based integration surface", () => {
-    const controller = new FlaxLayoutController(fixtureLayout());
+    const controller = new FlexLayoutController(fixtureLayout());
     const snapshots: string[][] = [];
 
     const unsubscribe = controller.subscribe((state) => {
@@ -189,8 +189,8 @@ describe("flax layout", () => {
   });
 });
 
-function fixtureLayout(): FlaxLayoutState {
-  return createFlaxLayout({
+function fixtureLayout(): FlexLayoutState {
+  return createFlexLayout({
     panels: [
       {
         id: "project",

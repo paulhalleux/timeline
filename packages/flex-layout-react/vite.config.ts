@@ -11,7 +11,7 @@ export default defineConfig({
       fileName: "index",
     },
     rolldownOptions: {
-      external: ["@ptl/flax-layout", "react", "react-dom"],
+      external: ["@ptl/flex-layout", "react", "react-dom"],
     },
   },
 });

@@ -1,140 +1,140 @@
-export type FlaxPanelId = string;
-export type FlaxNodeId = string;
+export type FlexPanelId = string;
+export type FlexNodeId = string;
 
-export type FlaxDirection = "horizontal" | "vertical";
-export type FlaxDropPlacement = "left" | "right" | "top" | "bottom" | "center";
-export type FlaxToolbarSide = "left" | "right";
-export type FlaxToolbarCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+export type FlexDirection = "horizontal" | "vertical";
+export type FlexDropPlacement = "left" | "right" | "top" | "bottom" | "center";
+export type FlexToolbarSide = "left" | "right";
+export type FlexToolbarCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
-export const flaxToolbarCorners = [
+export const flexToolbarCorners = [
   "top-left",
   "top-right",
   "bottom-left",
   "bottom-right",
-] as const satisfies readonly FlaxToolbarCorner[];
+] as const satisfies readonly FlexToolbarCorner[];
 
-export interface FlaxPanelConstraints {
+export interface FlexPanelConstraints {
   readonly canClose?: boolean;
   readonly canMove?: boolean;
-  readonly allowedDropPlacements?: readonly FlaxDropPlacement[];
+  readonly allowedDropPlacements?: readonly FlexDropPlacement[];
   readonly minSize?: number;
   readonly maxSize?: number;
 }
 
-export interface FlaxPanelDefinition<TMeta = unknown> {
-  readonly id: FlaxPanelId;
+export interface FlexPanelDefinition<TMeta = unknown> {
+  readonly id: FlexPanelId;
   readonly title?: string;
   readonly icon?: unknown;
   readonly hidden?: boolean;
-  readonly constraints?: FlaxPanelConstraints;
+  readonly constraints?: FlexPanelConstraints;
   readonly meta?: TMeta;
 }
 
-export interface FlaxSplitChild {
-  readonly node: FlaxLayoutNode;
+export interface FlexSplitChild {
+  readonly node: FlexLayoutNode;
   readonly size: number;
 }
 
-export interface FlaxSplitNode {
-  readonly id: FlaxNodeId;
+export interface FlexSplitNode {
+  readonly id: FlexNodeId;
   readonly type: "split";
-  readonly direction: FlaxDirection;
-  readonly children: readonly FlaxSplitChild[];
+  readonly direction: FlexDirection;
+  readonly children: readonly FlexSplitChild[];
 }
 
-export interface FlaxTabsetNode {
-  readonly id: FlaxNodeId;
+export interface FlexTabsetNode {
+  readonly id: FlexNodeId;
   readonly type: "tabset";
-  readonly panels: readonly FlaxPanelId[];
-  readonly activePanelId?: FlaxPanelId;
+  readonly panels: readonly FlexPanelId[];
+  readonly activePanelId?: FlexPanelId;
 }
 
-export type FlaxLayoutNode = FlaxSplitNode | FlaxTabsetNode;
+export type FlexLayoutNode = FlexSplitNode | FlexTabsetNode;
 
-export interface FlaxToolbarGroup {
+export interface FlexToolbarGroup {
   readonly id: string;
-  readonly panelIds: readonly FlaxPanelId[];
+  readonly panelIds: readonly FlexPanelId[];
 }
 
-export type FlaxToolbarState = Readonly<Record<FlaxToolbarCorner, readonly FlaxToolbarGroup[]>>;
+export type FlexToolbarState = Readonly<Record<FlexToolbarCorner, readonly FlexToolbarGroup[]>>;
 
-export interface FlaxToolbarItemLocation {
-  readonly corner: FlaxToolbarCorner;
+export interface FlexToolbarItemLocation {
+  readonly corner: FlexToolbarCorner;
   readonly groupId?: string;
   readonly index?: number;
 }
 
-export interface FlaxLayoutState<TMeta = unknown> {
-  readonly root: FlaxLayoutNode | null;
-  readonly panels: Readonly<Record<FlaxPanelId, FlaxPanelDefinition<TMeta>>>;
-  readonly hiddenPanelIds: readonly FlaxPanelId[];
-  readonly toolbars: FlaxToolbarState;
+export interface FlexLayoutState<TMeta = unknown> {
+  readonly root: FlexLayoutNode | null;
+  readonly panels: Readonly<Record<FlexPanelId, FlexPanelDefinition<TMeta>>>;
+  readonly hiddenPanelIds: readonly FlexPanelId[];
+  readonly toolbars: FlexToolbarState;
 }
 
-export interface FlaxLayoutOptions<TMeta = unknown> {
-  readonly panels: readonly FlaxPanelDefinition<TMeta>[];
-  readonly root?: FlaxLayoutNode | null;
-  readonly toolbars?: Partial<Record<FlaxToolbarCorner, readonly FlaxToolbarGroup[]>>;
+export interface FlexLayoutOptions<TMeta = unknown> {
+  readonly panels: readonly FlexPanelDefinition<TMeta>[];
+  readonly root?: FlexLayoutNode | null;
+  readonly toolbars?: Partial<Record<FlexToolbarCorner, readonly FlexToolbarGroup[]>>;
 }
 
-export interface FlaxDropLocation {
-  readonly targetPanelId: FlaxPanelId;
-  readonly placement: FlaxDropPlacement;
+export interface FlexDropLocation {
+  readonly targetPanelId: FlexPanelId;
+  readonly placement: FlexDropPlacement;
 }
 
-export type FlaxLayoutAction<TMeta = unknown> =
-  | { readonly type: "hidePanel"; readonly panelId: FlaxPanelId }
+export type FlexLayoutAction<TMeta = unknown> =
+  | { readonly type: "hidePanel"; readonly panelId: FlexPanelId }
   | {
       readonly type: "showPanel";
-      readonly panelId: FlaxPanelId;
-      readonly location?: FlaxDropLocation;
+      readonly panelId: FlexPanelId;
+      readonly location?: FlexDropLocation;
     }
   | {
       readonly type: "movePanel";
-      readonly panelId: FlaxPanelId;
-      readonly location: FlaxDropLocation;
+      readonly panelId: FlexPanelId;
+      readonly location: FlexDropLocation;
     }
-  | { readonly type: "selectPanel"; readonly panelId: FlaxPanelId }
+  | { readonly type: "selectPanel"; readonly panelId: FlexPanelId }
   | {
       readonly type: "moveToolbarItem";
-      readonly panelId: FlaxPanelId;
-      readonly location: FlaxToolbarItemLocation;
+      readonly panelId: FlexPanelId;
+      readonly location: FlexToolbarItemLocation;
     }
   | {
       readonly type: "resizeSplit";
-      readonly splitId: FlaxNodeId;
+      readonly splitId: FlexNodeId;
       readonly sizes: readonly number[];
     }
   | {
       readonly type: "registerPanel";
-      readonly panel: FlaxPanelDefinition<TMeta>;
+      readonly panel: FlexPanelDefinition<TMeta>;
     }
-  | { readonly type: "unregisterPanel"; readonly panelId: FlaxPanelId };
+  | { readonly type: "unregisterPanel"; readonly panelId: FlexPanelId };
 
-export interface FlaxLayoutRejected {
+export interface FlexLayoutRejected {
   readonly accepted: false;
   readonly reason: string;
 }
 
-export interface FlaxLayoutAccepted<TMeta = unknown> {
+export interface FlexLayoutAccepted<TMeta = unknown> {
   readonly accepted: true;
-  readonly state: FlaxLayoutState<TMeta>;
+  readonly state: FlexLayoutState<TMeta>;
 }
 
-export type FlaxLayoutResult<TMeta = unknown> =
-  | FlaxLayoutAccepted<TMeta>
-  | FlaxLayoutRejected;
+export type FlexLayoutResult<TMeta = unknown> =
+  | FlexLayoutAccepted<TMeta>
+  | FlexLayoutRejected;
 
-export type FlaxLayoutSubscriber<TMeta = unknown> = (
-  state: FlaxLayoutState<TMeta>,
+export type FlexLayoutSubscriber<TMeta = unknown> = (
+  state: FlexLayoutState<TMeta>,
 ) => void;
 
-export function createFlaxLayout<TMeta = unknown>(
-  options: FlaxLayoutOptions<TMeta>,
-): FlaxLayoutState<TMeta> {
+export function createFlexLayout<TMeta = unknown>(
+  options: FlexLayoutOptions<TMeta>,
+): FlexLayoutState<TMeta> {
   const panels = Object.fromEntries(
     options.panels.map((panel) => [panel.id, panel]),
-  ) as Record<FlaxPanelId, FlaxPanelDefinition<TMeta>>;
+  ) as Record<FlexPanelId, FlexPanelDefinition<TMeta>>;
   const visiblePanelIds = options.panels
     .filter((panel) => panel.hidden !== true)
     .map((panel) => panel.id);
@@ -153,10 +153,10 @@ export function createFlaxLayout<TMeta = unknown>(
   };
 }
 
-export function applyFlaxLayoutAction<TMeta = unknown>(
-  state: FlaxLayoutState<TMeta>,
-  action: FlaxLayoutAction<TMeta>,
-): FlaxLayoutResult<TMeta> {
+export function applyFlexLayoutAction<TMeta = unknown>(
+  state: FlexLayoutState<TMeta>,
+  action: FlexLayoutAction<TMeta>,
+): FlexLayoutResult<TMeta> {
   switch (action.type) {
     case "hidePanel":
       return hidePanel(state, action.panelId);
@@ -177,27 +177,27 @@ export function applyFlaxLayoutAction<TMeta = unknown>(
   }
 }
 
-export class FlaxLayoutController<TMeta = unknown> {
-  private state: FlaxLayoutState<TMeta>;
-  private readonly subscribers = new Set<FlaxLayoutSubscriber<TMeta>>();
+export class FlexLayoutController<TMeta = unknown> {
+  private state: FlexLayoutState<TMeta>;
+  private readonly subscribers = new Set<FlexLayoutSubscriber<TMeta>>();
 
-  constructor(initialState: FlaxLayoutState<TMeta>) {
+  constructor(initialState: FlexLayoutState<TMeta>) {
     this.state = initialState;
   }
 
-  getState(): FlaxLayoutState<TMeta> {
+  getState(): FlexLayoutState<TMeta> {
     return this.state;
   }
 
-  dispatch(action: FlaxLayoutAction<TMeta>): FlaxLayoutResult<TMeta> {
-    const result = applyFlaxLayoutAction(this.state, action);
+  dispatch(action: FlexLayoutAction<TMeta>): FlexLayoutResult<TMeta> {
+    const result = applyFlexLayoutAction(this.state, action);
     if (!result.accepted) return result;
     this.state = result.state;
     for (const subscriber of this.subscribers) subscriber(this.state);
     return result;
   }
 
-  subscribe(subscriber: FlaxLayoutSubscriber<TMeta>): () => void {
+  subscribe(subscriber: FlexLayoutSubscriber<TMeta>): () => void {
     this.subscribers.add(subscriber);
     subscriber(this.state);
     return () => this.subscribers.delete(subscriber);
@@ -205,19 +205,19 @@ export class FlaxLayoutController<TMeta = unknown> {
 }
 
 export function canDropPanel<TMeta = unknown>(
-  state: FlaxLayoutState<TMeta>,
-  panelId: FlaxPanelId,
-  location: FlaxDropLocation,
-): FlaxLayoutRejected | { readonly accepted: true } {
+  state: FlexLayoutState<TMeta>,
+  panelId: FlexPanelId,
+  location: FlexDropLocation,
+): FlexLayoutRejected | { readonly accepted: true } {
   return validateDropPanel(state, panelId, location, true);
 }
 
 function validateDropPanel<TMeta = unknown>(
-  state: FlaxLayoutState<TMeta>,
-  panelId: FlaxPanelId,
-  location: FlaxDropLocation,
+  state: FlexLayoutState<TMeta>,
+  panelId: FlexPanelId,
+  location: FlexDropLocation,
   enforceMovable: boolean,
-): FlaxLayoutRejected | { readonly accepted: true } {
+): FlexLayoutRejected | { readonly accepted: true } {
   const panel = state.panels[panelId];
   if (!panel) return reject(`Unknown panel: ${panelId}`);
   if (enforceMovable && panel.constraints?.canMove === false) {
@@ -240,34 +240,34 @@ function validateDropPanel<TMeta = unknown>(
 }
 
 export function getToolbarPanelIds(
-  state: FlaxLayoutState,
-  corner?: FlaxToolbarCorner,
-): readonly FlaxPanelId[] {
-  const corners = corner ? [corner] : flaxToolbarCorners;
+  state: FlexLayoutState,
+  corner?: FlexToolbarCorner,
+): readonly FlexPanelId[] {
+  const corners = corner ? [corner] : flexToolbarCorners;
   return corners.flatMap((key) =>
     state.toolbars[key].flatMap((group) => group.panelIds),
   );
 }
 
 export function getVisibleToolbarPanelIds(
-  state: FlaxLayoutState,
-  corner?: FlaxToolbarCorner,
-): readonly FlaxPanelId[] {
+  state: FlexLayoutState,
+  corner?: FlexToolbarCorner,
+): readonly FlexPanelId[] {
   return getToolbarPanelIds(state, corner).filter(
     (panelId) => !state.hiddenPanelIds.includes(panelId),
   );
 }
 
 export function getToolbarSideCorners(
-  side: FlaxToolbarSide,
-): readonly [FlaxToolbarCorner, FlaxToolbarCorner] {
+  side: FlexToolbarSide,
+): readonly [FlexToolbarCorner, FlexToolbarCorner] {
   return side === "left" ? ["top-left", "bottom-left"] : ["top-right", "bottom-right"];
 }
 
 export function getVisiblePanelIds(
-  state: FlaxLayoutState,
-): readonly FlaxPanelId[] {
-  const ids: FlaxPanelId[] = [];
+  state: FlexLayoutState,
+): readonly FlexPanelId[] {
+  const ids: FlexPanelId[] = [];
   visitLayout(state.root, (node) => {
     if (node.type === "tabset") ids.push(...node.panels);
   });
@@ -275,10 +275,10 @@ export function getVisiblePanelIds(
 }
 
 export function findPanelTabset(
-  root: FlaxLayoutNode | null,
-  panelId: FlaxPanelId,
-): FlaxTabsetNode | undefined {
-  let found: FlaxTabsetNode | undefined;
+  root: FlexLayoutNode | null,
+  panelId: FlexPanelId,
+): FlexTabsetNode | undefined {
+  let found: FlexTabsetNode | undefined;
   visitLayout(root, (node) => {
     if (node.type === "tabset" && node.panels.includes(panelId)) found = node;
   });
@@ -286,9 +286,9 @@ export function findPanelTabset(
 }
 
 export function createTabset(
-  panels: readonly FlaxPanelId[],
+  panels: readonly FlexPanelId[],
   id = createNodeId("tabs"),
-): FlaxTabsetNode {
+): FlexTabsetNode {
   return {
     id,
     type: "tabset",
@@ -298,10 +298,10 @@ export function createTabset(
 }
 
 export function createSplit(
-  direction: FlaxDirection,
-  children: readonly FlaxSplitChild[],
+  direction: FlexDirection,
+  children: readonly FlexSplitChild[],
   id = createNodeId("split"),
-): FlaxSplitNode {
+): FlexSplitNode {
   return {
     id,
     type: "split",
@@ -311,9 +311,9 @@ export function createSplit(
 }
 
 function hidePanel<TMeta>(
-  state: FlaxLayoutState<TMeta>,
-  panelId: FlaxPanelId,
-): FlaxLayoutResult<TMeta> {
+  state: FlexLayoutState<TMeta>,
+  panelId: FlexPanelId,
+): FlexLayoutResult<TMeta> {
   const panel = state.panels[panelId];
   if (!panel) return reject(`Unknown panel: ${panelId}`);
   if (panel.constraints?.canClose === false) {
@@ -321,7 +321,7 @@ function hidePanel<TMeta>(
   }
   if (state.hiddenPanelIds.includes(panelId)) return accept(state);
 
-  const root = normalizeTree(removePanelFromTree(state.root, panelId));
+  const root = normalizeNode(removePanelFromNode(state.root, panelId));
   return accept({
     ...state,
     root,
@@ -330,10 +330,10 @@ function hidePanel<TMeta>(
 }
 
 function showPanel<TMeta>(
-  state: FlaxLayoutState<TMeta>,
-  panelId: FlaxPanelId,
-  location?: FlaxDropLocation,
-): FlaxLayoutResult<TMeta> {
+  state: FlexLayoutState<TMeta>,
+  panelId: FlexPanelId,
+  location?: FlexDropLocation,
+): FlexLayoutResult<TMeta> {
   if (!state.panels[panelId]) return reject(`Unknown panel: ${panelId}`);
   if (!state.hiddenPanelIds.includes(panelId)) return accept(state);
 
@@ -353,10 +353,10 @@ function showPanel<TMeta>(
 }
 
 function movePanel<TMeta>(
-  state: FlaxLayoutState<TMeta>,
-  panelId: FlaxPanelId,
-  location: FlaxDropLocation,
-): FlaxLayoutResult<TMeta> {
+  state: FlexLayoutState<TMeta>,
+  panelId: FlexPanelId,
+  location: FlexDropLocation,
+): FlexLayoutResult<TMeta> {
   const canDrop = canDropPanel(state, panelId, location);
   if (!canDrop.accepted) return canDrop;
   if (state.hiddenPanelIds.includes(panelId)) {
@@ -366,58 +366,58 @@ function movePanel<TMeta>(
     return reject(`Panel is not visible: ${panelId}`);
   }
 
-  const withoutPanel = normalizeTree(removePanelFromTree(state.root, panelId));
+  const withoutPanel = normalizeNode(removePanelFromNode(state.root, panelId));
   if (!withoutPanel) return reject("Cannot move the only visible panel");
   const nextState = { ...state, root: withoutPanel };
   return insertVisiblePanel(nextState, panelId, location, true);
 }
 
 function insertVisiblePanel<TMeta>(
-  state: FlaxLayoutState<TMeta>,
-  panelId: FlaxPanelId,
-  location: FlaxDropLocation,
+  state: FlexLayoutState<TMeta>,
+  panelId: FlexPanelId,
+  location: FlexDropLocation,
   enforceMovable: boolean,
-): FlaxLayoutResult<TMeta> {
+): FlexLayoutResult<TMeta> {
   const canDrop = validateDropPanel(state, panelId, location, enforceMovable);
   if (!canDrop.accepted) return canDrop;
-  const inserted = insertPanelIntoTree(state.root, panelId, location);
+  const inserted = insertPanelIntoNode(state.root, panelId, location);
   if (!inserted.changed) {
     return reject(`Target panel is not visible: ${location.targetPanelId}`);
   }
-  return accept({ ...state, root: normalizeTree(inserted.node) });
+  return accept({ ...state, root: normalizeNode(inserted.node) });
 }
 
 function selectPanel<TMeta>(
-  state: FlaxLayoutState<TMeta>,
-  panelId: FlaxPanelId,
-): FlaxLayoutResult<TMeta> {
+  state: FlexLayoutState<TMeta>,
+  panelId: FlexPanelId,
+): FlexLayoutResult<TMeta> {
   if (!state.panels[panelId]) return reject(`Unknown panel: ${panelId}`);
   if (state.hiddenPanelIds.includes(panelId)) {
     return reject(`Hidden panel cannot be selected: ${panelId}`);
   }
-  const selected = selectPanelInTree(state.root, panelId);
+  const selected = selectPanelInNode(state.root, panelId);
   if (!selected.changed) return reject(`Panel is not visible: ${panelId}`);
   return accept({ ...state, root: selected.node });
 }
 
 function resizeSplit<TMeta>(
-  state: FlaxLayoutState<TMeta>,
-  splitId: FlaxNodeId,
+  state: FlexLayoutState<TMeta>,
+  splitId: FlexNodeId,
   sizes: readonly number[],
-): FlaxLayoutResult<TMeta> {
+): FlexLayoutResult<TMeta> {
   const split = findSplit(state.root, splitId);
   if (!split) return reject(`Unknown split: ${splitId}`);
   if (sizes.length !== split.children.length) {
     return reject("Resize sizes must match split children length");
   }
-  const resized = resizeSplitInTree(state.root, splitId, sizes, state.panels);
+  const resized = resizeSplitInNode(state.root, splitId, sizes, state.panels);
   return accept({ ...state, root: resized.node });
 }
 
 function registerPanel<TMeta>(
-  state: FlaxLayoutState<TMeta>,
-  panel: FlaxPanelDefinition<TMeta>,
-): FlaxLayoutResult<TMeta> {
+  state: FlexLayoutState<TMeta>,
+  panel: FlexPanelDefinition<TMeta>,
+): FlexLayoutResult<TMeta> {
   if (state.panels[panel.id]) return reject(`Panel already exists: ${panel.id}`);
   return accept({
     ...state,
@@ -430,14 +430,14 @@ function registerPanel<TMeta>(
 }
 
 function unregisterPanel<TMeta>(
-  state: FlaxLayoutState<TMeta>,
-  panelId: FlaxPanelId,
-): FlaxLayoutResult<TMeta> {
+  state: FlexLayoutState<TMeta>,
+  panelId: FlexPanelId,
+): FlexLayoutResult<TMeta> {
   if (!state.panels[panelId]) return reject(`Unknown panel: ${panelId}`);
   const panels = { ...state.panels };
   delete panels[panelId];
   return accept({
-    root: normalizeTree(removePanelFromTree(state.root, panelId)),
+    root: normalizeNode(removePanelFromNode(state.root, panelId)),
     panels,
     hiddenPanelIds: state.hiddenPanelIds.filter((id) => id !== panelId),
     toolbars: removeToolbarPanel(state.toolbars, panelId),
@@ -446,16 +446,16 @@ function unregisterPanel<TMeta>(
 
 
 function moveToolbarItem<TMeta>(
-  state: FlaxLayoutState<TMeta>,
-  panelId: FlaxPanelId,
-  location: FlaxToolbarItemLocation,
-): FlaxLayoutResult<TMeta> {
+  state: FlexLayoutState<TMeta>,
+  panelId: FlexPanelId,
+  location: FlexToolbarItemLocation,
+): FlexLayoutResult<TMeta> {
   const panel = state.panels[panelId];
   if (!panel) return reject(`Unknown panel: ${panelId}`);
   if (panel.constraints?.canMove === false) {
     return reject(`Panel cannot be moved: ${panelId}`);
   }
-  if (!flaxToolbarCorners.includes(location.corner)) {
+  if (!flexToolbarCorners.includes(location.corner)) {
     return reject(`Unknown toolbar corner: ${location.corner}`);
   }
 
@@ -465,11 +465,11 @@ function moveToolbarItem<TMeta>(
   });
 }
 
-function insertPanelIntoTree(
-  node: FlaxLayoutNode | null,
-  panelId: FlaxPanelId,
-  location: FlaxDropLocation,
-): { readonly node: FlaxLayoutNode | null; readonly changed: boolean } {
+function insertPanelIntoNode(
+  node: FlexLayoutNode | null,
+  panelId: FlexPanelId,
+  location: FlexDropLocation,
+): { readonly node: FlexLayoutNode | null; readonly changed: boolean } {
   if (!node) return { node, changed: false };
 
   if (node.type === "tabset") {
@@ -501,7 +501,7 @@ function insertPanelIntoTree(
   }
 
   const children = node.children.map((child) => {
-    const inserted = insertPanelIntoTree(child.node, panelId, location);
+    const inserted = insertPanelIntoNode(child.node, panelId, location);
     return { child: { ...child, node: inserted.node! }, changed: inserted.changed };
   });
   const changed = children.some((child) => child.changed);
@@ -513,10 +513,10 @@ function insertPanelIntoTree(
   };
 }
 
-function removePanelFromTree(
-  node: FlaxLayoutNode | null,
-  panelId: FlaxPanelId,
-): FlaxLayoutNode | null {
+function removePanelFromNode(
+  node: FlexLayoutNode | null,
+  panelId: FlexPanelId,
+): FlexLayoutNode | null {
   if (!node) return null;
   if (node.type === "tabset") {
     if (!node.panels.includes(panelId)) return node;
@@ -533,28 +533,28 @@ function removePanelFromTree(
   return {
     ...node,
     children: node.children
-      .map((child) => ({ ...child, node: removePanelFromTree(child.node, panelId) }))
-      .filter((child): child is FlaxSplitChild => child.node !== null),
+      .map((child) => ({ ...child, node: removePanelFromNode(child.node, panelId) }))
+      .filter((child): child is FlexSplitChild => child.node !== null),
   };
 }
 
-function normalizeTree(node: FlaxLayoutNode | null): FlaxLayoutNode | null {
+function normalizeNode(node: FlexLayoutNode | null): FlexLayoutNode | null {
   if (!node) return null;
   if (node.type === "tabset") return node.panels.length === 0 ? null : node;
 
   const children = node.children
-    .map((child) => ({ ...child, node: normalizeTree(child.node) }))
-    .filter((child): child is FlaxSplitChild => child.node !== null);
+    .map((child) => ({ ...child, node: normalizeNode(child.node) }))
+    .filter((child): child is FlexSplitChild => child.node !== null);
   if (children.length === 0) return null;
   if (children.length === 1) return children[0]!.node;
 
   return { ...node, children: distributeSizes(children) };
 }
 
-function selectPanelInTree(
-  node: FlaxLayoutNode | null,
-  panelId: FlaxPanelId,
-): { readonly node: FlaxLayoutNode | null; readonly changed: boolean } {
+function selectPanelInNode(
+  node: FlexLayoutNode | null,
+  panelId: FlexPanelId,
+): { readonly node: FlexLayoutNode | null; readonly changed: boolean } {
   if (!node) return { node, changed: false };
   if (node.type === "tabset") {
     if (!node.panels.includes(panelId)) return { node, changed: false };
@@ -562,7 +562,7 @@ function selectPanelInTree(
   }
 
   const children = node.children.map((child) => {
-    const selected = selectPanelInTree(child.node, panelId);
+    const selected = selectPanelInNode(child.node, panelId);
     return { child: { ...child, node: selected.node! }, changed: selected.changed };
   });
   const changed = children.some((child) => child.changed);
@@ -574,12 +574,12 @@ function selectPanelInTree(
   };
 }
 
-function resizeSplitInTree<TMeta>(
-  node: FlaxLayoutNode | null,
-  splitId: FlaxNodeId,
+function resizeSplitInNode<TMeta>(
+  node: FlexLayoutNode | null,
+  splitId: FlexNodeId,
   sizes: readonly number[],
-  panels: Readonly<Record<FlaxPanelId, FlaxPanelDefinition<TMeta>>>,
-): { readonly node: FlaxLayoutNode | null; readonly changed: boolean } {
+  panels: Readonly<Record<FlexPanelId, FlexPanelDefinition<TMeta>>>,
+): { readonly node: FlexLayoutNode | null; readonly changed: boolean } {
   if (!node) return { node, changed: false };
   if (node.type === "tabset") return { node, changed: false };
 
@@ -597,7 +597,7 @@ function resizeSplitInTree<TMeta>(
   }
 
   const children = node.children.map((child) => {
-    const resized = resizeSplitInTree(child.node, splitId, sizes, panels);
+    const resized = resizeSplitInNode(child.node, splitId, sizes, panels);
     return { child: { ...child, node: resized.node! }, changed: resized.changed };
   });
   const changed = children.some((child) => child.changed);
@@ -611,8 +611,8 @@ function resizeSplitInTree<TMeta>(
 
 function clampSize<TMeta>(
   size: number,
-  node: FlaxLayoutNode,
-  panels: Readonly<Record<FlaxPanelId, FlaxPanelDefinition<TMeta>>>,
+  node: FlexLayoutNode,
+  panels: Readonly<Record<FlexPanelId, FlexPanelDefinition<TMeta>>>,
 ): number {
   const constraints = collectPanelIds(node).map((id) => panels[id]?.constraints);
   const minSize = Math.max(0, ...constraints.map((constraint) => constraint?.minSize ?? 0));
@@ -623,15 +623,15 @@ function clampSize<TMeta>(
   return Math.min(maxSize, Math.max(minSize, size));
 }
 
-function collectPanelIds(node: FlaxLayoutNode): readonly FlaxPanelId[] {
+function collectPanelIds(node: FlexLayoutNode): readonly FlexPanelId[] {
   if (node.type === "tabset") return node.panels;
   return node.children.flatMap((child) => collectPanelIds(child.node));
 }
 
 function findSplit(
-  node: FlaxLayoutNode | null,
-  splitId: FlaxNodeId,
-): FlaxSplitNode | undefined {
+  node: FlexLayoutNode | null,
+  splitId: FlexNodeId,
+): FlexSplitNode | undefined {
   if (!node) return undefined;
   if (node.type === "split" && node.id === splitId) return node;
   if (node.type === "tabset") return undefined;
@@ -642,13 +642,13 @@ function findSplit(
   return undefined;
 }
 
-function createDefaultDropLocation(root: FlaxLayoutNode): FlaxDropLocation | undefined {
+function createDefaultDropLocation(root: FlexLayoutNode): FlexDropLocation | undefined {
   const firstTabset = findFirstTabset(root);
   const targetPanelId = firstTabset?.panels[0];
   return targetPanelId ? { targetPanelId, placement: "center" } : undefined;
 }
 
-function findFirstTabset(node: FlaxLayoutNode): FlaxTabsetNode | undefined {
+function findFirstTabset(node: FlexLayoutNode): FlexTabsetNode | undefined {
   if (node.type === "tabset") return node;
   for (const child of node.children) {
     const found = findFirstTabset(child.node);
@@ -657,7 +657,7 @@ function findFirstTabset(node: FlaxLayoutNode): FlaxTabsetNode | undefined {
   return undefined;
 }
 
-function distributeSizes(children: readonly FlaxSplitChild[]): readonly FlaxSplitChild[] {
+function distributeSizes(children: readonly FlexSplitChild[]): readonly FlexSplitChild[] {
   const total = children.reduce((sum, child) => sum + Math.max(0, child.size), 0);
   if (total === 0) {
     const evenSize = 1 / children.length;
@@ -667,8 +667,8 @@ function distributeSizes(children: readonly FlaxSplitChild[]): readonly FlaxSpli
 }
 
 function visitLayout(
-  node: FlaxLayoutNode | null,
-  visitor: (node: FlaxLayoutNode) => void,
+  node: FlexLayoutNode | null,
+  visitor: (node: FlexLayoutNode) => void,
 ): void {
   if (!node) return;
   visitor(node);
@@ -678,12 +678,12 @@ function visitLayout(
 }
 
 function normalizeToolbars(
-  toolbars: Partial<Record<FlaxToolbarCorner, readonly FlaxToolbarGroup[]>> | undefined,
-  panelIds: readonly FlaxPanelId[],
-): FlaxToolbarState {
-  const assigned = new Set<FlaxPanelId>();
+  toolbars: Partial<Record<FlexToolbarCorner, readonly FlexToolbarGroup[]>> | undefined,
+  panelIds: readonly FlexPanelId[],
+): FlexToolbarState {
+  const assigned = new Set<FlexPanelId>();
   const normalized = Object.fromEntries(
-    flaxToolbarCorners.map((corner) => {
+    flexToolbarCorners.map((corner) => {
       const groups = (toolbars?.[corner] ?? []).map((group, groupIndex) => {
         const ids = group.panelIds.filter((panelId) => {
           if (!panelIds.includes(panelId) || assigned.has(panelId)) return false;
@@ -694,7 +694,7 @@ function normalizeToolbars(
       });
       return [corner, groups.filter((group) => group.panelIds.length > 0)];
     }),
-  ) as unknown as Record<FlaxToolbarCorner, readonly FlaxToolbarGroup[]>;
+  ) as unknown as Record<FlexToolbarCorner, readonly FlexToolbarGroup[]>;
 
   const unassigned = panelIds.filter((panelId) => !assigned.has(panelId));
   return {
@@ -707,9 +707,9 @@ function normalizeToolbars(
 }
 
 function addToolbarPanel(
-  toolbars: FlaxToolbarState,
-  panelId: FlaxPanelId,
-): FlaxToolbarState {
+  toolbars: FlexToolbarState,
+  panelId: FlexPanelId,
+): FlexToolbarState {
   if (getToolbarPanelIds({ root: null, panels: {}, hiddenPanelIds: [], toolbars }).includes(panelId)) {
     return toolbars;
   }
@@ -720,19 +720,19 @@ function addToolbarPanel(
 }
 
 function removeToolbarPanel(
-  toolbars: FlaxToolbarState,
-  panelId: FlaxPanelId,
-): FlaxToolbarState {
+  toolbars: FlexToolbarState,
+  panelId: FlexPanelId,
+): FlexToolbarState {
   return Object.fromEntries(
-    flaxToolbarCorners.map((corner) => [corner, removePanelFromToolbarGroups(toolbars[corner], panelId)]),
-  ) as Record<FlaxToolbarCorner, readonly FlaxToolbarGroup[]>;
+    flexToolbarCorners.map((corner) => [corner, removePanelFromToolbarGroups(toolbars[corner], panelId)]),
+  ) as Record<FlexToolbarCorner, readonly FlexToolbarGroup[]>;
 }
 
 function movePanelInToolbars(
-  toolbars: FlaxToolbarState,
-  panelId: FlaxPanelId,
-  location: FlaxToolbarItemLocation,
-): FlaxToolbarState {
+  toolbars: FlexToolbarState,
+  panelId: FlexPanelId,
+  location: FlexToolbarItemLocation,
+): FlexToolbarState {
   const withoutPanel = removeToolbarPanel(toolbars, panelId);
   return {
     ...withoutPanel,
@@ -745,18 +745,18 @@ function movePanelInToolbars(
 }
 
 function appendPanelToToolbarGroups(
-  groups: readonly FlaxToolbarGroup[],
-  panelId: FlaxPanelId,
-): readonly FlaxToolbarGroup[] {
+  groups: readonly FlexToolbarGroup[],
+  panelId: FlexPanelId,
+): readonly FlexToolbarGroup[] {
   if (groups.length === 0) return [{ id: "main", panelIds: [panelId] }];
   const [first, ...rest] = groups;
   return [{ ...first!, panelIds: [...first!.panelIds, panelId] }, ...rest];
 }
 
 function removePanelFromToolbarGroups(
-  groups: readonly FlaxToolbarGroup[],
-  panelId: FlaxPanelId,
-): readonly FlaxToolbarGroup[] {
+  groups: readonly FlexToolbarGroup[],
+  panelId: FlexPanelId,
+): readonly FlexToolbarGroup[] {
   return groups
     .map((group) => ({
       ...group,
@@ -766,10 +766,10 @@ function removePanelFromToolbarGroups(
 }
 
 function insertPanelIntoToolbarGroups(
-  groups: readonly FlaxToolbarGroup[],
-  panelId: FlaxPanelId,
-  location: FlaxToolbarItemLocation,
-): readonly FlaxToolbarGroup[] {
+  groups: readonly FlexToolbarGroup[],
+  panelId: FlexPanelId,
+  location: FlexToolbarItemLocation,
+): readonly FlexToolbarGroup[] {
   const groupId = location.groupId ?? groups[0]?.id ?? "main";
   const existingGroup = groups.find((group) => group.id === groupId);
   const targetGroup = existingGroup ?? { id: groupId, panelIds: [] };
@@ -796,17 +796,17 @@ function addUnique<T>(items: readonly T[], item: T): readonly T[] {
   return items.includes(item) ? items : [...items, item];
 }
 
-function accept<TMeta>(state: FlaxLayoutState<TMeta>): FlaxLayoutAccepted<TMeta> {
+function accept<TMeta>(state: FlexLayoutState<TMeta>): FlexLayoutAccepted<TMeta> {
   return { accepted: true, state };
 }
 
-function reject(reason: string): FlaxLayoutRejected {
+function reject(reason: string): FlexLayoutRejected {
   return { accepted: false, reason };
 }
 
 let nodeSequence = 0;
 
-function createNodeId(prefix: string): FlaxNodeId {
+function createNodeId(prefix: string): FlexNodeId {
   nodeSequence += 1;
   return `${prefix}-${nodeSequence}`;
 }

@@ -1,10 +1,10 @@
 {
-  "name": "@ptl/flax-layout-react",
+  "name": "@ptl/flex-layout-react",
   "type": "module",
   "version": "0.0.0",
   "module": "./dist/index.js",
   "types": "./dist/src/index.d.ts",
-  "description": "React primitives for @ptl/flax-layout with built-in dock drag and resize behavior",
+  "description": "React primitives for @ptl/flex-layout with built-in dock drag and resize behavior",
   "exports": {
     ".": {
       "import": "./dist/index.js",
@@ -19,7 +19,7 @@
     "dist"
   ],
   "dependencies": {
-    "@ptl/flax-layout": "^0.0.0",
+    "@ptl/flex-layout": "^0.0.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },
