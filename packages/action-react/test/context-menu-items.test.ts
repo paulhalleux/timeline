@@ -7,7 +7,7 @@ const contextAction: ActionDescriptor = {
   title: "Delete",
   category: "Edit",
   presentation: { contextMenu: { group: "Edit", order: 10 } },
-  triggerScopes: { contextMenu: "required", menu: "none" },
+  triggerFocus: { contextMenu: "required", menu: "none" },
 };
 
 const menuAction: ActionDescriptor = {
@@ -15,7 +15,7 @@ const menuAction: ActionDescriptor = {
   title: "Export",
   category: "File",
   presentation: { menu: { path: ["File", "Export"], order: 20 } },
-  triggerScopes: { contextMenu: "none", menu: "none" },
+  triggerFocus: { contextMenu: "none", menu: "none" },
 };
 
 describe("createActionContextMenuItems", () => {

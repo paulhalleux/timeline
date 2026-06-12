@@ -1,6 +1,6 @@
-import type { ActionScopeElement } from "@ptl/action-core";
+import type { ActionSurface } from "@ptl/action-core";
 
-export interface HTMLElementScopeElementOptions {
+export interface HTMLElementActionSurfaceOptions {
   id: string;
   element: HTMLElement;
   active?: boolean | (() => boolean);
@@ -8,20 +8,20 @@ export interface HTMLElementScopeElementOptions {
 }
 
 /**
- * Creates an action-core scope element backed by a concrete HTMLElement.
+ * Creates an action-core ActionSurface backed by a concrete HTMLElement.
  *
  * The element matches invocations whose event target is contained by the
  * HTMLElement. Without an event target, it is considered active when focus is
  * inside the HTMLElement unless an explicit `active` option is provided.
  */
-export function createHTMLElementScopeElement(
-  options: HTMLElementScopeElementOptions,
-): ActionScopeElement {
+export function createHTMLElementActionSurface(
+  options: HTMLElementActionSurfaceOptions,
+): ActionSurface {
   return {
     id: options.id,
     metadata: options.metadata,
     containsTarget: (target) => isContainedTarget(options.element, target),
-    isActive: () => isHTMLElementScopeActive(options),
+    isActive: () => isHTMLElementSurfaceActive(options),
   };
 }
 
@@ -30,8 +30,8 @@ function isContainedTarget(element: HTMLElement, target: unknown): boolean {
   return element === target || element.contains(target);
 }
 
-function isHTMLElementScopeActive(
-  options: HTMLElementScopeElementOptions,
+function isHTMLElementSurfaceActive(
+  options: HTMLElementActionSurfaceOptions,
 ): boolean {
   if (typeof options.active === "boolean") return options.active;
   if (typeof options.active === "function") return options.active();

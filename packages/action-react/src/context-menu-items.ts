@@ -38,8 +38,8 @@ function canAppearForContextMenu(
   invocation: ActionInvocation,
 ): boolean {
   return (
-    action.triggerScopes?.[invocation.source] !== "required" ||
+    action.triggerFocus?.[invocation.source] !== "required" ||
     invocation.target !== undefined ||
-    invocation.scopeElementId !== undefined
+    invocation.surfaceId !== undefined
   );
 }

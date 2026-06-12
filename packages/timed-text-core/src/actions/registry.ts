@@ -1,5 +1,5 @@
 import { createTypedActionRegistry } from "@ptl/action-core";
-import type { ActionScopeElement } from "@ptl/action-core";
+import type { ActionSurface } from "@ptl/action-core";
 
 import { timedTextActions } from "./defaults";
 import { TIMED_TEXT_ACTION_SCOPE_ID } from "./ids";
@@ -14,12 +14,12 @@ import type { TimedTextActionContext } from "./types";
 export function createTimedTextActionRegistry(options: {
   getContext: () => TimedTextActionContext;
   id?: string;
-  elements?: Iterable<ActionScopeElement>;
+  surfaces?: Iterable<ActionSurface>;
 }) {
   return createTypedActionRegistry({
     id: options.id ?? TIMED_TEXT_ACTION_SCOPE_ID,
     getContext: options.getContext,
     actions: timedTextActions,
-    elements: options.elements,
+    surfaces: options.surfaces,
   });
 }

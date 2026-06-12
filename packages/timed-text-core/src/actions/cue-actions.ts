@@ -90,7 +90,7 @@ export const deleteCueAction: TimedTextActionDefinition<
     contextMenu: { group: "Edit", order: 10 },
     menu: { path: ["Edit", "Delete cue"], order: 30 },
   },
-  triggerScopes: {
+  triggerFocus: {
     shortcut: "required",
     contextMenu: "required",
     menu: "none",
@@ -178,7 +178,7 @@ export const splitCueAction: TimedTextActionDefinition<
     contextMenu: { group: "Cue", order: 20 },
     menu: { path: ["Cue", "Split cue"], order: 20 },
   },
-  triggerScopes: {
+  triggerFocus: {
     shortcut: "required",
     contextMenu: "required",
     menu: "none",
@@ -208,7 +208,7 @@ export const mergeCuesAction: TimedTextActionDefinition<
     contextMenu: { group: "Cue", order: 30 },
     menu: { path: ["Cue", "Merge cues"], order: 30 },
   },
-  triggerScopes: {
+  triggerFocus: {
     shortcut: "required",
     contextMenu: "required",
     menu: "none",

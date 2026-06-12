@@ -1,11 +1,11 @@
 export type { ActionRunner } from "./action-runner";
-export { createHTMLElementScopeElement } from "./html-scope-element";
-export type { HTMLElementScopeElementOptions } from "./html-scope-element";
-export { useActionScopeElement } from "./use-action-scope-element";
+export { createHTMLElementActionSurface } from "./html-action-surface";
+export type { HTMLElementActionSurfaceOptions } from "./html-action-surface";
+export { useActionSurface } from "./use-action-surface";
 export type {
-  UseActionScopeElementOptions,
-  UseActionScopeElementResult,
-} from "./use-action-scope-element";
+  UseActionSurfaceOptions,
+  UseActionSurfaceResult,
+} from "./use-action-surface";
 export { createActionHotkeyDefinitions } from "./hotkey-definitions";
 export type {
   ActionHotkeyOptions,

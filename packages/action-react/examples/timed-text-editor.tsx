@@ -4,7 +4,7 @@ import { createTimedTextActionRegistry } from "@ptl/timed-text-core";
 import {
   useActionContextMenu,
   useActionHotkeys,
-  useActionScopeElement,
+  useActionSurface,
 } from "@ptl/action-react";
 
 export function TimedTextEditorActionsExample(props: {
@@ -14,13 +14,13 @@ export function TimedTextEditorActionsExample(props: {
     () => createTimedTextActionRegistry({ getContext: props.getContext }),
     [props.getContext],
   );
-  const { ref, scopeElementId } = useActionScopeElement(
-    (element) => actions.registerElement(element),
+  const { ref, surfaceId } = useActionSurface(
+    (surface) => actions.registerSurface(surface),
     { id: "cue-list" },
   );
-  const contextMenu = useActionContextMenu(actions.scope, { scopeElementId });
+  const contextMenu = useActionContextMenu(actions.scope, { surfaceId });
 
-  useActionHotkeys(actions.scope, { scopeElementId });
+  useActionHotkeys(actions.scope, { surfaceId });
 
   return (
     <section ref={ref} tabIndex={0} onContextMenu={contextMenu.onContextMenu}>

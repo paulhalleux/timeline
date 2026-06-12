@@ -14,7 +14,7 @@ import {
 
 export interface UseActionContextMenuOptions {
   actions?: readonly ActionDescriptor[];
-  scopeElementId?: string;
+  surfaceId?: string;
   getPayload?: (
     action: ActionDescriptor,
     state: ActionContextMenuState,
@@ -34,7 +34,7 @@ export interface UseActionContextMenuResult {
  *
  * Render `items` however your UI library expects; calling `run(item.action)`
  * invokes the action with source `contextMenu`, the original mouse event, and
- * the registered scope element id when provided.
+ * the registered action surface id when provided.
  */
 export function useActionContextMenu(
   runner: ActionRunner,
@@ -53,10 +53,10 @@ export function useActionContextMenu(
         y: event.clientY,
         event: event.nativeEvent,
         target: event.target,
-        scopeElementId: options.scopeElementId,
+        surfaceId: options.surfaceId,
       });
     },
-    [options.scopeElementId],
+    [options.surfaceId],
   );
 
   const close = useCallback(() => {
@@ -68,9 +68,9 @@ export function useActionContextMenu(
       source: "contextMenu",
       event: menu.event,
       target: menu.target,
-      scopeElementId: menu.scopeElementId,
+      surfaceId: menu.surfaceId,
     }),
-    [menu.event, menu.scopeElementId, menu.target],
+    [menu.event, menu.surfaceId, menu.target],
   );
 
   const items = useMemo(

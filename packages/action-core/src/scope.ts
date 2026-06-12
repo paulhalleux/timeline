@@ -9,8 +9,8 @@ import type {
   ActionListOptions,
   ActionRegisterOptions,
   ActionRunResult,
-  ActionScopeElement,
-  ActionScopeRequirement,
+  ActionSurface,
+  ActionFocusRequirement,
   ActionState,
 } from "./types";
 
@@ -22,7 +22,7 @@ export interface ActionScopeOptions<TContext extends ActionContext> {
   registry?: ActionRegistry<TContext>;
   getContext: ActionContextProvider<TContext>;
   actions?: Iterable<ActionDefinition<TContext>>;
-  elements?: Iterable<ActionScopeElement>;
+  surfaces?: Iterable<ActionSurface>;
 }
 
 /**
@@ -39,16 +39,17 @@ export interface ActionScopeBridge {
 /**
  * Typed action scope that binds a registry to the context needed by its actions.
  *
- * Scope elements represent focusable or addressable surfaces such as editor
- * panes. Trigger adapters can pass `scopeElementId` or `target` in invocation;
- * actions may require scope for specific triggers via `triggerScopes`.
+ * ActionScope is the logical/business boundary: a registry plus the context
+ * required by its actions. UI focus is represented separately by ActionSurface.
+ * Trigger adapters can pass `surfaceId` or `target` in invocation; actions may
+ * require an active surface for specific triggers via `triggerFocus`.
  */
 export class ActionScope<TContext extends ActionContext = ActionContext>
   implements ActionScopeBridge
 {
   readonly id: string;
   readonly registry: ActionRegistry<TContext>;
-  private readonly elements = new Map<string, ActionScopeElement>();
+  private readonly surfaces = new Map<string, ActionSurface>();
   private readonly getContextValue: ActionContextProvider<TContext>;
 
   constructor(options: ActionScopeOptions<TContext>) {
@@ -60,8 +61,8 @@ export class ActionScope<TContext extends ActionContext = ActionContext>
       this.registry.registerMany(options.actions);
     }
 
-    if (options.elements) {
-      for (const element of options.elements) this.registerElement(element);
+    if (options.surfaces) {
+      for (const surface of options.surfaces) this.registerSurface(surface);
     }
   }
 
@@ -83,38 +84,38 @@ export class ActionScope<TContext extends ActionContext = ActionContext>
     return this.registry.registerMany(actions, options);
   }
 
-  registerElement(element: ActionScopeElement): () => void {
-    if (this.elements.has(element.id)) {
-      throw new Error(`Action scope element "${element.id}" is already registered.`);
+  registerSurface(surface: ActionSurface): () => void {
+    if (this.surfaces.has(surface.id)) {
+      throw new Error(`Action surface "${surface.id}" is already registered.`);
     }
 
-    this.elements.set(element.id, element);
+    this.surfaces.set(surface.id, surface);
     return () => {
-      if (this.elements.get(element.id) === element) {
-        this.elements.delete(element.id);
+      if (this.surfaces.get(surface.id) === surface) {
+        this.surfaces.delete(surface.id);
       }
     };
   }
 
-  getElement(id: string): ActionScopeElement | undefined {
-    return this.elements.get(id);
+  getSurface(id: string): ActionSurface | undefined {
+    return this.surfaces.get(id);
   }
 
-  resolveElement(invocation: ActionInvocation): ActionScopeElement | undefined {
-    if (invocation.scopeElementId) {
-      const element = this.elements.get(invocation.scopeElementId);
-      if (element && this.isElementActive(element)) return element;
+  resolveSurface(invocation: ActionInvocation): ActionSurface | undefined {
+    if (invocation.surfaceId) {
+      const surface = this.surfaces.get(invocation.surfaceId);
+      if (surface && this.isSurfaceActive(surface)) return surface;
     }
 
     if (invocation.target !== undefined) {
-      for (const element of this.elements.values()) {
-        if (!this.isElementActive(element)) continue;
-        if (element.containsTarget?.(invocation.target)) return element;
+      for (const surface of this.surfaces.values()) {
+        if (!this.isSurfaceActive(surface)) continue;
+        if (surface.containsTarget?.(invocation.target)) return surface;
       }
     }
 
-    for (const element of this.elements.values()) {
-      if (this.isElementActive(element)) return element;
+    for (const surface of this.surfaces.values()) {
+      if (this.isSurfaceActive(surface)) return surface;
     }
 
     return undefined;
@@ -137,8 +138,8 @@ export class ActionScope<TContext extends ActionContext = ActionContext>
     if (!action) return this.registry.run(id, this.getContext(), invocation);
 
     const normalizedInvocation = invocation ?? { source: "api" };
-    const scopeState = this.getInvocationScopeState(action, normalizedInvocation);
-    if (!scopeState.ok) return Promise.resolve(scopeState.result);
+    const focusState = this.getInvocationFocusState(action, normalizedInvocation);
+    if (!focusState.ok) return Promise.resolve(focusState.result);
 
     return this.registry.run(id, this.getContext(), normalizedInvocation);
   }
@@ -147,37 +148,37 @@ export class ActionScope<TContext extends ActionContext = ActionContext>
     action: ActionDefinition<TContext, TResult, TPayload>,
     invocation: ActionInvocationInput<TPayload>,
   ): Promise<ActionRunResult<TResult>> {
-    const scopeState = this.getInvocationScopeState(action, invocation);
-    if (!scopeState.ok) return Promise.resolve(scopeState.result);
+    const focusState = this.getInvocationFocusState(action, invocation);
+    if (!focusState.ok) return Promise.resolve(focusState.result);
 
     return this.registry.runAction(action, this.getContext(), invocation);
   }
 
-  private isElementActive(element: ActionScopeElement): boolean {
-    return element.isActive?.() ?? true;
+  private isSurfaceActive(surface: ActionSurface): boolean {
+    return surface.isActive?.() ?? true;
   }
 
-  private getInvocationScopeState(
+  private getInvocationFocusState(
     action: ActionDescriptor,
     invocation: ActionInvocation,
   ):
     | { ok: true }
     | { ok: false; result: ActionRunResult<never> } {
-    const requirement: ActionScopeRequirement =
-      action.triggerScopes?.[invocation.source] ?? "optional";
+    const requirement: ActionFocusRequirement =
+      action.triggerFocus?.[invocation.source] ?? "optional";
 
     if (requirement !== "required") return { ok: true };
 
-    const element = this.resolveElement(invocation);
-    if (element) return { ok: true };
+    const surface = this.resolveSurface(invocation);
+    if (surface) return { ok: true };
 
     return {
       ok: false,
       result: {
         ok: false,
         actionId: action.id,
-        reason: "scope-unavailable",
-        message: `Action "${action.id}" requires an active scope element for "${invocation.source}".`,
+        reason: "surface-unavailable",
+        message: `Action "${action.id}" requires an active action surface for "${invocation.source}".`,
       },
     };
   }

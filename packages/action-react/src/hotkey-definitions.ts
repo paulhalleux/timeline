@@ -13,7 +13,7 @@ import type { ActionRunner } from "./action-runner";
 export interface ActionHotkeyOptions {
   actions?: readonly ActionDescriptor[];
   enabled?: boolean;
-  scopeElementId?: string;
+  surfaceId?: string;
   target?: UseHotkeyOptions["target"];
   getPayload?: (action: ActionDescriptor, event: KeyboardEvent) => unknown;
 }
@@ -57,7 +57,7 @@ export function createActionHotkeyDefinitions(
               description: action.description,
               group: action.category,
               actionId: action.id,
-              scope: keybinding.scope,
+              hotkeyScope: keybinding.hotkeyScope,
             },
           },
         });
@@ -80,7 +80,7 @@ function createShortcutInvocation(
       source: "shortcut",
       event,
       target: event.target,
-      scopeElementId: options.scopeElementId,
+      surfaceId: options.surfaceId,
     };
   }
 
@@ -88,7 +88,7 @@ function createShortcutInvocation(
     source: "shortcut",
     event,
     target: event.target,
-    scopeElementId: options.scopeElementId,
+    surfaceId: options.surfaceId,
     payload,
   };
 }

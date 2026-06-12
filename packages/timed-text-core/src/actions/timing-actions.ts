@@ -36,7 +36,7 @@ export const shiftCuesAction: TimedTextActionDefinition<
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Shift cues",
   presentation: { menu: { path: ["Timing", "Shift cues"], order: 10 } },
-  triggerScopes: {
+  triggerFocus: {
     shortcut: "required",
     contextMenu: "required",
     menu: "none",
@@ -58,7 +58,7 @@ export const scaleCuesAction: TimedTextActionDefinition<
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Scale cues",
   presentation: { menu: { path: ["Timing", "Scale cues"], order: 20 } },
-  triggerScopes: {
+  triggerFocus: {
     shortcut: "required",
     contextMenu: "required",
     menu: "none",
@@ -82,7 +82,7 @@ export const snapCuesToFramesAction: TimedTextActionDefinition<
   presentation: {
     menu: { path: ["Timing", "Snap cues to frames"], order: 30 },
   },
-  triggerScopes: {
+  triggerFocus: {
     shortcut: "required",
     contextMenu: "required",
     menu: "none",
@@ -107,7 +107,7 @@ export const fixOverlapsAction: TimedTextActionDefinition<
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Fix overlaps",
   presentation: { menu: { path: ["Timing", "Fix overlaps"], order: 40 } },
-  triggerScopes: {
+  triggerFocus: {
     shortcut: "required",
     contextMenu: "required",
     menu: "none",
@@ -136,7 +136,7 @@ export const adjustGapsAction: TimedTextActionDefinition<
   source: TIMED_TEXT_ACTION_SOURCE,
   title: "Adjust gaps",
   presentation: { menu: { path: ["Timing", "Adjust gaps"], order: 50 } },
-  triggerScopes: {
+  triggerFocus: {
     shortcut: "required",
     contextMenu: "required",
     menu: "none",
@@ -163,7 +163,7 @@ export const sortCuesByTimeAction: TimedTextActionDefinition<
   presentation: {
     menu: { path: ["Timing", "Sort cues by time"], order: 60 },
   },
-  triggerScopes: {
+  triggerFocus: {
     shortcut: "required",
     contextMenu: "required",
     menu: "none",

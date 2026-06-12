@@ -12,7 +12,7 @@ const deleteCue: ActionDefinition<EditorContext, void, { cueId: string }> = {
   id: "editor.deleteCue",
   title: "Delete cue",
   category: "Edit",
-  triggerScopes: {
+  triggerFocus: {
     shortcut: "required",
     menu: "none",
   },
@@ -29,8 +29,10 @@ const registry = createTypedActionRegistry({
   actions: { deleteCue },
 });
 
+registry.registerSurface({ id: "editor-pane" });
+
 await registry.run("deleteCue", {
   source: "shortcut",
-  scopeElementId: "editor-pane",
+  surfaceId: "editor-pane",
   payload: { cueId: "cue-1" },
 });

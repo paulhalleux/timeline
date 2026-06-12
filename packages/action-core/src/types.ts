@@ -34,7 +34,8 @@ export type ActionSource =
  */
 export interface ActionKeyBinding {
   keys: string | readonly string[];
-  scope?: string;
+  /** Optional hotkey-library namespace; unrelated to ActionScope. */
+  hotkeyScope?: string;
   platform?: "all" | "linux" | "mac" | "windows";
   preventDefault?: boolean;
   stopPropagation?: boolean;
@@ -93,10 +94,10 @@ export interface ActionInvocation<TPayload = unknown> {
   source: ActionSource;
   payload?: TPayload;
   event?: unknown;
-  /** Optional DOM/event target used by scoped adapters such as shortcuts. */
+  /** Optional DOM/event target used by surface-aware adapters such as shortcuts. */
   target?: unknown;
-  /** Explicit scope element id when the adapter already resolved one. */
-  scopeElementId?: string;
+  /** Explicit action surface id when the adapter already resolved one. */
+  surfaceId?: string;
 }
 
 /**
@@ -134,15 +135,21 @@ export type ActionGuard<TContext> = (
 ) => boolean | ActionGuardResult;
 
 /**
- * UI-facing metadata shared by all action definitions.
+ * Whether a trigger must originate from a focused/active action surface.
  */
-export type ActionScopeRequirement = "none" | "optional" | "required";
+export type ActionFocusRequirement = "none" | "optional" | "required";
 
-export type ActionTriggerScope = Partial<
-  Record<ActionSource, ActionScopeRequirement>
+export type ActionTriggerFocus = Partial<
+  Record<ActionSource, ActionFocusRequirement>
 >;
 
-export interface ActionScopeElement {
+/**
+ * Focusable or addressable UI region that can receive surface-aware triggers.
+ *
+ * This is deliberately not an ActionScope. ActionScope is the logical registry +
+ * context boundary; ActionSurface is a concrete UI target such as an editor pane.
+ */
+export interface ActionSurface {
   id: string;
   containsTarget?: (target: unknown) => boolean;
   isActive?: () => boolean;
@@ -159,13 +166,13 @@ export interface ActionDescriptor {
   keybindings?: readonly ActionKeyBinding[];
   presentation?: ActionPresentation;
   /**
-   * Per-trigger scope requirements.
+   * Per-trigger focus requirements.
    *
    * Example: `{ shortcut: "required", menu: "none" }` means shortcuts only
-   * run when a registered scope element matches, while menubar invocations do
-   * not need scope focus. Missing triggers default to `"optional"`.
+   * run when a registered ActionSurface matches, while menubar invocations do
+   * not need a focused surface. Missing triggers default to `"optional"`.
    */
-  triggerScopes?: ActionTriggerScope;
+  triggerFocus?: ActionTriggerFocus;
 }
 
 /**
@@ -230,7 +237,7 @@ export interface ActionRunSuccess<TResult = unknown> {
 export interface ActionRunFailure {
   ok: false;
   actionId: ActionId;
-  reason: "disabled" | "failed" | "hidden" | "not-found" | "scope-unavailable";
+  reason: "disabled" | "failed" | "hidden" | "not-found" | "surface-unavailable";
   message: string;
   error?: unknown;
 }

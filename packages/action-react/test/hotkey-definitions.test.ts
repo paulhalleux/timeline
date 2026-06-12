@@ -42,7 +42,7 @@ describe("createActionHotkeyDefinitions", () => {
         source: "shortcut",
         event,
         target: event.target,
-        scopeElementId: undefined,
+        surfaceId: undefined,
       },
     ]);
   });

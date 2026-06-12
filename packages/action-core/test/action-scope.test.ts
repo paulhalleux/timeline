@@ -11,13 +11,13 @@ interface TestContext {
 }
 
 describe("action scopes", () => {
-  test("requires registered scope elements for scoped triggers", async () => {
+  test("requires registered action surfaces for focused-surface triggers", async () => {
     const context: TestContext = { value: 1 };
     const action: ActionDefinition<TestContext, number, { delta: number }> = {
       id: "test.increment",
       title: "Increment",
       category: "Test",
-      triggerScopes: { shortcut: "required", menu: "none" },
+      triggerFocus: { shortcut: "required", menu: "none" },
       run(ctx, invocation) {
         return ctx.value + (invocation.payload?.delta ?? 0);
       },
@@ -28,20 +28,20 @@ describe("action scopes", () => {
       actions: [action],
     });
 
-    const withoutScope = await scope.runAction(action, {
+    const withoutSurface = await scope.runAction(action, {
       source: "shortcut",
       payload: { delta: 2 },
     });
-    expect(withoutScope.ok).toBe(false);
-    expect(withoutScope.reason).toBe("scope-unavailable");
+    expect(withoutSurface.ok).toBe(false);
+    expect(withoutSurface.reason).toBe("surface-unavailable");
 
-    scope.registerElement({ id: "editor" });
-    const withScope = await scope.runAction(action, {
+    scope.registerSurface({ id: "editor" });
+    const withSurface = await scope.runAction(action, {
       source: "shortcut",
-      scopeElementId: "editor",
+      surfaceId: "editor",
       payload: { delta: 2 },
     });
-    expect(withScope).toEqual({ ok: true, actionId: action.id, value: 3 });
+    expect(withSurface).toEqual({ ok: true, actionId: action.id, value: 3 });
 
     const menu = await scope.runAction(action, {
       source: "menu",

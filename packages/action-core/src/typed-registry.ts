@@ -9,7 +9,7 @@ import type {
   ActionRegisterOptions,
   ActionResult,
   ActionRunResult,
-  ActionScopeElement,
+  ActionSurface,
   ActionState,
 } from "./types";
 
@@ -25,7 +25,7 @@ export interface TypedActionRegistryOptions<
   id?: string;
   getContext: () => TContext;
   actions: TActions;
-  elements?: Iterable<ActionScopeElement>;
+  surfaces?: Iterable<ActionSurface>;
 }
 
 /**
@@ -47,7 +47,7 @@ export class TypedActionRegistry<
       id: options.id ?? "typed",
       getContext: options.getContext,
       actions: Object.values(options.actions),
-      elements: options.elements,
+      surfaces: options.surfaces,
     });
   }
 
@@ -63,8 +63,8 @@ export class TypedActionRegistry<
     return this.scope.register(action, options);
   }
 
-  registerElement(element: ActionScopeElement): () => void {
-    return this.scope.registerElement(element);
+  registerSurface(surface: ActionSurface): () => void {
+    return this.scope.registerSurface(surface);
   }
 
   list(options: Omit<ActionListOptions<TContext>, "context"> = {}) {
@@ -95,7 +95,6 @@ export class TypedActionRegistry<
   ): Promise<ActionRunResult> {
     return this.scope.run(action.id, invocation);
   }
-
 }
 
 export function createTypedActionRegistry<
