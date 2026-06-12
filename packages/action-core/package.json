@@ -10,7 +10,8 @@
     "import": "./dist/index.mjs"
   },
   "scripts": {
-    "build": "tsdown src/index.ts"
+    "build": "tsdown src/index.ts",
+    "test": "bun test test/**/*.test.ts"
   },
   "files": [
     "dist"

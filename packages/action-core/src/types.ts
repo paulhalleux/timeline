@@ -82,6 +82,10 @@ export interface ActionInvocation<TPayload = unknown> {
   source: ActionSource;
   payload?: TPayload;
   event?: unknown;
+  /** Optional DOM/event target used by scoped adapters such as shortcuts. */
+  target?: unknown;
+  /** Explicit scope element id when the adapter already resolved one. */
+  scopeElementId?: string;
 }
 
 /**
@@ -121,6 +125,19 @@ export type ActionGuard<TContext> = (
 /**
  * UI-facing metadata shared by all action definitions.
  */
+export type ActionScopeRequirement = "none" | "optional" | "required";
+
+export type ActionTriggerScope = Partial<
+  Record<ActionSource, ActionScopeRequirement>
+>;
+
+export interface ActionScopeElement {
+  id: string;
+  containsTarget?: (target: unknown) => boolean;
+  isActive?: () => boolean;
+  metadata?: Readonly<Record<string, unknown>>;
+}
+
 export interface ActionDescriptor {
   id: ActionId;
   title: string;
@@ -130,6 +147,14 @@ export interface ActionDescriptor {
   order?: number;
   keybindings?: readonly ActionKeyBinding[];
   presentation?: ActionPresentation;
+  /**
+   * Per-trigger scope requirements.
+   *
+   * Example: `{ shortcut: "required", menu: "none" }` means shortcuts only
+   * run when a registered scope element matches, while menubar invocations do
+   * not need scope focus. Missing triggers default to `"optional"`.
+   */
+  triggerScopes?: ActionTriggerScope;
 }
 
 /**
@@ -194,7 +219,7 @@ export interface ActionRunSuccess<TResult = unknown> {
 export interface ActionRunFailure {
   ok: false;
   actionId: ActionId;
-  reason: "disabled" | "failed" | "hidden" | "not-found";
+  reason: "disabled" | "failed" | "hidden" | "not-found" | "scope-unavailable";
   message: string;
   error?: unknown;
 }
