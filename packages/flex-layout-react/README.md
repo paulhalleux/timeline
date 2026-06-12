@@ -14,8 +14,8 @@ resize and drop behavior deterministic; the React package exposes that area as a
 ## What is included
 
 - `FlexLayout.Root` creates a controlled or uncontrolled layout provider. Pass
-  `state` and `onStateChange` to externalize state for menubars, command palettes,
-  persisted workspace settings, or collaboration layers.
+  split props such as `panels`, `defaultValue`, `value`, `onLayoutChange`,
+  `toolbars`, and `storageKey` instead of one monolithic options object.
 - `FlexLayout.Workspace` renders the current docked panel area.
 - `FlexLayout.Split` and `FlexLayout.ResizeHandle` implement pointer-based split
   resizing for the workspace.
@@ -24,9 +24,12 @@ resize and drop behavior deterministic; the React package exposes that area as a
 - `FlexLayout.Panel` renders the active panel with a composition renderer; panel
   contents can be any React node or component tree.
 - `FlexLayout.ToolbarSide`, `ToolbarCorner`, `ToolbarGroup`, `ToolbarItem`, and
-  `ToolbarSeparator` render left/right side toolbars backed by four page corners.
+  `ToolbarSeparator` render left, right, top, and bottom toolbars backed by four
+  page corners.
 - Toolbar items can be grouped, separated, dragged between all four page corners,
   right-clicked for a hide / move-to menu, and selected to activate their panel.
+- Tabs can be dragged between panels or reordered within a tabset by dropping on
+  the left or right half of another tab, matching JetBrains-like tab movement.
 - `FlexLayout.ToolbarOverflow` renders a built-in `…` trigger that re-adds hidden
   panels.
 - `FlexLayout.CloseTrigger` and `FlexLayout.HiddenPanels` are available when you
@@ -44,17 +47,18 @@ import { FlexLayout, FlexRender } from "@ptl/flex-layout-react";
 export function WorkspaceShell() {
   return (
     <FlexLayout.Root
-      options={{
-        panels: [
-          { id: "assets", title: "Assets" },
-          { id: "preview", title: "Preview", constraints: { canClose: false } },
-          { id: "inspector", title: "Inspector", hidden: true },
-        ],
-        toolbars: {
-          "top-left": [{ id: "main", panelIds: ["assets", "preview"] }],
-          "bottom-right": [{ id: "details", panelIds: ["inspector"] }],
-        },
+      panels={[
+        { id: "assets", title: "Assets" },
+        { id: "preview", title: "Preview", constraints: { canClose: false } },
+        { id: "inspector", title: "Inspector", hidden: true },
+      ]}
+      toolbars={{
+        "top-left": [{ id: "main", panelIds: ["assets", "preview"] }],
+        "top-right": [{ id: "navigation", panelIds: [] }],
+        "bottom-left": [{ id: "status", panelIds: [] }],
+        "bottom-right": [{ id: "details", panelIds: ["inspector"] }],
       }}
+      storageKey="workspace-layout:v1"
     >
       <FlexRender.Item>
         {({ panel, active }) => (
@@ -86,9 +90,13 @@ export function WorkspaceShell() {
         )}
       </FlexRender.HiddenItem>
 
-      <FlexLayout.ToolbarSide side="left" />
-      <FlexLayout.Workspace className="workspace" />
-      <FlexLayout.ToolbarSide side="right" />
+      <FlexLayout.ToolbarSide side="top" />
+      <div className="workspace-row">
+        <FlexLayout.ToolbarSide side="left" />
+        <FlexLayout.Workspace className="workspace" />
+        <FlexLayout.ToolbarSide side="right" />
+      </div>
+      <FlexLayout.ToolbarSide side="bottom" />
     </FlexLayout.Root>
   );
 }
@@ -109,10 +117,10 @@ Use controlled state when menus, commands, hotkeys, persistence, or multiplayer
 sessions need to inspect or change the layout:
 
 ```tsx
-const [state, setState] = React.useState(() => createFlexLayout(options));
+const [layout, setLayout] = React.useState(() => createFlexLayout({ panels }));
 
 return (
-  <FlexLayout.Root state={state} onStateChange={setState}>
+  <FlexLayout.Root value={layout} onLayoutChange={setLayout} panels={panels}>
     <FlexRender.Panel>{({ panel }) => <PanelContent panelId={panel.id} />}</FlexRender.Panel>
     <FlexLayout.ToolbarSide side="left" />
     <FlexLayout.Workspace />
@@ -129,9 +137,9 @@ actions with `useFlexLayout()` from any descendant.
 
 Pick storage based on how personal or shareable the layout should be:
 
-1. **Local, per browser:** serialize `FlexLayoutState` to `localStorage` or
-   IndexedDB from `onStateChange`; hydrate it into `state`/`defaultState` after
-   validating that panel IDs still exist.
+1. **Local, per browser:** pass `storageKey` to `FlexLayout.Root` for built-in
+   uncontrolled `localStorage` persistence, or serialize `FlexLayoutState` to
+   `localStorage`/IndexedDB from `onLayoutChange` in controlled mode.
 2. **Per authenticated user:** store the JSON state in a user preferences table
    keyed by workspace/project ID. Merge with current panel definitions on load so
    newly shipped panels can be registered and removed panels can be ignored.
@@ -153,8 +161,8 @@ function saveLayout(state: FlexLayoutState) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, state }));
 }
 
-function loadLayout(options: FlexLayoutOptions) {
-  const fallback = createFlexLayout(options);
+function loadLayout(panels: readonly FlexPanelDefinition[]) {
+  const fallback = createFlexLayout({ panels });
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return fallback;
 
@@ -174,9 +182,10 @@ function loadLayout(options: FlexLayoutOptions) {
 
 Drag a tab over the center of another tabset to merge it into that tabset. Drag
 near the left, right, top, or bottom edge of a tabset to dock it into a new split.
-Drag toolbar items between `top-left`, `bottom-left`, `top-right`, and
-`bottom-right` to rearrange side toolbar shortcuts. Resize handles are inserted
-between split children automatically.
+Drop a tab on the left or right half of another tab to reorder within the same
+tabset. Drag toolbar items between `top-left`, `top-right`, `bottom-left`, and
+`bottom-right`; render those corners through left/right/top/bottom toolbar sides.
+Resize handles are inserted between split children automatically.
 
 ## Styling
 

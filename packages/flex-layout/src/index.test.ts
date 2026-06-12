@@ -8,6 +8,7 @@ import {
   createTabset,
   findPanelTabset,
   getToolbarPanelIds,
+  getToolbarSideCorners,
   getVisiblePanelIds,
   getVisibleToolbarPanelIds,
   type FlexLayoutState,
@@ -69,6 +70,23 @@ describe("flex layout", () => {
     expect(movedToSplit.accepted).toBe(true);
     if (!movedToSplit.accepted) return;
     expect(movedToSplit.state.root?.type).toBe("split");
+  });
+
+
+  test("rearranges panels inside a tabset by index", () => {
+    const moved = applyFlexLayoutAction(fixtureLayout(), {
+      type: "movePanel",
+      panelId: "project",
+      location: { targetPanelId: "terminal", placement: "center", index: 2 },
+    });
+
+    expect(moved.accepted).toBe(true);
+    if (!moved.accepted) return;
+    expect(findPanelTabset(moved.state.root, "terminal")?.panels).toEqual([
+      "editor",
+      "terminal",
+      "project",
+    ]);
   });
 
   test("rejects constrained panel operations", () => {
@@ -149,6 +167,9 @@ describe("flex layout", () => {
       "problems",
     ]);
     expect(getVisibleToolbarPanelIds(state, "bottom-left")).toEqual(["terminal"]);
+
+    expect(getToolbarSideCorners("top")).toEqual(["top-left", "top-right"]);
+    expect(getToolbarSideCorners("bottom")).toEqual(["bottom-left", "bottom-right"]);
   });
 
   test("moves toolbar items between the four page corners", () => {

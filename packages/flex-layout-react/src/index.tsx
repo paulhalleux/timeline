@@ -10,6 +10,7 @@ import {
   type FlexLayoutOptions,
   type FlexLayoutResult,
   type FlexLayoutState,
+  type FlexPanelDefinition,
   type FlexPanelId,
   type FlexSplitNode,
   type FlexTabsetNode,
@@ -40,12 +41,41 @@ export type {
   FlexToolbarItemRenderer,
 } from "./context";
 
+export interface FlexLayoutStorage {
+  readonly getItem: (key: string) => string | null;
+  readonly setItem: (key: string, value: string) => void;
+  readonly removeItem?: (key: string) => void;
+}
+
 export interface FlexLayoutRootProps<TMeta = unknown>
   extends Omit<React.ComponentProps<"div">, "children"> {
   readonly children?: React.ReactNode;
+  /**
+   * Panel definitions are authoritative and can be changed independently from
+   * saved layout state.
+   */
+  readonly panels?: readonly FlexPanelDefinition<TMeta>[];
+  /** Optional default workspace node used when no controlled or persisted layout exists. */
+  readonly root?: FlexLayoutNode | null;
+  /** Initial toolbar grouping for all four page corners. */
+  readonly toolbars?: FlexLayoutOptions<TMeta>["toolbars"];
+  /** Uncontrolled initial state, usually loaded from a user/workspace preference. */
+  readonly defaultValue?: FlexLayoutState<TMeta>;
+  /** Controlled layout state for menus, commands, persistence or collaboration. */
+  readonly value?: FlexLayoutState<TMeta>;
+  /** Called after an accepted action produces a new state. */
+  readonly onLayoutChange?: (state: FlexLayoutState<TMeta>) => void;
+  /** localStorage key used to persist uncontrolled state as JSON. */
+  readonly storageKey?: string;
+  /** Storage implementation for persistence; defaults to `window.localStorage` when available. */
+  readonly storage?: FlexLayoutStorage;
+  /** @deprecated Use `defaultValue`. */
   readonly defaultState?: FlexLayoutState<TMeta>;
+  /** @deprecated Pass `panels`, `root`, and `toolbars` directly. */
   readonly options?: FlexLayoutOptions<TMeta>;
+  /** @deprecated Use `value`. */
   readonly state?: FlexLayoutState<TMeta>;
+  /** @deprecated Use `onLayoutChange`. */
   readonly onStateChange?: (state: FlexLayoutState<TMeta>) => void;
   readonly onDispatch?: (
     action: FlexLayoutAction<TMeta>,
@@ -111,12 +141,14 @@ export interface FlexLayoutToolbarSideProps
 export interface FlexLayoutToolbarCornerProps
   extends React.ComponentProps<"div"> {
   readonly corner: FlexToolbarCorner;
+  readonly orientation?: "horizontal" | "vertical";
 }
 
 export interface FlexLayoutToolbarGroupProps
   extends React.ComponentProps<"div"> {
   readonly corner: FlexToolbarCorner;
   readonly group: FlexToolbarGroup;
+  readonly orientation?: "horizontal" | "vertical";
 }
 
 export interface FlexLayoutToolbarItemProps
@@ -137,6 +169,14 @@ export interface FlexLayoutToolbarOverflowProps
 
 function FlexLayoutRoot<TMeta = unknown>({
   children,
+  panels,
+  root,
+  toolbars,
+  defaultValue,
+  value: controlledValue,
+  onLayoutChange,
+  storageKey,
+  storage,
   defaultState,
   options,
   state: controlledState,
@@ -147,28 +187,50 @@ function FlexLayoutRoot<TMeta = unknown>({
   style,
   ...rest
 }: FlexLayoutRootProps<TMeta>) {
+  const layoutOptions = React.useMemo<FlexLayoutOptions<TMeta>>(
+    () => ({
+      panels: panels ?? options?.panels ?? [],
+      root: root !== undefined ? root : options?.root,
+      toolbars: toolbars ?? options?.toolbars,
+    }),
+    [options?.panels, options?.root, options?.toolbars, panels, root, toolbars],
+  );
   const initialState = React.useMemo(() => {
-    if (defaultState) return defaultState;
-    return createFlexLayout(options ?? { panels: [] });
-  }, [defaultState, options]);
+    const explicit = defaultValue ?? defaultState;
+    if (explicit) return mergeLayoutPanels(explicit, layoutOptions);
+    const persisted = readStoredLayout<TMeta>(storageKey, storage);
+    if (persisted) return mergeLayoutPanels(persisted, layoutOptions);
+    return createFlexLayout(layoutOptions);
+  }, [defaultState, defaultValue, layoutOptions, storage, storageKey]);
   const [uncontrolledState, setUncontrolledState] = React.useState(initialState);
   const [draggedPanelId, setDraggedPanelId] = React.useState<FlexPanelId | null>(
     null,
   );
   const [renderers, setRenderers] = React.useState<FlexRenderers<TMeta>>({});
-  const state = controlledState ?? uncontrolledState;
+  const state = controlledValue ?? controlledState ?? uncontrolledState;
 
   const dispatch = React.useCallback(
     (action: FlexLayoutAction<TMeta>) => {
       const result = applyFlexLayoutAction(state, action);
       if (result.accepted) {
-        if (!controlledState) setUncontrolledState(result.state);
+        if (!controlledValue && !controlledState) setUncontrolledState(result.state);
+        writeStoredLayout(storageKey, storage, result.state);
+        onLayoutChange?.(result.state);
         onStateChange?.(result.state);
       }
       onDispatch?.(action, result);
       return result;
     },
-    [controlledState, onDispatch, onStateChange, state],
+    [
+      controlledState,
+      controlledValue,
+      onDispatch,
+      onLayoutChange,
+      onStateChange,
+      state,
+      storage,
+      storageKey,
+    ],
   );
 
   const registerRenderer = React.useCallback(
@@ -222,11 +284,21 @@ function FlexLayoutRoot<TMeta = unknown>({
         {...rest}
       >
         {children ?? (
-          <>
-            <FlexLayoutToolbarSide side="left" />
-            <FlexLayoutWorkspace />
-            <FlexLayoutToolbarSide side="right" />
-          </>
+          <div
+            data-flex-layout-shell=""
+            style={{ display: "flex", flex: 1, flexDirection: "column", minHeight: 0, minWidth: 0 }}
+          >
+            <FlexLayoutToolbarSide side="top" />
+            <div
+              data-flex-layout-body=""
+              style={{ display: "flex", flex: 1, minHeight: 0, minWidth: 0 }}
+            >
+              <FlexLayoutToolbarSide side="left" />
+              <FlexLayoutWorkspace />
+              <FlexLayoutToolbarSide side="right" />
+            </div>
+            <FlexLayoutToolbarSide side="bottom" />
+          </div>
         )}
       </div>
     </FlexLayoutContext.Provider>
@@ -429,10 +501,12 @@ function FlexLayoutTab({
   draggable,
   onClick,
   onDragEnd,
+  onDragOver,
   onDragStart,
+  onDrop,
   ...rest
 }: FlexLayoutTabProps) {
-  const { dispatch, setDraggedPanelId, state } = useFlexLayoutContext();
+  const { draggedPanelId, dispatch, setDraggedPanelId, state } = useFlexLayoutContext();
   const panel = state.panels[panelId];
   const active = getActivePanelId(tabset) === panelId;
   const canMove = panel?.constraints?.canMove !== false;
@@ -455,6 +529,26 @@ function FlexLayoutTab({
         setDraggedPanelId(panelId);
         event.dataTransfer.effectAllowed = "move";
         writeDraggedPanelId(event, panelId);
+      }}
+      onDragOver={(event) => {
+        onDragOver?.(event);
+        if (event.defaultPrevented) return;
+        const draggedId = draggedPanelId ?? readDraggedPanelId(event);
+        if (!draggedId) return;
+        const location = getTabDropLocation(event, tabset, draggedId, panelId);
+        const result = canDropPanel(state, draggedId, location);
+        if (!result.accepted) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      }}
+      onDrop={(event) => {
+        onDrop?.(event);
+        if (event.defaultPrevented) return;
+        const draggedId = draggedPanelId ?? readDraggedPanelId(event);
+        if (!draggedId) return;
+        const location = getTabDropLocation(event, tabset, draggedId, panelId);
+        event.preventDefault();
+        dispatch({ type: "movePanel", panelId: draggedId, location });
       }}
       onDragEnd={(event) => {
         onDragEnd?.(event);
@@ -551,30 +645,40 @@ function FlexLayoutToolbarSide({
   ...rest
 }: FlexLayoutToolbarSideProps) {
   const [startCorner, endCorner] = getToolbarSideCorners(side);
+  const horizontal = side === "top" || side === "bottom";
 
   return (
     <aside
       data-flex-layout-toolbar-side=""
       data-side={side}
+      data-orientation={horizontal ? "horizontal" : "vertical"}
       style={{
         display: "flex",
         flex: "0 0 auto",
-        flexDirection: "column",
+        flexDirection: horizontal ? "row" : "column",
         justifyContent: "space-between",
         minHeight: 0,
+        minWidth: 0,
         ...style,
       }}
       {...rest}
     >
-      <FlexLayoutToolbarCorner corner={startCorner} />
+      <FlexLayoutToolbarCorner
+        corner={startCorner}
+        orientation={horizontal ? "horizontal" : "vertical"}
+      />
       {renderOverflow ? <FlexLayoutToolbarOverflow /> : null}
-      <FlexLayoutToolbarCorner corner={endCorner} />
+      <FlexLayoutToolbarCorner
+        corner={endCorner}
+        orientation={horizontal ? "horizontal" : "vertical"}
+      />
     </aside>
   );
 }
 
 function FlexLayoutToolbarCorner({
   corner,
+  orientation = "vertical",
   style,
   onDragOver,
   onDrop,
@@ -587,7 +691,11 @@ function FlexLayoutToolbarCorner({
     <div
       data-flex-layout-toolbar-corner=""
       data-corner={corner}
-      style={{ display: "flex", flexDirection: "column", ...style }}
+      style={{
+        display: "flex",
+        flexDirection: orientation === "horizontal" ? "row" : "column",
+        ...style,
+      }}
       onDragOver={(event) => {
         onDragOver?.(event);
         if (event.defaultPrevented) return;
@@ -609,7 +717,11 @@ function FlexLayoutToolbarCorner({
       {groups.map((group, groupIndex) => (
         <React.Fragment key={group.id}>
           {groupIndex > 0 ? <FlexLayoutToolbarSeparator /> : null}
-          <FlexLayoutToolbarGroup corner={corner} group={group} />
+          <FlexLayoutToolbarGroup
+            corner={corner}
+            group={group}
+            orientation={orientation}
+          />
         </React.Fragment>
       ))}
     </div>
@@ -619,6 +731,7 @@ function FlexLayoutToolbarCorner({
 function FlexLayoutToolbarGroup({
   corner,
   group,
+  orientation = "vertical",
   style,
   ...rest
 }: FlexLayoutToolbarGroupProps) {
@@ -626,7 +739,11 @@ function FlexLayoutToolbarGroup({
     <div
       data-flex-layout-toolbar-group=""
       data-group-id={group.id}
-      style={{ display: "flex", flexDirection: "column", ...style }}
+      style={{
+        display: "flex",
+        flexDirection: orientation === "horizontal" ? "row" : "column",
+        ...style,
+      }}
       {...rest}
     >
       {group.panelIds.map((panelId, index) => (
@@ -895,6 +1012,57 @@ export const FlexLayout = {
   FlexRender,
 };
 
+function readStoredLayout<TMeta>(
+  storageKey: string | undefined,
+  storage: FlexLayoutStorage | undefined,
+): FlexLayoutState<TMeta> | undefined {
+  if (!storageKey) return undefined;
+  const resolvedStorage = storage ?? getDefaultStorage();
+  if (!resolvedStorage) return undefined;
+
+  try {
+    const value = resolvedStorage.getItem(storageKey);
+    if (!value) return undefined;
+    const parsed = JSON.parse(value) as
+      | { readonly state?: FlexLayoutState<TMeta> }
+      | FlexLayoutState<TMeta>;
+    return "state" in parsed ? parsed.state : parsed;
+  } catch {
+    return undefined;
+  }
+}
+
+function writeStoredLayout<TMeta>(
+  storageKey: string | undefined,
+  storage: FlexLayoutStorage | undefined,
+  state: FlexLayoutState<TMeta>,
+) {
+  if (!storageKey) return;
+  const resolvedStorage = storage ?? getDefaultStorage();
+  if (!resolvedStorage) return;
+  resolvedStorage.setItem(storageKey, JSON.stringify({ version: 1, state }));
+}
+
+function getDefaultStorage(): FlexLayoutStorage | undefined {
+  if (typeof window === "undefined") return undefined;
+  return window.localStorage;
+}
+
+function mergeLayoutPanels<TMeta>(
+  state: FlexLayoutState<TMeta>,
+  options: FlexLayoutOptions<TMeta>,
+): FlexLayoutState<TMeta> {
+  const fallback = createFlexLayout(options);
+  const panelIds = new Set(Object.keys(fallback.panels));
+
+  return {
+    ...state,
+    panels: fallback.panels,
+    hiddenPanelIds: state.hiddenPanelIds.filter((panelId) => panelIds.has(panelId)),
+    toolbars: state.toolbars ?? fallback.toolbars,
+  };
+}
+
 function renderNode(node: FlexLayoutNode): React.ReactNode {
   if (node.type === "split") return <FlexLayoutSplit node={node} />;
   return <FlexLayoutTabset node={node} />;
@@ -912,6 +1080,24 @@ function findActivePanelId(node: FlexLayoutNode | null): FlexPanelId | undefined
     if (panelId) return panelId;
   }
   return undefined;
+}
+
+function getTabDropLocation(
+  event: React.DragEvent<HTMLElement>,
+  tabset: FlexTabsetNode,
+  draggedPanelId: FlexPanelId,
+  targetPanelId: FlexPanelId,
+): FlexDropLocation {
+  const rect = event.currentTarget.getBoundingClientRect();
+  const x = (event.clientX - rect.left) / Math.max(1, rect.width);
+  const panels = tabset.panels.filter((id) => id !== draggedPanelId);
+  const targetIndex = Math.max(0, panels.indexOf(targetPanelId));
+
+  return {
+    targetPanelId,
+    placement: "center",
+    index: x > 0.5 ? targetIndex + 1 : targetIndex,
+  };
 }
 
 function getDropPlacement(event: React.DragEvent<HTMLElement>): FlexDropPlacement {

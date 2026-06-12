@@ -16,11 +16,11 @@ command palettes can decide how panels look and how interactions are captured.
   weighted sizes. This is an internal workspace model that renderers can present
   however they like.
 - **Hidden panels** remain registered but are removed from the visible workspace.
-- **Toolbars** model left/right side bars as four page corners: `top-left`,
-  `bottom-left`, `top-right`, and `bottom-right`.
+- **Toolbars** model JetBrains-like left, right, top, and bottom bars as four
+  page corners: `top-left`, `top-right`, `bottom-left`, and `bottom-right`.
 - **Toolbar groups** keep items grouped; renderers can draw separators between groups.
-- **Actions** hide, show, move, select, resize, register, unregister, and move toolbar
-  items without assuming where state is stored.
+- **Actions** hide, show, move, select, resize, register, unregister, reorder
+  tabs by index, and move toolbar items without assuming where state is stored.
 
 ## Example
 
