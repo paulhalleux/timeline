@@ -1,37 +1,77 @@
-import { useEditorActions } from "../../actions/use-editor-actions";
+import { ActionScope, type ActionContext, type ActionDefinition } from "@ptl/action-core";
+import { Actions } from "@ptl/action-react";
+import { TooltipProvider } from "@ptl/ui";
+import React from "react";
 import { AppMenubar } from "./menu-bar";
+import { RegisterableHotkey } from "@tanstack/react-hotkeys";
+
+interface EditorActionContext extends ActionContext {
+  notify(message: string): void;
+}
 
 export const App = () => {
-  const actionRuntime = useEditorActions();
+  const contextRef = React.useRef<EditorActionContext | null>(null);
+  const editorActions = React.useMemo(() => createEditorActions(), []);
+
+  const actionScope = React.useMemo(
+    () =>
+      new ActionScope<EditorActionContext>({
+        id: "editor",
+        actions: editorActions,
+        getContext: () => {
+          if (!contextRef.current) throw new Error("Editor action context is not ready.");
+          return contextRef.current;
+        },
+      }),
+    [editorActions],
+  );
+
+  contextRef.current = {
+    notify: () => undefined,
+  };
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
-      <AppMenubar runtime={actionRuntime} />
-      <main
-        className={`grid min-h-0 flex-1 ${actionRuntime.inspectorOpen ? "grid-cols-[1fr_260px]" : "grid-cols-1"}`}
-      >
-        <section className="min-w-0 border-r bg-muted/20 p-4">
-          <div className="h-full rounded-lg border border-dashed bg-background/60 p-4">
-            <div className="text-sm font-medium">Editor Surface</div>
-          </div>
-        </section>
-        {actionRuntime.inspectorOpen && (
-          <aside className="min-w-0 bg-background p-3">
-            <div className="text-xs font-medium uppercase text-muted-foreground">Inspector</div>
-            <div className="mt-3 space-y-2 text-xs">
-              {actionRuntime.activity.length === 0 ? (
-                <div className="text-muted-foreground">No action triggered yet.</div>
-              ) : (
-                actionRuntime.activity.map((entry) => (
-                  <div key={entry.id} className="rounded-md border bg-muted/30 px-2 py-1.5">
-                    {entry.message}
-                  </div>
-                ))
-              )}
-            </div>
-          </aside>
-        )}
-      </main>
+      <Actions.Provider runner={actionScope}>
+        <TooltipProvider>
+          <Actions.Hotkeys />
+          <AppMenubar runner={actionScope} />
+        </TooltipProvider>
+      </Actions.Provider>
     </div>
   );
 };
+
+function createEditorActions(): readonly ActionDefinition<EditorActionContext>[] {
+  const notifyAction = (
+    id: string,
+    title: string,
+    path: readonly string[],
+    icon: string,
+    keybinding?: RegisterableHotkey,
+  ): ActionDefinition<EditorActionContext> => ({
+    id,
+    title,
+    category: path[0] ?? "Editor",
+    keybindings: keybinding ? [{ keys: keybinding, preventDefault: true }] : undefined,
+    presentation: { icon, menu: { path, order: 10 } },
+    run: (context, invocation) => {
+      context.notify(`${title} triggered from ${invocation.source}.`);
+    },
+  });
+
+  return [
+    notifyAction("editor.file.new", "New project", ["File", "Project"], "file-plus", "Mod+N"),
+    notifyAction("editor.file.open", "Open", ["File", "Project"], "folder-open", "Mod+O"),
+    notifyAction("editor.file.save", "Save", ["File", "Project"], "save", "Mod+S"),
+    notifyAction("editor.edit.undo", "Undo", ["Edit", "History"], "undo", "Mod+Z"),
+    notifyAction("editor.edit.redo", "Redo", ["Edit", "History"], "redo", "Mod+Shift+Z"),
+    notifyAction(
+      "editor.timeline.snap",
+      "Snap to captions",
+      ["Timeline", "Timing"],
+      "sparkles",
+      "Mod+Shift+K",
+    ),
+  ];
+}

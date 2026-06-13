@@ -13,8 +13,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@ptl/actions": "^0.0.0",
+    "@ptl/action-core": "^0.0.0",
+    "@ptl/action-react": "^0.0.0",
+    "@ptl/flex-layout": "^0.0.0",
+    "@ptl/flex-layout-react": "^0.0.0",
     "@ptl/ui": "^0.0.0",
+    "@tanstack/react-hotkeys": ">=0.2.0",
     "clsx": "^2.1.1",
     "lucide-react": "^1.17.0",
     "react": "^19.2.0",

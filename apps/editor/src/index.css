@@ -3,7 +3,6 @@
 @import "@fontsource-variable/geist";
 @import "@ptl/ui/theme.css";
 
-/* ── Base reset ───────────────────────────────────────────────── */
 @layer base {
   html,
   body,
@@ -17,7 +16,6 @@
     line-height: 1.5;
   }
 
-  /* Thin scrollbars */
   ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
@@ -33,12 +31,275 @@
     background: oklch(1 0 0 / 25%);
   }
 
-  /* Make inputs/textareas match theme */
   input,
   textarea,
   select {
     @apply bg-input text-foreground;
     font-family: var(--font-sans);
     font-size: 12px;
+  }
+}
+
+@layer components {
+  [data-flex-layout-root],
+  [data-flex-layout-shell] {
+    height: 100%;
+    background: var(--background);
+  }
+
+  /* ── Toolbar strips ──────────────────────────────────────────── */
+  [data-flex-layout-toolbar-side] {
+    width: 40px;
+    min-width: 40px;
+    border-color: var(--border);
+    background: color-mix(in oklch, var(--muted) 36%, transparent);
+    padding: 4px 0;
+    gap: 4px;
+  }
+
+  [data-flex-layout-toolbar-side][data-side="left"] {
+    border-right-width: 1px;
+  }
+
+  [data-flex-layout-toolbar-side][data-side="right"] {
+    border-left-width: 1px;
+  }
+
+  [data-flex-layout-toolbar-zone],
+  [data-flex-layout-toolbar-corner],
+  [data-flex-layout-toolbar-group] {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+    padding: 2px;
+  }
+
+  [data-flex-layout-toolbar-zone] {
+    width: 100%;
+    min-height: 34px;
+    border-radius: 6px;
+    transition: background 80ms;
+  }
+
+  [data-flex-layout-toolbar-center] {
+    width: 100%;
+  }
+
+  [data-flex-layout-toolbar-zone][data-drag-over] {
+    background: color-mix(in oklch, var(--primary) 8%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 35%, transparent);
+  }
+
+  [data-flex-layout-toolbar-zone][data-drop-edge="top"] {
+    box-shadow:
+      inset 0 2px 0 var(--primary),
+      inset 0 0 0 1px color-mix(in oklch, var(--primary) 35%, transparent);
+  }
+
+  [data-flex-layout-toolbar-zone][data-drop-edge="bottom"] {
+    box-shadow:
+      inset 0 -2px 0 var(--primary),
+      inset 0 0 0 1px color-mix(in oklch, var(--primary) 35%, transparent);
+  }
+
+  /* ── Toolbar items ───────────────────────────────────────────── */
+  [data-flex-layout-toolbar-item-wrapper] {
+    position: relative;
+    display: inline-flex;
+  }
+
+  [data-flex-layout-toolbar-item] {
+    display: inline-flex;
+    height: 28px;
+    width: 28px;
+    min-width: 28px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    padding: 0;
+    color: var(--muted-foreground);
+    outline: none;
+    transition: background 120ms, color 120ms;
+    cursor: grab;
+  }
+
+  [data-flex-layout-toolbar-item]:focus-visible,
+  [data-flex-layout-toolbar-item]:hover {
+    background: var(--muted);
+    color: var(--foreground);
+  }
+
+  [data-flex-layout-toolbar-item][data-active] {
+    background: color-mix(in oklch, var(--primary) 12%, transparent);
+    color: var(--primary);
+  }
+
+  [data-flex-layout-toolbar-separator] {
+    background: var(--border);
+    width: 20px;
+    height: 1px;
+    margin: 2px 4px;
+  }
+
+  [data-flex-layout-toolbar-side-separator] {
+    width: 24px;
+    height: 1px;
+    margin: 2px auto;
+    flex: 0 0 auto;
+    background: color-mix(in oklch, var(--border) 78%, var(--foreground));
+  }
+
+  [data-flex-layout-drop-indicator] {
+    box-shadow: 0 0 0 1px color-mix(in oklch, var(--background) 60%, transparent);
+  }
+
+  /* ── Dock areas ──────────────────────────────────────────────── */
+  [data-flex-layout-dock-area] {
+    background: var(--background);
+  }
+
+  /* ── Panel resize handles ────────────────────────────────────── */
+  [data-flex-layout-resize-handle] {
+    flex-shrink: 0;
+    background: var(--border);
+    transition: background 120ms;
+  }
+
+  [data-flex-layout-resize-handle]:hover,
+  [data-flex-layout-resize-handle]:active {
+    background: var(--primary);
+  }
+
+  [data-flex-layout-resize-handle][data-orientation="horizontal"] {
+    width: 4px;
+    cursor: col-resize;
+  }
+
+  [data-flex-layout-resize-handle][data-orientation="vertical"] {
+    height: 4px;
+    cursor: row-resize;
+  }
+
+  /* ── Context menu ────────────────────────────────────────────── */
+  [data-flex-layout-toolbar-item-menu] {
+    position: fixed;
+    z-index: 50;
+    min-width: 160px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--popover);
+    padding: 4px;
+    box-shadow:
+      0 4px 6px -1px oklch(0 0 0 / 10%),
+      0 2px 4px -2px oklch(0 0 0 / 8%);
+    color: var(--popover-foreground);
+    font-size: 12px;
+  }
+
+  [data-flex-layout-toolbar-menu-item] {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 8px;
+    border-radius: 4px;
+    padding: 5px 8px;
+    text-align: left;
+    color: inherit;
+    transition: background 80ms;
+  }
+
+  [data-flex-layout-toolbar-menu-item]:hover:not(:disabled) {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+
+  [data-flex-layout-toolbar-menu-item]:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  [data-flex-layout-toolbar-menu-separator] {
+    height: 1px;
+    background: var(--border);
+    margin: 3px -4px;
+  }
+
+  [data-flex-layout-toolbar-menu-label] {
+    padding: 4px 8px 2px;
+    color: var(--muted-foreground);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  /* ── Panel content ───────────────────────────────────────────── */
+  [data-flex-layout-panel] {
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+    background: var(--background);
+  }
+
+  /* ── Tab strip ───────────────────────────────────────────────── */
+  [data-flex-layout-tab-list] {
+    display: none;
+    min-height: 32px;
+    align-items: end;
+    gap: 1px;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in oklch, var(--muted) 35%, transparent);
+    padding: 4px 4px 0;
+  }
+
+  [data-flex-layout-tab] {
+    display: inline-flex;
+    height: 28px;
+    min-width: 0;
+    max-width: 160px;
+    align-items: center;
+    border: 1px solid transparent;
+    border-bottom: 0;
+    border-radius: 6px 6px 0 0;
+    padding: 0 10px;
+    color: var(--muted-foreground);
+    font-size: 12px;
+  }
+
+  [data-flex-layout-tab][data-active] {
+    border-color: var(--border);
+    background: var(--background);
+    color: var(--foreground);
+  }
+
+  /* ── Editor tool window icon (app-level) ─────────────────────── */
+  [data-editor-tool-window-icon] {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  [data-editor-tool-window-stripe] {
+    position: absolute;
+    left: 0;
+    top: 20%;
+    width: 2px;
+    height: 60%;
+    border-radius: 1px;
+    background: var(--primary);
+    opacity: 0;
+    transition: opacity 120ms;
+  }
+
+  [data-editor-tool-window-stripe][data-active] {
+    opacity: 1;
+  }
+
+  [data-flex-layout-toolbar-side][data-side="right"] [data-editor-tool-window-stripe] {
+    left: auto;
+    right: 0;
   }
 }
