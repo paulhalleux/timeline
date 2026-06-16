@@ -1,0 +1,43 @@
+{
+  "name": "@ptl/dock-react",
+  "version": "0.0.0",
+  "description": "React provider and hook adapter for @ptl/dock-core",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    "types": "./dist/index.d.mts",
+    "import": "./dist/index.mjs"
+  },
+  "scripts": {
+    "build": "tsdown src/index.tsx",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "test": "bun test src"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@ptl/platform-react": "^0.0.0",
+    "@ptl/store": "workspace:*",
+    "@ptl/ui": "^0.0.0",
+    "@ptl/dock-core": "^0.0.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-resizable-panels": "^4.11.2"
+  },
+  "devDependencies": {
+    "@ptl/platform-core": "^0.0.0",
+    "@types/bun": "^1.3.5",
+    "@types/react": "^19.2.10",
+    "@types/react-dom": "^19.2.3",
+    "tsdown": "^0.22.2",
+    "typescript": "^6.0.3"
+  }
+}

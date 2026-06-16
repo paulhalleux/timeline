@@ -1,0 +1,32 @@
+{
+  "name": "@ptl/dock-core",
+  "version": "0.0.0",
+  "description": "Generic dock layout state and workspace item primitives",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    "types": "./dist/index.d.mts",
+    "import": "./dist/index.mjs"
+  },
+  "scripts": {
+    "build": "tsdown src/index.ts",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "test": "bun test src"
+  },
+  "dependencies": {
+    "@ptl/platform-core": "^0.0.0",
+    "@ptl/store": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.5",
+    "tsdown": "^0.22.2",
+    "typescript": "^6.0.3"
+  }
+}

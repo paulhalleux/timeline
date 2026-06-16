@@ -9,5 +9,6 @@ export * from "./components/tooltip";
 export * from "./components/textarea";
 export * from "./components/input";
 export * from "./components/input-group";
+export * from "./components/tabs";
 
 export { cn } from "./lib/utils";

@@ -1,4 +1,3 @@
-export * from "./actions/index";
 export * from "./adapter";
 export * from "./content";
 export * from "./document";

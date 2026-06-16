@@ -8,6 +8,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@ptl/workbench-react": path.resolve(
+        __dirname,
+        "../../packages/workbench-react/src/index.tsx",
+      ),
     },
     dedupe: ["react", "react-dom"],
   },

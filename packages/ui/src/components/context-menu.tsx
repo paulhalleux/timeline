@@ -1,16 +1,17 @@
 import * as React from "react";
+import { ContextMenu as ContextMenuPrimitive } from "@base-ui/react/context-menu";
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import { cn } from "@/lib/utils";
 import { ChevronRightIcon, CheckIcon } from "lucide-react";
 
 /** Root context menu — wraps trigger and content. */
-function ContextMenu({ ...props }: MenuPrimitive.Root.Props) {
-  return <MenuPrimitive.Root data-slot="context-menu" {...props} />;
+function ContextMenu({ ...props }: ContextMenuPrimitive.Root.Props) {
+  return <ContextMenuPrimitive.Root data-slot="context-menu" {...props} />;
 }
 
 /** Invisible trigger that the context menu anchors to. */
-function ContextMenuTrigger({ ...props }: MenuPrimitive.Trigger.Props) {
-  return <MenuPrimitive.Trigger data-slot="context-menu-trigger" {...props} />;
+function ContextMenuTrigger({ ...props }: ContextMenuPrimitive.Trigger.Props) {
+  return <ContextMenuPrimitive.Trigger data-slot="context-menu-trigger" {...props} />;
 }
 
 /** Teleports menu content to document body. */
@@ -60,9 +61,9 @@ function ContextMenuLabel({
   className,
   inset,
   ...props
-}: MenuPrimitive.GroupLabel.Props & { inset?: boolean }) {
+}: React.ComponentProps<"div"> & { inset?: boolean }) {
   return (
-    <MenuPrimitive.GroupLabel
+    <div
       data-slot="context-menu-label"
       data-inset={inset}
       className={cn("px-2 py-1.5 text-xs text-muted-foreground data-inset:ps-7.5", className)}

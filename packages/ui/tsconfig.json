@@ -5,12 +5,11 @@
     "strict": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "skipLibCheck": true,
     "noUnusedLocals": true,
     "noImplicitAny": true,
     "allowJs": true,
-    "baseUrl": ".",
     "noEmit": true,
     "outDir": "dist",
     "paths": {
