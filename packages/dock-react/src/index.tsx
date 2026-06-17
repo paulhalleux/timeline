@@ -11,6 +11,7 @@ export {
   DockDragDropContext,
   type DockDragDropContextProps,
 } from "./components/dock-drag-drop-context";
+export { DockToolRail, type DockToolRailProps } from "./components/dock-tool-rail";
 export {
   DockResolvedLayout,
   type DockResolvedLayoutProps,

@@ -12,6 +12,7 @@ import {
   createTracksPlugin,
 } from "../plugins/simple-feature-plugins";
 import { createExportPlugin } from "../plugins/export/create-export-plugin";
+import { createTimedTextFormatHostPlugin } from "@ptl/timed-text-core";
 import { createSrtTimedTextFormatPlugin } from "@ptl/timed-text-format-srt";
 import { createVttTimedTextFormatPlugin } from "@ptl/timed-text-format-vtt";
 
@@ -26,6 +27,7 @@ export const createEditorPlugins = () =>
     createQualityControlPlugin(),
     createPlaybackPlugin(),
     createTimelinePlugin(),
+    createTimedTextFormatHostPlugin(),
     createExportPlugin(),
     createSrtTimedTextFormatPlugin(),
     createVttTimedTextFormatPlugin(),

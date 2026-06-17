@@ -12,8 +12,15 @@ import * as React from "react";
 
 export interface PlatformReactContributions<TContext = unknown> {
   readonly menuRoots?: readonly MenuRootContribution<string, TContext>[];
-  readonly menus?: readonly MenuContribution<string, CommandDefinition<unknown, unknown>, TContext>[];
-  readonly shortcuts?: readonly ShortcutContribution<CommandDefinition<unknown, unknown>, TContext>[];
+  readonly menus?: readonly MenuContribution<
+    string,
+    CommandDefinition<unknown, unknown>,
+    TContext
+  >[];
+  readonly shortcuts?: readonly ShortcutContribution<
+    CommandDefinition<unknown, unknown>,
+    TContext
+  >[];
 }
 
 export interface PlatformReactContextValue<TContext = unknown> {
@@ -34,11 +41,40 @@ export function PlatformProvider<TContext = unknown>({
   contributions,
   children,
 }: PlatformProviderProps<TContext>) {
+  const platformContributions = usePlatformUiContributions<TContext>(platform);
   const value = React.useMemo<PlatformReactContextValue<TContext>>(
-    () => ({ platform, contributions: contributions ?? {} }),
-    [contributions, platform],
+    () => ({ platform, contributions: contributions ?? platformContributions }),
+    [contributions, platform, platformContributions],
   );
   return <PlatformReactContext.Provider value={value}>{children}</PlatformReactContext.Provider>;
+}
+
+function usePlatformUiContributions<TContext>(
+  platform: Platform,
+): PlatformReactContributions<TContext> {
+  const read = React.useCallback<() => PlatformReactContributions<TContext>>(
+    () => ({
+      menuRoots: platform.ui.getMenuRoots() as readonly MenuRootContribution<string, TContext>[],
+      menus: platform.ui.getMenus() as readonly MenuContribution<
+        string,
+        CommandDefinition<unknown, unknown>,
+        TContext
+      >[],
+      shortcuts: platform.ui.getShortcuts() as readonly ShortcutContribution<
+        CommandDefinition<unknown, unknown>,
+        TContext
+      >[],
+    }),
+    [platform],
+  );
+  const [snapshot, setSnapshot] = React.useState(read);
+
+  React.useEffect(() => {
+    setSnapshot(read());
+    return platform.ui.subscribe(() => setSnapshot(read())).dispose;
+  }, [platform, read]);
+
+  return snapshot;
 }
 
 export function usePlatform<TContext = unknown>(): PlatformReactContextValue<TContext> {

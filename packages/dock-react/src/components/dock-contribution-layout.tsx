@@ -13,10 +13,12 @@ import {
   type WorkspaceItemState,
 } from "@ptl/dock-core";
 import { useContributions } from "@ptl/platform-react";
+import { cn } from "@ptl/ui";
 import * as React from "react";
 
 import { DockDragDropContext } from "./dock-drag-drop-context";
 import { DockLayout, type DockLayoutProps } from "./dock-layout";
+import { DockToolRail } from "./dock-tool-rail";
 import { DockProvider } from "../provider/dock-provider";
 import type { ToolPanelProps } from "../index";
 
@@ -71,13 +73,18 @@ export function DockContributionLayout({
   return (
     <DockProvider store={store}>
       <DockDragDropContext>
-        <DockLayout
-          {...layoutProps}
-          dragAndDrop={dragAndDrop}
-          renderToolWindow={(toolWindow) => renderToolWindow(toolWindow, toolById)}
-          renderToolWindowHeader={(toolWindow) => renderToolWindowHeader(toolWindow, toolById)}
-          renderWorkspaceItem={(item) => renderWorkspaceItem(item, editorById)}
-        />
+        <div className="flex h-full min-h-0">
+          <DockToolRail side="left" tools={tools} />
+          <DockLayout
+            {...layoutProps}
+            className={cn("min-h-0 flex-1", layoutProps.className)}
+            dragAndDrop={dragAndDrop}
+            renderToolWindow={(toolWindow) => renderToolWindow(toolWindow, toolById)}
+            renderToolWindowHeader={(toolWindow) => renderToolWindowHeader(toolWindow, toolById)}
+            renderWorkspaceItem={(item) => renderWorkspaceItem(item, editorById)}
+          />
+          <DockToolRail side="right" tools={tools} />
+        </div>
       </DockDragDropContext>
     </DockProvider>
   );
