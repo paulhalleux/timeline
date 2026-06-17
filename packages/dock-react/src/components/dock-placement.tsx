@@ -185,10 +185,13 @@ function DockPlacement({
     <section
       ref={droppable.setNodeRef}
       className={cn(
-        "flex h-full min-h-0 flex-col border bg-background transition-colors",
-        droppable.isOver && "border-ring bg-muted/40",
+        "relative flex h-full min-h-0 flex-col border bg-background transition-colors",
+        droppable.isOver && "border-ring bg-muted/40 ring-2 ring-ring/40",
       )}
     >
+      {droppable.isOver ? (
+        <div className="pointer-events-none absolute inset-2 z-10 rounded-md border border-dashed border-ring bg-background/70" />
+      ) : null}
       {activeToolWindow ? (
         <>
           <DockToolHeader

@@ -33,10 +33,7 @@ export interface DockDragDropContextProps {
  * </DockDragDropContext>
  * ```
  */
-export function DockDragDropContext({
-  children,
-  renderDragPreview,
-}: DockDragDropContextProps) {
+export function DockDragDropContext({ children, renderDragPreview }: DockDragDropContextProps) {
   const dock = useDock();
   const toolWindows = useDockState((state) => state.toolWindows);
   const [activeToolWindowId, setActiveToolWindowId] = React.useState<string | null>(null);
@@ -77,7 +74,11 @@ export function DockDragDropContext({
       const targetToolWindow = toolWindows[targetId];
 
       if (targetId !== toolWindowId && targetToolWindow) {
-        dock.moveToolWindow(toolWindowId, targetToolWindow.placement as DockedPlacement, overData.sortable.index);
+        dock.moveToolWindow(
+          toolWindowId,
+          targetToolWindow.placement as DockedPlacement,
+          overData.sortable.index,
+        );
       }
 
       return;
@@ -104,7 +105,7 @@ export function DockDragDropContext({
       {children}
       <DragOverlay dropAnimation={null}>
         {activeToolWindow ? (
-          <div className="w-fit rounded-md border bg-popover px-2 py-1 text-sm font-medium text-popover-foreground shadow-md">
+          <div className="pointer-events-none z-50 w-fit rounded-md border bg-popover px-2 py-1 text-sm font-medium text-popover-foreground shadow-md">
             {renderDragPreview?.(activeToolWindow) ?? activeToolWindow.title}
           </div>
         ) : null}

@@ -34,14 +34,8 @@ export {
   type LayoutPresetContribution,
   type DockLayoutBuilder,
 } from "./presets/layout-presets";
-export {
-  createDefaultDockState,
-  DockStateStore,
-} from "./state/dock-store";
-export {
-  type DockApi,
-  type DockStateStoreOptions,
-} from "./state/dock-api";
+export { createDefaultDockState, DockStateStore } from "./state/dock-store";
+export { type DockApi, type DockStateStoreOptions } from "./state/dock-api";
 export {
   createDockCommandDefinitions,
   registerDockCommands,
@@ -63,3 +57,7 @@ export {
   type WorkspaceEditorInstanceState,
 } from "./workspace/workspace-editor-definition";
 export { dockTools, dockWorkspaceEditors } from "./tools/tool-extension-points";
+export {
+  ToolWindowContributionRegistry,
+  type ToolWindowContribution,
+} from "./tool-windows/tool-window-contributions";
