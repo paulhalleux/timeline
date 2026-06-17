@@ -207,8 +207,8 @@ function renderWorkspaceItem(
 
   if (!editor) return item.title;
 
-  const Panel = editor.panel as React.ComponentType;
-  return <Panel />;
+  const Panel = editor.panel as React.ComponentType<{ item: WorkspaceItemState }>;
+  return <Panel item={item} />;
 }
 
 function getLocalizedText(text: unknown): string {

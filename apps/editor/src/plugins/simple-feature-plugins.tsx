@@ -1,18 +1,20 @@
 import { createCommand, createMenuRoot } from "@ptl/platform-core";
-import {
-  createDockPlugin,
-  createTool,
-  createWorkspaceEditor,
-  type ToolPanelProps,
-} from "@ptl/dock-react";
+import { Bug, Captions, ChartGantt, Gauge, ListTree, Rows3 } from "lucide-react";
+import { createDockPlugin, createTool, createWorkspaceEditor } from "@ptl/dock-react";
 
-const SimplePanel = ({ toolId }: ToolPanelProps) => (
-  <div className="text-xs text-muted-foreground">{toolId} plugin panel</div>
-);
+import {
+  InspectorToolWindow,
+  OutlineToolWindow,
+  PlaybackToolWindow,
+  QualityToolWindow,
+  SubtitleDocumentPane,
+  TimelineToolWindow,
+  TracksToolWindow,
+} from "../dock/dock-components";
 
 export const subtitleWorkspaceEditor = createWorkspaceEditor({
   id: "subtitle-document",
-  panel: () => <div className="text-xs">Subtitle document workspace</div>,
+  panel: SubtitleDocumentPane,
   getTitle: () => "Subtitles",
   allowMultiple: false,
 });
@@ -70,7 +72,8 @@ export const createOutlinePlugin = () =>
       createTool({
         id: "outline",
         title: "Outline",
-        panel: SimplePanel,
+        icon: ListTree,
+        panel: OutlineToolWindow,
         preferredPlacement: "left-top",
       }),
     ],
@@ -82,7 +85,8 @@ export const createTracksPlugin = () =>
       createTool({
         id: "tracks",
         title: "Tracks",
-        panel: SimplePanel,
+        icon: Rows3,
+        panel: TracksToolWindow,
         preferredPlacement: "left-bottom",
       }),
     ],
@@ -94,7 +98,8 @@ export const createInspectorPlugin = () =>
       createTool({
         id: "inspector",
         title: "Inspector",
-        panel: SimplePanel,
+        icon: Captions,
+        panel: InspectorToolWindow,
         preferredPlacement: "right-top",
       }),
     ],
@@ -105,8 +110,9 @@ export const createQualityControlPlugin = () =>
     tools: [
       createTool({
         id: "quality-control",
-        title: "Quality Control",
-        panel: SimplePanel,
+        title: "QC",
+        icon: Bug,
+        panel: QualityToolWindow,
         preferredPlacement: "right-bottom",
       }),
     ],
@@ -118,7 +124,8 @@ export const createPlaybackPlugin = () =>
       createTool({
         id: "playback",
         title: "Playback",
-        panel: SimplePanel,
+        icon: Gauge,
+        panel: PlaybackToolWindow,
         preferredPlacement: "bottom-right",
       }),
     ],
@@ -130,7 +137,8 @@ export const createTimelinePlugin = () =>
       createTool({
         id: "timeline",
         title: "Timeline",
-        panel: SimplePanel,
+        icon: ChartGantt,
+        panel: TimelineToolWindow,
         preferredPlacement: "bottom-left",
         constraints: { canHide: true, canMove: true, minHeight: 160 },
       }),
