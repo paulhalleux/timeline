@@ -16,11 +16,12 @@ const timelineTool = createTool({
   constraints: { canHide: true, canMove: true, minHeight: 160 },
 });
 
-export const createTimelinePlugin = () => createPlugin({
-  id: "editor.timeline",
-  requires: [dockTools],
-  contributions: [dockTools.contribute(timelineTool)],
-});
+export const createTimelinePlugin = () =>
+  createPlugin({
+    id: "editor.timeline",
+    requires: [dockTools],
+    contributions: [dockTools.contribute(timelineTool)],
+  });
 ```
 
 ## Workspace editors
@@ -43,3 +44,7 @@ const subtitleEditor = createWorkspaceEditor({
 ## Layout state and persistence
 
 `createDockState()` creates the serializable dock layout model. `serializeDockLayout()` and `restoreDockLayout()` preserve layout, project, and session state and tolerate missing runtime definitions when plugins are not installed.
+
+## React host layout
+
+`@ptl/dock-react` provides a headless `DockContributionLayout` that reads `dock.tools` and `dock.workspace-editors`, applies a host layout preset, and renders the generic dock shell. Editor apps should install dock/tool/workspace plugins and pass a preset instead of rebuilding dock layout chrome in app components.
