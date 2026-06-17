@@ -1,10 +1,11 @@
 import {
   PlatformRuntime,
+  createPlatform,
   defineCommand,
-  definePlugin,
+  definePlatformPlugin,
   type MenuContribution,
   type MenuRootContribution,
-  type PluginDefinition,
+  type PlatformPlugin,
   type ShortcutContribution,
 } from "@ptl/platform-core";
 import {
@@ -142,18 +143,7 @@ export interface EditorPlatformOptions {
 }
 
 export function createEditorPlatform(options: EditorPlatformOptions): EditorPlatformSetup {
-  const platform = new PlatformRuntime();
-  const plugins = createEditorPlugins(options);
-
-  for (const plugin of plugins) {
-    platform.registerPlugin(plugin);
-  }
-
-  for (const plugin of platform.resolveActivationOrder()) {
-    void platform.activatePlugin(plugin.id);
-  }
-
-  return { platform };
+  return { platform: createPlatform({ plugins: createEditorPlugins(options) }) };
 }
 
 function createEditorPlugins({
@@ -163,19 +153,19 @@ function createEditorPlugins({
   dock,
   contextRef,
   commandPaletteRef,
-}: EditorPlatformOptions): PluginDefinition[] {
+}: EditorPlatformOptions): PlatformPlugin[] {
   return [
-    definePlugin({
+    definePlatformPlugin({
       id: "editor.shell",
       displayName: "Editor shell",
-      contributes: {
+      contributions: {
         menuRoots: editorMenuRoots,
       },
     }),
-    definePlugin({
+    definePlatformPlugin({
       id: "editor.subtitle-defaults",
       displayName: "Subtitle defaults",
-      contributes: {
+      contributions: {
         commands: defaultSubtitleCommands,
         menus: defaultSubtitleMenuContributions as MenuContribution[],
         shortcuts: defaultSubtitleShortcutContributions as ShortcutContribution[],
@@ -198,108 +188,101 @@ function createEditorPlugins({
         );
       },
     }),
-    definePlugin({
+    definePlatformPlugin({
       id: "editor.files",
       displayName: "Editor file commands",
-      contributes: {
-        commands: fileCommands.map((entry) => entry.command),
-        menus: fileCommands.map(({ command }) => ({
-          menu: "main.file",
-          command,
-          group: "Project",
-          order: 10,
-        })),
-        shortcuts: fileCommands.map(({ command, shortcut }) => ({
-          command,
-          shortcut,
-          preventDefault: true,
-          source: "editor",
-        })),
-      },
-      activate: ({ commands }) => {
-        for (const { command, title } of fileCommands) {
-          commands.registerHandler(command, () => {
-            contextRef.current?.notify(`${title} triggered.`);
-          });
-        }
-      },
+      commands: fileCommands.map(({ command, shortcut, title }) => ({
+        command,
+        handler: () => {
+          contextRef.current?.notify(`${title} triggered.`);
+        },
+        menus: [{ menu: "main.file", command, group: "Project", order: 10 }],
+        shortcuts: [{ command, shortcut, preventDefault: true, source: "editor" }],
+      })),
     }),
-    definePlugin({
+    definePlatformPlugin({
       id: "editor.command-palette",
       displayName: "Editor command palette",
-      contributes: {
-        commands: [commandPaletteCommand],
-        menus: [{ menu: "main.view", command: commandPaletteCommand, group: "Window", order: 5 }],
-        shortcuts: [
-          {
-            command: commandPaletteCommand,
-            shortcut: "Mod+Shift+P",
-            preventDefault: true,
-            source: "editor",
+      commands: [
+        {
+          command: commandPaletteCommand,
+          handler: () => {
+            commandPaletteRef.current?.toggle();
           },
-        ],
-      },
-      activate: ({ commands }) => {
-        commands.registerHandler(commandPaletteCommand, () => {
-          commandPaletteRef.current?.toggle();
-        });
-      },
+          menus: [{ menu: "main.view", command: commandPaletteCommand, group: "Window", order: 5 }],
+          shortcuts: [
+            {
+              command: commandPaletteCommand,
+              shortcut: "Mod+Shift+P",
+              preventDefault: true,
+              source: "editor",
+            },
+          ],
+        },
+      ],
     }),
-    definePlugin({
+    definePlatformPlugin({
       id: "editor.timed-text",
       displayName: "Editor timed-text commands",
-      contributes: {
-        commands: [insertSampleCueCommand, sortTimedTextCommand, snapTimedText24Command],
-        menus: [
-          { menu: "main.cue", command: insertSampleCueCommand, group: "Cue", order: 20 },
-          { menu: "main.cue", command: sortTimedTextCommand, group: "Cue", order: 20 },
-          { menu: "main.timing", command: snapTimedText24Command, group: "Timing", order: 20 },
-        ],
-        shortcuts: [
-          {
-            command: insertSampleCueCommand,
-            shortcut: "Mod+Enter",
-            preventDefault: true,
-            source: "subtitle-editor",
-          },
-          {
-            command: snapTimedText24Command,
-            shortcut: "Mod+Shift+K",
-            preventDefault: true,
-            source: "subtitle-editor",
-          },
-        ],
-      },
-      activate: ({ commands }) => {
-        commands.registerHandler(insertSampleCueCommand, async () => {
-          const count = getCueCount(documents);
-          const cue = createEditorCue(
-            {
-              startMs: count * 2_000,
-              endMs: count * 2_000 + 1_500,
-              text: `Sample subtitle ${count + 1}`,
-            },
-            (prefix) => `${prefix}-${count + 1}`,
-          );
+      commands: [
+        {
+          command: insertSampleCueCommand,
+          handler: async (_input, _execution, { commands }) => {
+            const count = getCueCount(documents);
+            const cue = createEditorCue(
+              {
+                startMs: count * 2_000,
+                endMs: count * 2_000 + 1_500,
+                text: `Sample subtitle ${count + 1}`,
+              },
+              (prefix) => `${prefix}-${count + 1}`,
+            );
 
-          await commands.execute(insertCueCommand, {
-            trackId: "subtitles",
-            cue,
-          });
-        });
-        commands.registerHandler(sortTimedTextCommand, async () => {
-          await commands.execute(sortCuesByTimeCommand, undefined);
-        });
-        commands.registerHandler(snapTimedText24Command, async () => {
-          await commands.execute(snapCuesToFramesCommand, { frameRate: 24 });
-        });
-      },
+            await commands.execute(insertCueCommand, {
+              trackId: "subtitles",
+              cue,
+            });
+          },
+          menus: [{ menu: "main.cue", command: insertSampleCueCommand, group: "Cue", order: 20 }],
+          shortcuts: [
+            {
+              command: insertSampleCueCommand,
+              shortcut: "Mod+Enter",
+              preventDefault: true,
+              source: "subtitle-editor",
+            },
+          ],
+        },
+        {
+          command: sortTimedTextCommand,
+          handler: async (_input, _execution, { commands }) => {
+            await commands.execute(sortCuesByTimeCommand, undefined);
+          },
+          menus: [{ menu: "main.cue", command: sortTimedTextCommand, group: "Cue", order: 20 }],
+        },
+        {
+          command: snapTimedText24Command,
+          handler: async (_input, _execution, { commands }) => {
+            await commands.execute(snapCuesToFramesCommand, { frameRate: 24 });
+          },
+          menus: [
+            { menu: "main.timing", command: snapTimedText24Command, group: "Timing", order: 20 },
+          ],
+          shortcuts: [
+            {
+              command: snapTimedText24Command,
+              shortcut: "Mod+Shift+K",
+              preventDefault: true,
+              source: "subtitle-editor",
+            },
+          ],
+        },
+      ],
     }),
-    definePlugin({
+    definePlatformPlugin({
       id: "editor.view-panels",
       displayName: "Editor view panels",
-      contributes: {
-        commands: editorPanelToggles.map((entry) => entry.command),
+      contributions: {
         menus: [
           {
             kind: "submenu",
@@ -309,23 +292,24 @@ function createEditorPlugins({
             group: "Window",
             order: 10,
           },
-          ...editorPanelToggles.map(({ command, toolWindowId, order }) => ({
+        ],
+      },
+      commands: editorPanelToggles.map(({ command, toolWindowId, order }) => ({
+        command,
+        handler: () => {
+          dock.toggleToolWindow(toolWindowId);
+        },
+        menus: [
+          {
             kind: "toggle" as const,
             menu: "main.view.panels",
             command,
             checked: () => isToolWindowVisible(dock, toolWindowId),
             group: "Panels",
             order,
-          })),
+          },
         ],
-      },
-      activate: ({ commands }) => {
-        for (const { command, toolWindowId } of editorPanelToggles) {
-          commands.registerHandler(command, () => {
-            dock.toggleToolWindow(toolWindowId);
-          });
-        }
-      },
+      })),
     }),
   ];
 }

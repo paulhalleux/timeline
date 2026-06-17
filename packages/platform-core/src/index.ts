@@ -44,7 +44,16 @@ export {
 export { I18nService, type I18nEvents, type TranslationBundle } from "./i18n/i18n-service";
 export { type ContributionOwner, type OwnedContribution } from "./contributions/owner";
 export { resolvePluginOrder, type PluginResolveContext } from "./plugins/resolver";
-export { PlatformRuntime, type PlatformRuntimeOptions } from "./plugins/runtime";
+export {
+  createPlatform,
+  definePlatformPlugin,
+  PlatformRuntime,
+  type CreatePlatformOptions,
+  type PlatformCommandContribution,
+  type PlatformCommandHandler,
+  type PlatformPlugin,
+  type PlatformRuntimeOptions,
+} from "./plugins/runtime";
 export {
   definePlugin,
   type PluginActivationContext,

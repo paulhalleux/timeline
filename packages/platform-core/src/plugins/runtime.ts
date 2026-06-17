@@ -1,5 +1,14 @@
-import { CommandRegistry } from "../commands/command-registry";
-import type { PlatformContributions } from "../contributions/descriptors";
+import {
+  CommandRegistry,
+  type CommandDefinition,
+  type CommandHandler,
+} from "../commands/command-registry";
+import type {
+  MenuContribution,
+  PlatformContributions,
+  ShortcutContribution,
+  ToolbarContribution,
+} from "../contributions/descriptors";
 import { DisposableStore } from "../lifecycle/disposable";
 import { PlatformError, platformErrorCodes } from "../errors/platform-error";
 import { ExtensionPointRegistry } from "../extensions/extension-point-registry";
@@ -15,6 +24,105 @@ export interface PlatformRuntimeOptions<TServices extends Record<string, unknown
   settings?: SettingsRegistry;
   i18n?: I18nService;
   extensionPoints?: ExtensionPointRegistry;
+}
+
+export interface PlatformCommandContribution<
+  TCommand extends CommandDefinition<any, any> = CommandDefinition<any, any>,
+  TServices extends Record<string, unknown> = Record<string, unknown>,
+> {
+  command: TCommand;
+  handler?: CommandHandler<TCommand> | PlatformCommandHandler<TServices>;
+  menus?: readonly MenuContribution<string, TCommand>[];
+  shortcuts?: readonly ShortcutContribution<TCommand>[];
+  toolbars?: readonly ToolbarContribution<string, TCommand>[];
+}
+
+export type PlatformCommandHandler<
+  TServices extends Record<string, unknown> = Record<string, unknown>,
+> = (
+  input: unknown,
+  execution: Parameters<CommandHandler<CommandDefinition<any, any>>>[1],
+  platform: PluginActivationContext<TServices>,
+) => unknown | Promise<unknown>;
+
+export interface PlatformPlugin<TServices extends Record<string, unknown> = Record<string, unknown>>
+  extends Omit<PluginDefinition<TServices>, "contributes" | "activate"> {
+  contributions?: PlatformContributions;
+  commands?: readonly PlatformCommandContribution<CommandDefinition<any, any>, TServices>[];
+  activate?: PluginDefinition<TServices>["activate"];
+}
+
+export interface CreatePlatformOptions<
+  TServices extends Record<string, unknown> = Record<string, unknown>,
+> extends PlatformRuntimeOptions<TServices> {
+  plugins?: readonly PlatformPlugin<TServices>[];
+  activate?: boolean;
+}
+
+export function definePlatformPlugin<
+  TServices extends Record<string, unknown> = Record<string, unknown>,
+>(plugin: PlatformPlugin<TServices>): PlatformPlugin<TServices> {
+  return plugin;
+}
+
+export function createPlatform<TServices extends Record<string, unknown> = Record<string, unknown>>(
+  options: CreatePlatformOptions<TServices> = {},
+): PlatformRuntime<TServices> {
+  const runtime = new PlatformRuntime<TServices>(options);
+
+  for (const plugin of options.plugins ?? []) {
+    runtime.registerPlugin(toRuntimePlugin(plugin));
+  }
+
+  if (options.activate ?? true) {
+    for (const plugin of runtime.resolveActivationOrder()) {
+      void runtime.activatePlugin(plugin.id);
+    }
+  }
+
+  return runtime;
+}
+
+function toRuntimePlugin<TServices extends Record<string, unknown>>(
+  plugin: PlatformPlugin<TServices>,
+): PluginDefinition<TServices> {
+  const commandContributions = plugin.commands ?? [];
+
+  return {
+    ...plugin,
+    contributes: {
+      ...plugin.contributions,
+      commands: [
+        ...(plugin.contributions?.commands ?? []),
+        ...commandContributions.map((entry) => entry.command),
+      ],
+      menus: [
+        ...(plugin.contributions?.menus ?? []),
+        ...commandContributions.flatMap((entry) => entry.menus ?? []),
+      ],
+      shortcuts: [
+        ...(plugin.contributions?.shortcuts ?? []),
+        ...commandContributions.flatMap((entry) => entry.shortcuts ?? []),
+      ],
+      toolbars: [
+        ...(plugin.contributions?.toolbars ?? []),
+        ...commandContributions.flatMap((entry) => entry.toolbars ?? []),
+      ],
+    },
+    activate: async (context) => {
+      for (const entry of commandContributions) {
+        if (entry.handler) {
+          context.subscriptions.add(
+            context.commands.registerHandler(entry.command, (input, execution) =>
+              (entry.handler as PlatformCommandHandler<TServices>)(input, execution, context),
+            ),
+          );
+        }
+      }
+
+      return plugin.activate?.(context);
+    },
+  };
 }
 
 /**

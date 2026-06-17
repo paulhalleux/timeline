@@ -55,7 +55,8 @@ export function PlatformProvider<
     () => ({
       platform,
       components: components ?? {},
-      contributions: contributions ?? (platform.getContributions() as PlatformReactContributions<TContext>),
+      contributions:
+        contributions ?? (platform.getContributions() as PlatformReactContributions<TContext>),
     }),
     [components, contributions, platform],
   );
