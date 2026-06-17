@@ -1,4 +1,9 @@
-import { defineCommand, type CommandRegistry, type MenuContribution } from "@ptl/platform-core";
+import {
+  createCommand,
+  type CommandDefinition,
+  type Disposable,
+  type MenuContribution,
+} from "@ptl/platform-core";
 
 import {
   adjustEditorGaps,
@@ -18,6 +23,13 @@ import {
   requireCommandInput,
 } from "./helpers";
 import { TIMED_TEXT_COMMAND_CATEGORY } from "./metadata";
+
+interface CommandRegistrar {
+  registerHandler<TInput, TResult>(
+    command: CommandDefinition<TInput, TResult>,
+    handler: (input: TInput) => TResult | Promise<TResult>,
+  ): Disposable;
+}
 
 export interface ShiftCuesCommandInput {
   offsetMs: number;
@@ -45,7 +57,7 @@ export interface AdjustGapsCommandInput {
 
 type TimedTextDocumentCommandResult = EditorOperationResult<undefined>;
 
-export const shiftCuesCommand = defineCommand<
+export const shiftCuesCommand = createCommand<
   ShiftCuesCommandInput,
   TimedTextDocumentCommandResult
 >({
@@ -54,7 +66,7 @@ export const shiftCuesCommand = defineCommand<
   category: TIMED_TEXT_COMMAND_CATEGORY,
 });
 
-export const scaleCuesCommand = defineCommand<
+export const scaleCuesCommand = createCommand<
   ScaleCuesCommandInput,
   TimedTextDocumentCommandResult
 >({
@@ -63,7 +75,7 @@ export const scaleCuesCommand = defineCommand<
   category: TIMED_TEXT_COMMAND_CATEGORY,
 });
 
-export const snapCuesToFramesCommand = defineCommand<
+export const snapCuesToFramesCommand = createCommand<
   SnapCuesToFramesCommandInput,
   TimedTextDocumentCommandResult
 >({
@@ -72,7 +84,7 @@ export const snapCuesToFramesCommand = defineCommand<
   category: TIMED_TEXT_COMMAND_CATEGORY,
 });
 
-export const fixOverlapsCommand = defineCommand<
+export const fixOverlapsCommand = createCommand<
   FixOverlapsCommandInput,
   TimedTextDocumentCommandResult
 >({
@@ -81,7 +93,7 @@ export const fixOverlapsCommand = defineCommand<
   category: TIMED_TEXT_COMMAND_CATEGORY,
 });
 
-export const adjustGapsCommand = defineCommand<
+export const adjustGapsCommand = createCommand<
   AdjustGapsCommandInput,
   TimedTextDocumentCommandResult
 >({
@@ -90,7 +102,7 @@ export const adjustGapsCommand = defineCommand<
   category: TIMED_TEXT_COMMAND_CATEGORY,
 });
 
-export const sortCuesByTimeCommand = defineCommand<void, TimedTextDocumentCommandResult>({
+export const sortCuesByTimeCommand = createCommand<void, TimedTextDocumentCommandResult>({
   id: "timedText.cues.sortByTime",
   title: "Sort cues by time",
   category: TIMED_TEXT_COMMAND_CATEGORY,
@@ -127,7 +139,7 @@ export const defaultTimingMenuContributions: MenuContribution[] = [
 ];
 
 export function registerTimedTextTimingCommandHandlers(
-  registry: CommandRegistry,
+  registry: CommandRegistrar,
   context: TimedTextCommandContext,
 ) {
   return [

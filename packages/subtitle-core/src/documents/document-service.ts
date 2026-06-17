@@ -1,6 +1,6 @@
 import {
   PlatformError,
-  TypedEventEmitter,
+  createEventEmitter,
   type Disposable,
   type LocalizedText,
 } from "@ptl/platform-core";
@@ -55,7 +55,7 @@ export class TimedTextDocumentService {
   private readonly documents = new Map<string, EditorTimedTextDocument>();
   private readonly transactions: SubtitleDocumentTransaction[] = [];
   private readonly redoTransactions: SubtitleDocumentTransaction[] = [];
-  private readonly events = new TypedEventEmitter<TimedTextDocumentEvents>();
+  private readonly events = createEventEmitter<TimedTextDocumentEvents>();
   private readonly currentDocumentStore = new Store<EditorTimedTextDocument | undefined>(
     undefined,
   );

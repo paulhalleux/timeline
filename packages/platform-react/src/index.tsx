@@ -11,13 +11,12 @@ export { ShortcutProvider, type ShortcutProviderProps } from "./components/short
 export {
   PlatformProvider,
   usePlatform,
+  useService,
+  useContributions,
+  useCommand,
   type PlatformProviderProps,
   type PlatformReactContextValue,
   type PlatformReactContributions,
 } from "./hooks/platform-provider";
-export {
-  ReactComponentRegistry,
-  reactComponentRegistryErrorCodes,
-} from "./registry/react-component-registry";
 export type { SearchableCommand } from "./utils/searchable-command";
 export type { ShortcutConflict } from "./utils/shortcut-conflicts";

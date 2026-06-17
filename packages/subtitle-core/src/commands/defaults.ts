@@ -25,10 +25,17 @@ import {
   registerTimedTextTimingCommandHandlers,
   timingCommands,
 } from "./timing-commands";
-import type { CommandRegistry } from "@ptl/platform-core";
+import type { CommandDefinition, Disposable } from "@ptl/platform-core";
 import type { TimedTextDocumentService } from "../documents/document-service";
 import type { SubtitlePlaybackService } from "../playback";
 import type { TimedTextCommandContext } from "./context";
+
+interface CommandRegistrar {
+  registerHandler<TInput, TResult>(
+    command: CommandDefinition<TInput, TResult>,
+    handler: (input: TInput) => TResult | Promise<TResult>,
+  ): Disposable;
+}
 
 export const timedTextCommands = {
   ...cueCommands,
@@ -75,7 +82,7 @@ export const defaultSubtitleShortcutContributions = [
  * and register their own handlers against the same command definitions.
  */
 export function registerDefaultTimedTextCommandHandlers(
-  registry: CommandRegistry,
+  registry: CommandRegistrar,
   context: TimedTextCommandContext,
 ) {
   return [
@@ -85,7 +92,7 @@ export function registerDefaultTimedTextCommandHandlers(
 }
 
 export function registerDefaultSubtitleCommandHandlers(
-  registry: CommandRegistry,
+  registry: CommandRegistrar,
   context: TimedTextCommandContext,
   documents: TimedTextDocumentService,
   playback?: SubtitlePlaybackService,

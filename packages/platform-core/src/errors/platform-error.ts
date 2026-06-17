@@ -2,39 +2,34 @@ import type { LocalizedText } from "../text/messages";
 
 export const platformErrorCodes = {
   commandAlreadyRegistered: "platform.command.already-registered",
+  commandMissing: "platform.command.missing",
   commandHandlerMissing: "platform.command.handler-missing",
-  commandHandlerAlreadyRegistered: "platform.command.handler-already-registered",
   contributionAlreadyRegistered: "platform.contribution.already-registered",
-  dependencyCycle: "platform.plugin.dependency-cycle",
+  dependencyCycle: "platform.dependency.cycle",
+  deactivationBlocked: "platform.plugin.deactivation-blocked",
   duplicatePlugin: "platform.plugin.duplicate",
+  duplicateServiceProvider: "platform.service.provider-duplicate",
   extensionPointAlreadyDefined: "platform.extension-point.already-defined",
   extensionPointMissing: "platform.extension-point.missing",
   pluginActivationFailed: "platform.plugin.activation-failed",
+  pluginFailed: "platform.plugin.failed",
   pluginMissing: "platform.plugin.missing",
-  serviceAlreadyRegistered: "platform.service.already-registered",
   serviceMissing: "platform.service.missing",
   settingAlreadyRegistered: "platform.setting.already-registered",
+  settingMissing: "platform.setting.missing",
+  schemaValidationFailed: "platform.schema.validation-failed",
 } as const;
 
-export type PlatformErrorCode =
-  | (typeof platformErrorCodes)[keyof typeof platformErrorCodes]
-  | string;
+export type PlatformErrorCode = (typeof platformErrorCodes)[keyof typeof platformErrorCodes];
 
 export interface PlatformErrorOptions {
-  code: PlatformErrorCode;
-  message: LocalizedText;
-  details?: unknown;
-  cause?: unknown;
-  recoverable?: boolean;
+  readonly code: PlatformErrorCode;
+  readonly message: LocalizedText;
+  readonly details?: unknown;
+  readonly cause?: unknown;
+  readonly recoverable?: boolean;
 }
 
-/**
- * Structured platform failure with a stable code and optional diagnostics.
- *
- * Use `PlatformError` for developer-actionable runtime failures such as a
- * missing service, duplicate command, or failed plugin activation. The human
- * message can be a plain string or a localizable message descriptor.
- */
 export class PlatformError extends Error {
   readonly code: PlatformErrorCode;
   readonly localizedMessage: LocalizedText;

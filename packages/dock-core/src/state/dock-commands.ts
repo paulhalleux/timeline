@@ -1,7 +1,6 @@
 import {
-  defineCommand,
+  createCommand,
   type CommandDefinition,
-  type CommandRegistry,
   type Disposable,
 } from "@ptl/platform-core";
 
@@ -23,6 +22,13 @@ import type { DockStateStore } from "./dock-store";
  * platform.commands.execute(dockCommandIds.toolWindowToggle, "outline");
  * ```
  */
+interface CommandRegistrar {
+  registerHandler<TInput, TResult>(
+    command: CommandDefinition<TInput, TResult>,
+    handler: (input: TInput) => TResult | Promise<TResult>,
+  ): Disposable;
+}
+
 export const dockCommandIds = {
   toolWindowShow: "dock.toolWindow.show",
   toolWindowActivate: "dock.toolWindow.activate",
@@ -55,27 +61,27 @@ export const dockCommandIds = {
  * ```
  */
 export const dockCommands = {
-  toolWindowShow: defineCommand<string>({
+  toolWindowShow: createCommand<string>({
     id: dockCommandIds.toolWindowShow,
     title: "Show tool window",
   }),
-  toolWindowActivate: defineCommand<string>({
+  toolWindowActivate: createCommand<string>({
     id: dockCommandIds.toolWindowActivate,
     title: "Activate tool window",
   }),
-  toolWindowDeactivate: defineCommand<string>({
+  toolWindowDeactivate: createCommand<string>({
     id: dockCommandIds.toolWindowDeactivate,
     title: "Deactivate tool window",
   }),
-  toolWindowHide: defineCommand<string>({
+  toolWindowHide: createCommand<string>({
     id: dockCommandIds.toolWindowHide,
     title: "Hide tool window",
   }),
-  toolWindowToggle: defineCommand<string>({
+  toolWindowToggle: createCommand<string>({
     id: dockCommandIds.toolWindowToggle,
     title: "Toggle tool window",
   }),
-  toolWindowMove: defineCommand<{
+  toolWindowMove: createCommand<{
     toolWindowId: string;
     placement: DockedPlacement;
     index?: number;
@@ -83,11 +89,11 @@ export const dockCommands = {
     id: dockCommandIds.toolWindowMove,
     title: "Move tool window",
   }),
-  toolWindowFloat: defineCommand<{ toolWindowId: string }>({
+  toolWindowFloat: createCommand<{ toolWindowId: string }>({
     id: dockCommandIds.toolWindowFloat,
     title: "Float tool window",
   }),
-  toolWindowDock: defineCommand<{
+  toolWindowDock: createCommand<{
     toolWindowId: string;
     placement?: DockedPlacement;
     index?: number;
@@ -95,23 +101,23 @@ export const dockCommands = {
     id: dockCommandIds.toolWindowDock,
     title: "Dock tool window",
   }),
-  toolWindowResize: defineCommand<{ placement: DockedPlacement; size: number }>({
+  toolWindowResize: createCommand<{ placement: DockedPlacement; size: number }>({
     id: dockCommandIds.toolWindowResize,
     title: "Resize tool window placement",
   }),
-  regionResize: defineCommand<{ region: DockRegion; size: number }>({
+  regionResize: createCommand<{ region: DockRegion; size: number }>({
     id: dockCommandIds.regionResize,
     title: "Resize dock region",
   }),
-  workspaceOpen: defineCommand<WorkspaceItemState>({
+  workspaceOpen: createCommand<WorkspaceItemState>({
     id: dockCommandIds.workspaceOpen,
     title: "Open workspace item",
   }),
-  workspaceClose: defineCommand<string>({
+  workspaceClose: createCommand<string>({
     id: dockCommandIds.workspaceClose,
     title: "Close workspace item",
   }),
-  workspaceActivate: defineCommand<string>({
+  workspaceActivate: createCommand<string>({
     id: dockCommandIds.workspaceActivate,
     title: "Activate workspace item",
   }),
@@ -149,7 +155,7 @@ export function createDockCommandDefinitions(): CommandDefinition<any, any>[] {
  * ```
  */
 export function registerDockCommands(
-  commands: CommandRegistry,
+  commands: CommandRegistrar,
   dock: DockStateStore,
 ): Disposable {
   const disposables: Disposable[] = [];

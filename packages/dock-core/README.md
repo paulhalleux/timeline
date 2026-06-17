@@ -1,89 +1,50 @@
 # @ptl/dock-core
 
-Generic, serializable dock layout state and workspace item type registries.
+`@ptl/dock-core` owns renderer-agnostic dock layout types plus plugin-first extension points for dock tools and workspace editors. Runtime tool/editor definitions can contain panel values, while persisted layout state remains serializable and stores only IDs, placement, visibility, size, and local state.
 
-This package intentionally has no React, subtitle, or app-specific imports.
-
-## Layout state
-
-`createDockState()` creates a JSON-serializable model for docked tool windows,
-workspace items, split sizes, floating items, and focus. Hosts can persist this
-shape directly and render it with any UI layer.
+## Direct-panel tools
 
 ```ts
-import { addWorkspaceItem, createDockState } from "@ptl/dock-core";
+import { createTool, dockTools } from "@ptl/dock-core";
+import { createPlugin } from "@ptl/platform-core";
 
-const state = addWorkspaceItem(createDockState(), {
-  id: "editor-1",
-  type: "timed-text-editor",
-  title: "Captions",
-  component: "dock.editor.timed-text",
+const timelineTool = createTool({
+  id: "timeline",
+  title: "Timeline",
+  panel: TimelinePanel,
+  preferredPlacement: "bottom-left",
+  constraints: { canHide: true, canMove: true, minHeight: 160 },
+});
+
+export const createTimelinePlugin = () =>
+  createPlugin({
+    id: "editor.timeline",
+    requires: [dockTools],
+    contributions: [dockTools.contribute(timelineTool)],
+  });
+```
+
+## Workspace editors
+
+```ts
+import { createWorkspaceEditor, dockWorkspaceEditors } from "@ptl/dock-core";
+
+const subtitleEditor = createWorkspaceEditor({
+  id: "subtitle-document",
+  panel: SubtitleDocumentPanel,
+  getTitle: () => "Subtitles",
+  allowMultiple: false,
 });
 ```
 
-## Workspace item types
+## Serializable instance state
 
-`WorkspaceItemTypeRegistry` stores the type-to-component contract for long-lived
-workspace content. Inputs and metadata can be validated with Standard Schema
-objects before an item is added to the layout state.
+`ToolDefinition` and `WorkspaceEditorDefinition` are runtime definitions. `ToolInstanceState` and `WorkspaceEditorInstanceState` are persisted state shapes and never contain components.
 
-```ts
-import { WorkspaceItemTypeRegistry } from "@ptl/dock-core";
+## Layout state and persistence
 
-const registry = new WorkspaceItemTypeRegistry();
+`createDockState()` creates the serializable dock layout model. `serializeDockLayout()` and `restoreDockLayout()` preserve layout, project, and session state and tolerate missing runtime definitions when plugins are not installed.
 
-registry.register({
-  type: "timed-text-editor",
-  title: "Timed text editor",
-  component: "dock.editor.timed-text",
-  createItem(input: { id: string }) {
-    return {
-      id: input.id,
-      type: "timed-text-editor",
-      title: "Captions",
-      component: "dock.editor.timed-text",
-    };
-  },
-});
+## React host layout
 
-const item = await registry.createItem("timed-text-editor", { id: "captions" });
-```
-
-## Tool windows and presets
-
-Tool windows are contributed as metadata plus component IDs. Presets apply
-workflow-specific layouts by dispatching reducer actions.
-
-```ts
-import {
-  LayoutPresetRegistry,
-  ToolWindowContributionRegistry,
-  dockCommandIds,
-} from "@ptl/dock-core";
-
-const toolWindows = new ToolWindowContributionRegistry();
-toolWindows.register({
-  id: "outline",
-  title: "Outline",
-  component: "dock.tool.outline",
-  preferredPlacement: "left-top",
-});
-
-const presets = new LayoutPresetRegistry();
-presets.register({
-  id: "review",
-  title: "Review",
-  apply: (builder) =>
-    builder.dispatch({
-      type: dockCommandIds.toolWindowShow,
-      toolWindowId: "outline",
-    }),
-});
-```
-
-## Persistence
-
-`serializeDockLayout()` separates user layout, project layout, session state,
-and missing contribution state. `restoreDockLayout()` prunes unavailable
-components from active state while preserving their serialized payloads for
-future recovery.
+`@ptl/dock-react` provides a headless `DockContributionLayout` that reads `dock.tools` and `dock.workspace-editors`, applies a host layout preset, and renders the generic dock shell. Editor apps should install dock/tool/workspace plugins and pass a preset instead of rebuilding dock layout chrome in app components.

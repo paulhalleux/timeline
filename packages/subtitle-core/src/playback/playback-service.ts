@@ -1,4 +1,4 @@
-import { PlatformError, TypedEventEmitter, type Disposable } from "@ptl/platform-core";
+import { PlatformError, createEventEmitter, type Disposable } from "@ptl/platform-core";
 import { Store } from "@ptl/store";
 
 import { subtitleErrorCodes } from "../errors";
@@ -36,7 +36,7 @@ interface SubtitlePlaybackEvents {
  * ```
  */
 export class SubtitlePlaybackService {
-  private readonly events = new TypedEventEmitter<SubtitlePlaybackEvents>();
+  private readonly events = createEventEmitter<SubtitlePlaybackEvents>();
   private readonly store: Store<SubtitlePlaybackState>;
 
   constructor(initialState: Partial<SubtitlePlaybackState> = {}) {

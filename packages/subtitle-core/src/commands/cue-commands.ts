@@ -1,6 +1,7 @@
 import {
-  defineCommand,
-  type CommandRegistry,
+  createCommand,
+  type CommandDefinition,
+  type Disposable,
   type MenuContribution,
   type ShortcutContribution,
 } from "@ptl/platform-core";
@@ -22,6 +23,13 @@ import {
 import type { TimedTextCommandContext } from "./context";
 import { commitTimedTextCommandResult, requireCommandInput } from "./helpers";
 import { TIMED_TEXT_COMMAND_CATEGORY, TIMED_TEXT_COMMAND_SOURCE } from "./metadata";
+
+interface CommandRegistrar {
+  registerHandler<TInput, TResult>(
+    command: CommandDefinition<TInput, TResult>,
+    handler: (input: TInput) => TResult | Promise<TResult>,
+  ): Disposable;
+}
 
 export type CreateCueCommandInput = CreateEditorCueInput;
 
@@ -69,7 +77,7 @@ export interface MergeCuesCommandInput extends MergeEditorCuesOptions {
  * `registerTimedTextCueCommandHandlers` in the package that owns document
  * state, history, persistence, and collaboration.
  */
-export const createCueCommand = defineCommand<
+export const createCueCommand = createCommand<
   CreateCueCommandInput,
   ReturnType<typeof createEditorCue>
 >({
@@ -79,7 +87,7 @@ export const createCueCommand = defineCommand<
   keywords: ["subtitle", "caption"],
 });
 
-export const insertCueCommand = defineCommand<
+export const insertCueCommand = createCommand<
   InsertCueCommandInput,
   ReturnType<typeof insertEditorCue>
 >({
@@ -88,7 +96,7 @@ export const insertCueCommand = defineCommand<
   category: TIMED_TEXT_COMMAND_CATEGORY,
 });
 
-export const deleteCueCommand = defineCommand<
+export const deleteCueCommand = createCommand<
   DeleteCueCommandInput,
   ReturnType<typeof deleteEditorCue>
 >({
@@ -97,7 +105,7 @@ export const deleteCueCommand = defineCommand<
   category: TIMED_TEXT_COMMAND_CATEGORY,
 });
 
-export const updateCueTextCommand = defineCommand<
+export const updateCueTextCommand = createCommand<
   UpdateCueTextCommandInput,
   ReturnType<typeof updateEditorCue>
 >({
@@ -106,7 +114,7 @@ export const updateCueTextCommand = defineCommand<
   category: TIMED_TEXT_COMMAND_CATEGORY,
 });
 
-export const updateCueTimingCommand = defineCommand<
+export const updateCueTimingCommand = createCommand<
   UpdateCueTimingCommandInput,
   ReturnType<typeof updateEditorCueTiming>
 >({
@@ -115,7 +123,7 @@ export const updateCueTimingCommand = defineCommand<
   category: TIMED_TEXT_COMMAND_CATEGORY,
 });
 
-export const replaceCueRangeCommand = defineCommand<
+export const replaceCueRangeCommand = createCommand<
   ReplaceCueRangeCommandInput,
   ReturnType<typeof replaceEditorCueRange>
 >({
@@ -124,7 +132,7 @@ export const replaceCueRangeCommand = defineCommand<
   category: TIMED_TEXT_COMMAND_CATEGORY,
 });
 
-export const splitCueCommand = defineCommand<
+export const splitCueCommand = createCommand<
   SplitCueCommandInput,
   ReturnType<typeof splitEditorCue>
 >({
@@ -133,7 +141,7 @@ export const splitCueCommand = defineCommand<
   category: TIMED_TEXT_COMMAND_CATEGORY,
 });
 
-export const mergeCuesCommand = defineCommand<
+export const mergeCuesCommand = createCommand<
   MergeCuesCommandInput,
   ReturnType<typeof mergeEditorCues>
 >({
@@ -183,7 +191,7 @@ export const defaultCueShortcutContributions: ShortcutContribution[] = [
 ];
 
 export function registerTimedTextCueCommandHandlers(
-  registry: CommandRegistry,
+  registry: CommandRegistrar,
   context: TimedTextCommandContext,
 ) {
   return [

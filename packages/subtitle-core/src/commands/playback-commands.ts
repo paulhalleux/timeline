@@ -1,6 +1,7 @@
 import {
-  defineCommand,
-  type CommandRegistry,
+  createCommand,
+  type CommandDefinition,
+  type Disposable,
   type MenuContribution,
   type ShortcutContribution,
 } from "@ptl/platform-core";
@@ -13,31 +14,38 @@ import type {
 } from "../playback";
 import type { SubtitleCommandContext } from "./history-commands";
 
-export const playCommand = defineCommand<void, SubtitlePlaybackState>({
+interface CommandRegistrar {
+  registerHandler<TInput, TResult>(
+    command: CommandDefinition<TInput, TResult>,
+    handler: (input: TInput) => TResult | Promise<TResult>,
+  ): Disposable;
+}
+
+export const playCommand = createCommand<void, SubtitlePlaybackState>({
   id: "playback.play",
   title: "Play",
   category: "Playback",
 });
 
-export const pauseCommand = defineCommand<void, SubtitlePlaybackState>({
+export const pauseCommand = createCommand<void, SubtitlePlaybackState>({
   id: "playback.pause",
   title: "Pause",
   category: "Playback",
 });
 
-export const togglePlaybackCommand = defineCommand<void, SubtitlePlaybackState>({
+export const togglePlaybackCommand = createCommand<void, SubtitlePlaybackState>({
   id: "playback.toggle",
   title: "Play/Pause",
   category: "Playback",
 });
 
-export const seekPlaybackCommand = defineCommand<SeekPlaybackInput, SubtitlePlaybackState>({
+export const seekPlaybackCommand = createCommand<SeekPlaybackInput, SubtitlePlaybackState>({
   id: "playback.seek",
   title: "Seek playback",
   category: "Playback",
 });
 
-export const setPlaybackRateCommand = defineCommand<
+export const setPlaybackRateCommand = createCommand<
   SetPlaybackRateInput,
   SubtitlePlaybackState
 >({
@@ -94,7 +102,7 @@ export const defaultPlaybackShortcutContributions: ShortcutContribution<
  * ```
  */
 export function registerSubtitlePlaybackCommandHandlers(
-  registry: CommandRegistry,
+  registry: CommandRegistrar,
   playback: SubtitlePlaybackService,
 ) {
   return [

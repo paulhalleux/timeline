@@ -1,52 +1,26 @@
 import { disposable, type Disposable } from "../lifecycle/disposable";
 
-export type EventMap = object;
+export type EventMap = Record<string, unknown>;
 
-/**
- * Minimal typed event wrapper used by platform services.
- *
- * The class deliberately stays small: listeners are strongly typed, `on`
- * returns a disposable subscription, and there is no global event bus hidden
- * behind the API.
- *
- * @example
- * ```ts
- * const events = new TypedEventEmitter<{ changed: { value: number } }>();
- * const subscription = events.on("changed", event => console.log(event.value));
- * events.emit("changed", { value: 1 });
- * subscription.dispose();
- * ```
- */
-export class TypedEventEmitter<TEvents extends EventMap> {
-  private readonly listeners = new Map<
-    keyof TEvents & string,
-    Set<(payload: TEvents[keyof TEvents & string]) => void>
-  >();
-
+export interface EventEmitter<TEvents extends EventMap> {
   on<TKey extends keyof TEvents & string>(
     event: TKey,
     listener: (payload: TEvents[TKey]) => void,
-  ): Disposable {
-    const listeners = this.listeners.get(event) ?? new Set();
-    listeners.add(listener as (payload: TEvents[keyof TEvents & string]) => void);
-    this.listeners.set(event, listeners);
+  ): Disposable;
+  emit<TKey extends keyof TEvents & string>(event: TKey, payload: TEvents[TKey]): void;
+}
 
-    return disposable(() => {
-      listeners.delete(listener as (payload: TEvents[keyof TEvents & string]) => void);
-      if (listeners.size === 0) {
-        this.listeners.delete(event);
-      }
-    });
-  }
-
-  emit<TKey extends keyof TEvents & string>(event: TKey, payload: TEvents[TKey]): void {
-    const listeners = this.listeners.get(event);
-    if (!listeners) {
-      return;
-    }
-
-    for (const listener of listeners) {
-      listener(payload);
-    }
-  }
+export function createEventEmitter<TEvents extends EventMap>(): EventEmitter<TEvents> {
+  const listeners = new Map<keyof TEvents & string, Set<(payload: unknown) => void>>();
+  return {
+    on(event, listener) {
+      const eventListeners = listeners.get(event) ?? new Set();
+      eventListeners.add(listener as (payload: unknown) => void);
+      listeners.set(event, eventListeners);
+      return disposable(() => eventListeners.delete(listener as (payload: unknown) => void));
+    },
+    emit(event, payload) {
+      for (const listener of listeners.get(event) ?? []) listener(payload);
+    },
+  };
 }

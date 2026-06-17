@@ -4,7 +4,7 @@ export * from "./document";
 export * from "./editor-model";
 export * from "./operations";
 export * from "./qc";
-export * from "./registry";
 export * from "./style";
 export * from "./time";
 export * from "./validation";
+export * from "./format-plugin";

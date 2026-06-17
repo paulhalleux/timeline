@@ -1,6 +1,7 @@
 import {
-  defineCommand,
-  type CommandRegistry,
+  createCommand,
+  type CommandDefinition,
+  type Disposable,
   type MenuContribution,
   type ShortcutContribution,
 } from "@ptl/platform-core";
@@ -10,19 +11,26 @@ import type { SubtitleHistoryState } from "../documents/events";
 import type { SubtitlePlaybackState } from "../playback";
 import type { SubtitleSelection } from "../selection";
 
+interface CommandRegistrar {
+  registerHandler<TInput, TResult>(
+    command: CommandDefinition<TInput, TResult>,
+    handler: (input: TInput) => TResult | Promise<TResult>,
+  ): Disposable;
+}
+
 export interface SubtitleCommandContext {
   history?: SubtitleHistoryState;
   playback?: SubtitlePlaybackState;
   selection?: SubtitleSelection;
 }
 
-export const undoCommand = defineCommand<void, void>({
+export const undoCommand = createCommand<void, void>({
   id: "edit.undo",
   title: "Undo",
   category: "Edit",
 });
 
-export const redoCommand = defineCommand<void, void>({
+export const redoCommand = createCommand<void, void>({
   id: "edit.redo",
   title: "Redo",
   category: "Edit",
@@ -85,7 +93,7 @@ export const defaultHistoryShortcutContributions: ShortcutContribution<
  * ```
  */
 export function registerSubtitleHistoryCommandHandlers(
-  registry: CommandRegistry,
+  registry: CommandRegistrar,
   documents: TimedTextDocumentService,
 ) {
   return [

@@ -1,111 +1,91 @@
-import type { CommandDefinition } from "../commands/command-registry";
+import type { CommandDefinition } from "../commands/create-command";
 import type { LocalizedText } from "../text/messages";
-import type { MessageDescriptor } from "../text/messages";
 import type { ContributionStatePredicate } from "./when";
-import type { SettingDefinition } from "../settings/settings-registry";
 
-/**
- * Static placement metadata for renderer adapters.
- *
- * Platform-core owns the shape of menu, shortcut, and toolbar descriptors, but
- * it does not bind DOM listeners or render UI. React, desktop, CLI, and test
- * adapters can all read the same contribution data and choose their own
- * presentation.
- *
- * @example
- * ```ts
- * const menuItem = {
- *   menu: "main.file",
- *   command: exportCommand,
- *   group: "Project",
- *   order: 20,
- * };
- * ```
- */
-export interface MenuContributionBase<
-  TMenuId extends string = string,
-  TContext = unknown,
-> extends ContributionStatePredicate<TContext> {
-  menu: TMenuId;
-  id?: string;
-  label?: LocalizedText;
-  group?: string;
-  order?: number;
+export interface MenuContributionBase<TMenuId extends string = string, TContext = unknown>
+  extends ContributionStatePredicate<TContext> {
+  readonly menu: TMenuId;
+  readonly id?: string;
+  readonly label?: LocalizedText;
+  readonly group?: string;
+  readonly order?: number;
 }
 
 export interface MenuCommandContribution<
   TMenuId extends string = string,
-  TCommand extends CommandDefinition<any, any> = CommandDefinition<any, any>,
+  TCommand extends CommandDefinition<unknown, unknown> = CommandDefinition<unknown, unknown>,
   TContext = unknown,
 > extends MenuContributionBase<TMenuId, TContext> {
-  kind?: "command";
-  command: TCommand;
+  readonly kind?: "command";
+  readonly command: TCommand;
 }
 
 export interface MenuToggleContribution<
   TMenuId extends string = string,
-  TCommand extends CommandDefinition<any, any> = CommandDefinition<any, any>,
+  TCommand extends CommandDefinition<unknown, unknown> = CommandDefinition<unknown, unknown>,
   TContext = unknown,
 > extends MenuContributionBase<TMenuId, TContext> {
-  kind: "toggle";
-  command: TCommand;
-  checked?: (context: TContext) => boolean;
+  readonly kind: "toggle";
+  readonly command: TCommand;
+  readonly checked?: (context: TContext) => boolean;
 }
 
-export interface MenuSubmenuContribution<
-  TMenuId extends string = string,
-  TContext = unknown,
-> extends MenuContributionBase<TMenuId, TContext> {
-  kind: "submenu";
-  submenu: TMenuId;
+export interface MenuSubmenuContribution<TMenuId extends string = string, TContext = unknown>
+  extends MenuContributionBase<TMenuId, TContext> {
+  readonly kind: "submenu";
+  readonly submenu: TMenuId;
 }
 
 export type MenuContribution<
   TMenuId extends string = string,
-  TCommand extends CommandDefinition<any, any> = CommandDefinition<any, any>,
+  TCommand extends CommandDefinition<unknown, unknown> = CommandDefinition<unknown, unknown>,
   TContext = unknown,
 > =
   | MenuCommandContribution<TMenuId, TCommand, TContext>
   | MenuToggleContribution<TMenuId, TCommand, TContext>
   | MenuSubmenuContribution<TMenuId, TContext>;
 
-export interface MenuRootContribution<
-  TMenuId extends string = string,
-  TContext = unknown,
-> extends ContributionStatePredicate<TContext> {
-  menu: TMenuId;
-  label: LocalizedText;
-  order?: number;
+export interface MenuRootContribution<TMenuId extends string = string, TContext = unknown>
+  extends ContributionStatePredicate<TContext> {
+  readonly menu: TMenuId;
+  readonly label: LocalizedText;
+  readonly order?: number;
 }
 
 export interface ShortcutContribution<
-  TCommand extends CommandDefinition<any, any> = CommandDefinition<any, any>,
+  TCommand extends CommandDefinition<unknown, unknown> = CommandDefinition<unknown, unknown>,
   TContext = unknown,
 > extends ContributionStatePredicate<TContext> {
-  command: TCommand;
-  shortcut: string;
-  preventDefault?: boolean;
+  readonly command: TCommand;
+  readonly shortcut: string;
+  readonly preventDefault?: boolean;
   readonly source?: string;
 }
 
 export interface ToolbarContribution<
   TToolbarId extends string = string,
-  TCommand extends CommandDefinition<any, any> = CommandDefinition<any, any>,
+  TCommand extends CommandDefinition<unknown, unknown> = CommandDefinition<unknown, unknown>,
   TContext = unknown,
 > extends ContributionStatePredicate<TContext> {
-  toolbar: TToolbarId;
-  command: TCommand;
-  group?: string;
-  order?: number;
-  icon?: string;
+  readonly toolbar: TToolbarId;
+  readonly command: TCommand;
+  readonly group?: string;
+  readonly order?: number;
+  readonly icon?: string;
 }
 
-export interface PlatformContributions<TContext = unknown> {
-  commands?: readonly CommandDefinition<any, any>[];
-  menuRoots?: readonly MenuRootContribution<string, TContext>[];
-  menus?: readonly MenuContribution<string, CommandDefinition<any, any>, TContext>[];
-  shortcuts?: readonly ShortcutContribution<CommandDefinition<any, any>, TContext>[];
-  toolbars?: readonly ToolbarContribution<string, CommandDefinition<any, any>, TContext>[];
-  settings?: readonly SettingDefinition<any>[];
-  messages?: readonly MessageDescriptor<any>[];
+export function createMenuItem<const TItem extends MenuContribution>(item: TItem): TItem {
+  return item;
+}
+
+export function createMenuRoot<const TRoot extends MenuRootContribution>(root: TRoot): TRoot {
+  return root;
+}
+
+export function createShortcut<const TShortcut extends ShortcutContribution>(shortcut: TShortcut): TShortcut {
+  return shortcut;
+}
+
+export function createToolbarItem<const TToolbar extends ToolbarContribution>(item: TToolbar): TToolbar {
+  return item;
 }
