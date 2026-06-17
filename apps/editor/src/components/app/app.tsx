@@ -23,7 +23,6 @@ import { TooltipProvider } from "@ptl/ui";
 import { Bug, Captions, ChartGantt, Gauge, ListTree, Rows3 } from "lucide-react";
 import React from "react";
 
-import { createEditorPlugins } from "../../application/create-editor-application";
 import { createEditorDock, editorDockToolWindowIds } from "../../dock/editor-dock";
 import { EditorDockServicesProvider } from "../../dock/editor-services-context";
 import { EditorDockToolbar } from "../../dock/dock-toolbar";
@@ -65,7 +64,7 @@ export const App = () => {
     [dock.store],
   );
   const application = React.useMemo(
-    () => createApplication({ plugins: [...createEditorPlugins(), editorUi.plugin] }),
+    () => createApplication({ plugins: [editorUi.plugin] }),
     [editorUi.plugin],
   );
   const contributions = editorUi.contributions;
