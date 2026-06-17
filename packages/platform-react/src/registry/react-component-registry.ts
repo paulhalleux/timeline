@@ -53,3 +53,16 @@ export class ReactComponentRegistry {
     return [...this.components.keys()];
   }
 }
+
+export type ReactComponentRegistryEntries = Record<string, React.ComponentType<any>>;
+
+export function createReactComponentRegistry(
+  components: ReactComponentRegistryEntries = {},
+): ReactComponentRegistry {
+  const registry = new ReactComponentRegistry();
+  for (const [id, component] of Object.entries(components)) {
+    registry.register(id, component);
+  }
+
+  return registry;
+}

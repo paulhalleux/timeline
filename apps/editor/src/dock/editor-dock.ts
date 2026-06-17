@@ -1,5 +1,10 @@
-import { ReactComponentRegistry } from "@ptl/platform-react";
-import { ToolWindowContributionRegistry, DockStateStore } from "@ptl/dock-core";
+import { createReactComponentRegistry } from "@ptl/platform-react";
+import {
+  createDockStateStore,
+  createToolWindowContributionRegistry,
+  type ToolWindowContribution,
+  type WorkspaceItemState,
+} from "@ptl/dock-core";
 
 import {
   InspectorToolWindow,
@@ -30,14 +35,78 @@ export const editorDockToolWindowIds = {
   timeline: "editor.timeline",
 } as const;
 
+const editorDockComponents = {
+  [editorDockComponentIds.subtitleDocument]: SubtitleDocumentPane,
+  [editorDockComponentIds.outline]: OutlineToolWindow,
+  [editorDockComponentIds.tracks]: TracksToolWindow,
+  [editorDockComponentIds.inspector]: InspectorToolWindow,
+  [editorDockComponentIds.quality]: QualityToolWindow,
+  [editorDockComponentIds.playback]: PlaybackToolWindow,
+  [editorDockComponentIds.timeline]: TimelineToolWindow,
+};
+
+const editorToolWindows = [
+  {
+    id: editorDockToolWindowIds.outline,
+    title: "Outline",
+    component: editorDockComponentIds.outline,
+    preferredPlacement: "left-top",
+    constraints: { minWidth: 12 },
+  },
+  {
+    id: editorDockToolWindowIds.inspector,
+    title: "Inspector",
+    component: editorDockComponentIds.inspector,
+    preferredPlacement: "right-top",
+    constraints: { minWidth: 12 },
+  },
+  {
+    id: editorDockToolWindowIds.tracks,
+    title: "Tracks",
+    component: editorDockComponentIds.tracks,
+    preferredPlacement: "left-bottom",
+    constraints: { minWidth: 12 },
+  },
+  {
+    id: editorDockToolWindowIds.quality,
+    title: "QC",
+    component: editorDockComponentIds.quality,
+    preferredPlacement: "right-bottom",
+    constraints: { minWidth: 12 },
+  },
+  {
+    id: editorDockToolWindowIds.playback,
+    title: "Playback",
+    component: editorDockComponentIds.playback,
+    preferredPlacement: "bottom-right",
+    constraints: { minHeight: 12 },
+  },
+  {
+    id: editorDockToolWindowIds.timeline,
+    title: "Timeline",
+    component: editorDockComponentIds.timeline,
+    preferredPlacement: "bottom-left",
+    constraints: { minHeight: 12 },
+  },
+] satisfies readonly ToolWindowContribution[];
+
+const editorWorkspaceItems = [
+  {
+    id: "subtitle-document",
+    type: "subtitle-document",
+    title: "Subtitles",
+    component: editorDockComponentIds.subtitleDocument,
+  },
+] satisfies readonly WorkspaceItemState[];
+
 export interface EditorDockSetup {
-  components: ReactComponentRegistry;
-  store: DockStateStore;
-  toolWindows: ToolWindowContributionRegistry;
+  components: ReturnType<typeof createReactComponentRegistry>;
+  store: ReturnType<typeof createDockStateStore>;
+  toolWindows: ReturnType<typeof createToolWindowContributionRegistry>;
 }
 
 /**
- * Create the editor dock shell and register its React components.
+ * Create the editor dock shell from declarative component and tool-window lists.
  *
  * @example
  * ```ts
@@ -45,72 +114,17 @@ export interface EditorDockSetup {
  * ```
  */
 export function createEditorDock(): EditorDockSetup {
-  const components = new ReactComponentRegistry();
-  components.register(editorDockComponentIds.subtitleDocument, SubtitleDocumentPane);
-  components.register(editorDockComponentIds.outline, OutlineToolWindow);
-  components.register(editorDockComponentIds.tracks, TracksToolWindow);
-  components.register(editorDockComponentIds.inspector, InspectorToolWindow);
-  components.register(editorDockComponentIds.quality, QualityToolWindow);
-  components.register(editorDockComponentIds.playback, PlaybackToolWindow);
-  components.register(editorDockComponentIds.timeline, TimelineToolWindow);
+  const components = createReactComponentRegistry(editorDockComponents);
+  const toolWindows = createToolWindowContributionRegistry(editorToolWindows);
+  const store = createDockStateStore({ toolWindows });
 
-  const toolWindows = new ToolWindowContributionRegistry();
-  toolWindows.register({
-    id: editorDockToolWindowIds.outline,
-    title: "Outline",
-    component: editorDockComponentIds.outline,
-    preferredPlacement: "left-top",
-    constraints: { minWidth: 12 },
-  });
-  toolWindows.register({
-    id: editorDockToolWindowIds.inspector,
-    title: "Inspector",
-    component: editorDockComponentIds.inspector,
-    preferredPlacement: "right-top",
-    constraints: { minWidth: 12 },
-  });
-  toolWindows.register({
-    id: editorDockToolWindowIds.tracks,
-    title: "Tracks",
-    component: editorDockComponentIds.tracks,
-    preferredPlacement: "left-bottom",
-    constraints: { minWidth: 12 },
-  });
-  toolWindows.register({
-    id: editorDockToolWindowIds.quality,
-    title: "QC",
-    component: editorDockComponentIds.quality,
-    preferredPlacement: "right-bottom",
-    constraints: { minWidth: 12 },
-  });
-  toolWindows.register({
-    id: editorDockToolWindowIds.playback,
-    title: "Playback",
-    component: editorDockComponentIds.playback,
-    preferredPlacement: "bottom-right",
-    constraints: { minHeight: 12 },
-  });
-  toolWindows.register({
-    id: editorDockToolWindowIds.timeline,
-    title: "Timeline",
-    component: editorDockComponentIds.timeline,
-    preferredPlacement: "bottom-left",
-    constraints: { minHeight: 12 },
-  });
+  for (const item of editorWorkspaceItems) {
+    store.openWorkspaceItem(item);
+  }
 
-  const store = new DockStateStore({ toolWindows });
-  store.openWorkspaceItem({
-    id: "subtitle-document",
-    type: "subtitle-document",
-    title: "Subtitles",
-    component: editorDockComponentIds.subtitleDocument,
-  });
-  store.showToolWindow(editorDockToolWindowIds.outline);
-  store.showToolWindow(editorDockToolWindowIds.tracks);
-  store.showToolWindow(editorDockToolWindowIds.inspector);
-  store.showToolWindow(editorDockToolWindowIds.quality);
-  store.showToolWindow(editorDockToolWindowIds.playback);
-  store.showToolWindow(editorDockToolWindowIds.timeline);
+  for (const toolWindow of editorToolWindows) {
+    store.showToolWindow(toolWindow.id);
+  }
 
   return { components, store, toolWindows };
 }

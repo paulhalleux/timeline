@@ -78,6 +78,17 @@ export class ToolWindowContributionRegistry {
   }
 }
 
+export function createToolWindowContributionRegistry(
+  contributions: readonly ToolWindowContribution[] = [],
+): ToolWindowContributionRegistry {
+  const registry = new ToolWindowContributionRegistry();
+  for (const contribution of contributions) {
+    registry.register(contribution);
+  }
+
+  return registry;
+}
+
 export function createToolWindowState(contribution: ToolWindowContribution): ToolWindowState {
   return {
     id: contribution.id,

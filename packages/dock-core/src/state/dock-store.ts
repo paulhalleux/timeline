@@ -295,6 +295,10 @@ export class DockStateStore implements DockApi {
   }
 }
 
+export function createDockStateStore(options: DockStateStoreOptions = {}): DockStateStore {
+  return new DockStateStore(options);
+}
+
 /**
  * Create a fresh empty dock state using the default layout schema.
  *

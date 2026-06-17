@@ -1,5 +1,5 @@
 import {
-  PlatformRuntime,
+  createPlatformRuntime,
   defineCommand,
   type CommandDefinition,
   type MenuContribution,
@@ -30,8 +30,56 @@ interface EditorCommandContext {
   notify(message: string): void;
 }
 
+const editorMenuRoots: MenuRootContribution[] = [
+  { menu: "main.file", label: "File", order: 10 },
+  { menu: "main.edit", label: "Edit", order: 20 },
+  { menu: "main.cue", label: "Cue", order: 30 },
+  { menu: "main.timing", label: "Timing", order: 40 },
+  { menu: "main.playback", label: "Playback", order: 50 },
+  { menu: "main.view", label: "View", order: 60 },
+];
+
+const editorPanelToggles = [
+  {
+    id: "editor.view.toggleOutline",
+    title: "Outline",
+    toolWindowId: editorDockToolWindowIds.outline,
+    order: 10,
+  },
+  {
+    id: "editor.view.toggleTracks",
+    title: "Tracks",
+    toolWindowId: editorDockToolWindowIds.tracks,
+    order: 20,
+  },
+  {
+    id: "editor.view.toggleInspector",
+    title: "Inspector",
+    toolWindowId: editorDockToolWindowIds.inspector,
+    order: 30,
+  },
+  {
+    id: "editor.view.toggleQuality",
+    title: "QC",
+    toolWindowId: editorDockToolWindowIds.quality,
+    order: 40,
+  },
+  {
+    id: "editor.view.togglePlayback",
+    title: "Playback",
+    toolWindowId: editorDockToolWindowIds.playback,
+    order: 50,
+  },
+  {
+    id: "editor.view.toggleTimeline",
+    title: "Timeline",
+    toolWindowId: editorDockToolWindowIds.timeline,
+    order: 60,
+  },
+] as const;
+
 export interface EditorPlatformSetup {
-  platform: PlatformRuntime;
+  platform: ReturnType<typeof createPlatformRuntime>;
   menuRoots: MenuRootContribution[];
   menus: MenuContribution[];
   shortcuts: ShortcutContribution[];
@@ -65,15 +113,8 @@ export function createEditorPlatform({
   contextRef,
   commandPaletteRef,
 }: EditorPlatformOptions): EditorPlatformSetup {
-  const platform = new PlatformRuntime();
-  const menuRoots: MenuRootContribution[] = [
-    { menu: "main.file", label: "File", order: 10 },
-    { menu: "main.edit", label: "Edit", order: 20 },
-    { menu: "main.cue", label: "Cue", order: 30 },
-    { menu: "main.timing", label: "Timing", order: 40 },
-    { menu: "main.playback", label: "Playback", order: 50 },
-    { menu: "main.view", label: "View", order: 60 },
-  ];
+  const platform = createPlatformRuntime();
+  const menuRoots = [...editorMenuRoots];
   const menus: MenuContribution[] = [];
   const shortcuts: ShortcutContribution[] = [];
 
@@ -146,7 +187,12 @@ export function createEditorPlatform({
     commandPaletteRef.current?.toggle();
   });
   menus.push({ menu: "main.view", command: commandPaletteCommand, group: "Window", order: 5 });
-  shortcuts.push({ command: commandPaletteCommand, shortcut: "Mod+Shift+P", preventDefault: true, source: "editor" });
+  shortcuts.push({
+    command: commandPaletteCommand,
+    shortcut: "Mod+Shift+P",
+    preventDefault: true,
+    source: "editor",
+  });
 
   registerSubtitleEditorCommand({
     platform,
@@ -202,60 +248,14 @@ export function createEditorPlatform({
     },
   });
 
-  registerDockPanelToggle({
-    platform,
-    menus,
-    dock,
-    id: "editor.view.toggleOutline",
-    title: "Outline",
-    toolWindowId: editorDockToolWindowIds.outline,
-    order: 10,
-  });
-  registerDockPanelToggle({
-    platform,
-    menus,
-    dock,
-    id: "editor.view.toggleTracks",
-    title: "Tracks",
-    toolWindowId: editorDockToolWindowIds.tracks,
-    order: 20,
-  });
-  registerDockPanelToggle({
-    platform,
-    menus,
-    dock,
-    id: "editor.view.toggleInspector",
-    title: "Inspector",
-    toolWindowId: editorDockToolWindowIds.inspector,
-    order: 30,
-  });
-  registerDockPanelToggle({
-    platform,
-    menus,
-    dock,
-    id: "editor.view.toggleQuality",
-    title: "QC",
-    toolWindowId: editorDockToolWindowIds.quality,
-    order: 40,
-  });
-  registerDockPanelToggle({
-    platform,
-    menus,
-    dock,
-    id: "editor.view.togglePlayback",
-    title: "Playback",
-    toolWindowId: editorDockToolWindowIds.playback,
-    order: 50,
-  });
-  registerDockPanelToggle({
-    platform,
-    menus,
-    dock,
-    id: "editor.view.toggleTimeline",
-    title: "Timeline",
-    toolWindowId: editorDockToolWindowIds.timeline,
-    order: 60,
-  });
+  for (const panel of editorPanelToggles) {
+    registerDockPanelToggle({
+      platform,
+      menus,
+      dock,
+      ...panel,
+    });
+  }
 
   return { platform, menuRoots, menus, shortcuts };
 }

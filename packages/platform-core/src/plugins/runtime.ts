@@ -17,6 +17,12 @@ export interface PlatformRuntimeOptions<TServices extends Record<string, unknown
   extensionPoints?: ExtensionPointRegistry;
 }
 
+export function createPlatformRuntime<
+  TServices extends Record<string, unknown> = Record<string, unknown>,
+>(options: PlatformRuntimeOptions<TServices> = {}): PlatformRuntime<TServices> {
+  return new PlatformRuntime(options);
+}
+
 /**
  * Composes platform services, static contributions, and lazy plugin handlers.
  *
