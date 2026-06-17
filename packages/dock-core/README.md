@@ -87,3 +87,19 @@ presets.register({
 and missing contribution state. `restoreDockLayout()` prunes unavailable
 components from active state while preserving their serialized payloads for
 future recovery.
+
+## Plugin-first direct panel tools
+
+New dock contributions should use renderer-agnostic tool definitions instead of string component IDs:
+
+```ts
+const timelineTool = createTool({
+  id: "timeline",
+  title: "Timeline",
+  panel: TimelinePanel,
+  preferredPlacement: "bottom-left",
+  constraints: { canHide: true, canMove: true, minHeight: 160 },
+});
+```
+
+`ToolDefinition` contains runtime-only values such as `panel` and `header`. Persisted `ToolInstanceState` contains only serializable state (`id`, `instanceId`, placement, visibility, size, and local state), so saved layouts never contain React components.

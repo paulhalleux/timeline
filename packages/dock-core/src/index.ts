@@ -57,3 +57,14 @@ export {
   WorkspaceItemTypeRegistry,
   type WorkspaceItemTypeContribution,
 } from "./workspace/item-types";
+export {
+  createTool,
+  type ToolConstraints,
+  type ToolDefinition,
+  type ToolInstanceState,
+} from "./tools/tool-definition";
+export {
+  createWorkspaceEditor,
+  type WorkspaceEditorDefinition,
+  type WorkspaceEditorInstanceState,
+} from "./workspace/workspace-editor-definition";

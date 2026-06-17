@@ -1,4 +1,7 @@
 import {
+  type ContributionReader,
+  type ExtensionPoint,
+  type ServiceToken,
   PlatformRuntime,
   type MenuContribution,
   type MenuRootContribution,
@@ -18,7 +21,7 @@ export interface PlatformReactContextValue<
   TServices extends Record<string, unknown> = Record<string, unknown>,
   TContext = unknown,
 > {
-  platform: PlatformRuntime<TServices>;
+  platform: PlatformRuntime<TServices> | { commands: PlatformRuntime<TServices>["commands"]; i18n: PlatformRuntime<TServices>["i18n"]; get?<T>(token: ServiceToken<T>): T; contributions?: ContributionReader; };
   components: ReactComponentRegistry;
   contributions: PlatformReactContributions<TContext>;
 }
@@ -29,7 +32,7 @@ export interface PlatformProviderProps<
   TServices extends Record<string, unknown> = Record<string, unknown>,
   TContext = unknown,
 > {
-  platform: PlatformRuntime<TServices>;
+  platform: PlatformRuntime<TServices> | { commands: PlatformRuntime<TServices>["commands"]; i18n: PlatformRuntime<TServices>["i18n"]; get?<T>(token: ServiceToken<T>): T; contributions?: ContributionReader; };
   components?: ReactComponentRegistry;
   contributions?: PlatformReactContributions<TContext>;
   children: React.ReactNode;
@@ -85,4 +88,34 @@ export function usePlatform<
   }
 
   return context as PlatformReactContextValue<TServices, TContext>;
+}
+
+export function useService<T>(token: ServiceToken<T>): T {
+  const { platform } = usePlatform();
+  if (!("get" in platform) || !platform.get) {
+    throw new Error("The current platform does not expose typed service lookup.");
+  }
+  return platform.get(token);
+}
+
+export function useContributions<T>(point: ExtensionPoint<T>): readonly T[] {
+  const { platform } = usePlatform();
+  const reader = "contributions" in platform ? platform.contributions : undefined;
+  const [values, setValues] = React.useState<readonly T[]>(() => reader?.getAll(point) ?? []);
+  React.useEffect(() => {
+    if (!reader) return undefined;
+    setValues(reader.getAll(point));
+    return reader.subscribe(point, setValues).dispose;
+  }, [point, reader]);
+  return values;
+}
+
+export function useCommand<TInput, TResult>(command: import("@ptl/platform-core").CommandDefinition<TInput, TResult>) {
+  const { platform } = usePlatform();
+  return React.useCallback((input: TInput, options?: { readonly signal?: AbortSignal }) => {
+    if ("execute" in platform && typeof platform.execute === "function") {
+      return platform.execute(command, input, options);
+    }
+    return platform.commands.execute(command, input, options);
+  }, [command, platform]);
 }

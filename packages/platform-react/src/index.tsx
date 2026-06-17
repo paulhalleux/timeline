@@ -11,6 +11,9 @@ export { ShortcutProvider, type ShortcutProviderProps } from "./components/short
 export {
   PlatformProvider,
   usePlatform,
+  useService,
+  useContributions,
+  useCommand,
   type PlatformProviderProps,
   type PlatformReactContextValue,
   type PlatformReactContributions,

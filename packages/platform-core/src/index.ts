@@ -1,3 +1,9 @@
+export { createCommand, type CommandHandlerContext } from "./commands/create-command";
+export { createExtensionPoint, type ContributionReader, type ExtensionContribution, type ExtensionPoint, type ResolvedContribution } from "./extensions/extension-point";
+export { createServiceToken, type ServiceToken } from "./services/tokens";
+export { provideService, type ServiceContribution, type ServiceFactoryContext } from "./services/provider";
+export { createPlatform, type Platform, type PlatformFactoryOptions } from "./plugins/platform";
+export { createPlugin, createPluginToken, type DependencyToken, type PluginSetupContext, type PluginToken } from "./plugins/plugin-api";
 export {
   CommandRegistry,
   defineCommand,
