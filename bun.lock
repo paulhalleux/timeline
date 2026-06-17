@@ -1,6 +1,5 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 1,
   "workspaces": {
     "": {
       "name": "root",
@@ -26,6 +25,8 @@
         "@ptl/store": "workspace:*",
         "@ptl/subtitle-core": "^0.0.0",
         "@ptl/timed-text-core": "^0.0.0",
+        "@ptl/timed-text-format-srt": "workspace:*",
+        "@ptl/timed-text-format-vtt": "workspace:*",
         "@ptl/ui": "^0.0.0",
         "@tanstack/react-hotkeys": ">=0.2.0",
         "clsx": "^2.1.1",
@@ -125,9 +126,6 @@
     "packages/platform-core": {
       "name": "@ptl/platform-core",
       "version": "0.0.0",
-      "dependencies": {
-        "@standard-schema/spec": "^1.0.0",
-      },
       "devDependencies": {
         "tsdown": "^0.22.2",
         "typescript": "^6.0.3",
@@ -187,6 +185,9 @@
     "packages/timed-text-core": {
       "name": "@ptl/timed-text-core",
       "version": "0.0.0",
+      "dependencies": {
+        "@ptl/platform-core": "^0.0.0",
+      },
       "devDependencies": {
         "@types/bun": "^1.3.5",
         "tsdown": "^0.22.2",
@@ -197,6 +198,7 @@
       "name": "@ptl/timed-text-format-srt",
       "version": "0.0.0",
       "dependencies": {
+        "@ptl/platform-core": "^0.0.0",
         "@ptl/timed-text-core": "^0.0.0",
       },
       "devDependencies": {
@@ -208,6 +210,7 @@
       "name": "@ptl/timed-text-format-vtt",
       "version": "0.0.0",
       "dependencies": {
+        "@ptl/platform-core": "^0.0.0",
         "@ptl/timed-text-core": "^0.0.0",
       },
       "devDependencies": {
@@ -853,8 +856,6 @@
     "@sinclair/typebox": ["@sinclair/typebox@0.34.48", "", {}, "sha512-kKJTNuK3AQOrgjjotVxMrCn1sUJwM76wMszfq1kdU4uYVJjvEWuFQ6HgvLt4Xz3fSmZlTOxJ/Ie13KnIcWQXFA=="],
 
     "@sindresorhus/merge-streams": ["@sindresorhus/merge-streams@4.0.0", "", {}, "sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ=="],
-
-    "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 
     "@tailwindcss/node": ["@tailwindcss/node@4.3.0", "", { "dependencies": { "@jridgewell/remapping": "^2.3.5", "enhanced-resolve": "^5.21.0", "jiti": "^2.6.1", "lightningcss": "1.32.0", "magic-string": "^0.30.21", "source-map-js": "^1.2.1", "tailwindcss": "4.3.0" } }, "sha512-aFb4gUhFOgdh9AXo4IzBEOzBkkAxm9VigwDJnMIYv3lcfXCJVesNfbEaBl4BNgVRyid92AmdviqwBUBRKSeY3g=="],
 
