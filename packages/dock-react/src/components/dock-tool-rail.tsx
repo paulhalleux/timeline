@@ -46,7 +46,6 @@ export function DockToolRail({ side, tools }: DockToolRailProps) {
   const items = tools.map((tool) => ({
     id: tool.id,
     label: getLocalizedText(tool.title),
-    icon: tool.icon,
     placement: tool.preferredPlacement ?? (side === "left" ? "left-top" : "right-top"),
   }));
   const hiddenItems = items.filter((item) => state.toolWindows[item.id]?.hidden);
@@ -119,16 +118,12 @@ interface DockToolRailButtonProps {
   readonly item: {
     readonly id: string;
     readonly label: string;
-    readonly icon?: unknown;
     readonly placement: DockedPlacement;
   };
   readonly side: "left" | "right";
 }
 
 function DockToolRailButton({ item, side }: DockToolRailButtonProps) {
-  const Icon = item.icon as
-    | React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>
-    | undefined;
   const dock = useDock();
   const state = useDockState((dockState) => dockState);
   const currentPlacement = getToolWindowPlacement(state, item.id);
@@ -171,13 +166,9 @@ function DockToolRailButton({ item, side }: DockToolRailButtonProps) {
                     else dock.showToolWindow(item.id);
                   }}
                 >
-                  {Icon ? (
-                    <Icon aria-hidden className="size-4" />
-                  ) : (
-                    <span aria-hidden className="text-[10px] font-semibold uppercase">
-                      {item.label.slice(0, 2)}
-                    </span>
-                  )}
+                  <span aria-hidden className="text-[10px] font-semibold uppercase">
+                    {item.label.slice(0, 2)}
+                  </span>
                   <span className="sr-only">{item.label}</span>
                 </Button>
               }

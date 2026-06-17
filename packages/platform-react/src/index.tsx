@@ -20,3 +20,4 @@ export {
 } from "./hooks/platform-provider";
 export type { SearchableCommand } from "./utils/searchable-command";
 export type { ShortcutConflict } from "./utils/shortcut-conflicts";
+export { ReactComponentRegistry } from "./registry/react-component-registry";

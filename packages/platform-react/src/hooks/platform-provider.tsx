@@ -10,6 +10,8 @@ import type {
 } from "@ptl/platform-core";
 import * as React from "react";
 
+import { ReactComponentRegistry } from "../registry/react-component-registry";
+
 export interface PlatformReactContributions<TContext = unknown> {
   readonly menuRoots?: readonly MenuRootContribution<string, TContext>[];
   readonly menus?: readonly MenuContribution<
@@ -25,6 +27,7 @@ export interface PlatformReactContributions<TContext = unknown> {
 
 export interface PlatformReactContextValue<TContext = unknown> {
   readonly platform: Platform;
+  readonly components: ReactComponentRegistry;
   readonly contributions: PlatformReactContributions<TContext>;
 }
 
@@ -32,19 +35,26 @@ const PlatformReactContext = React.createContext<PlatformReactContextValue | nul
 
 export interface PlatformProviderProps<TContext = unknown> {
   readonly platform: Platform;
+  readonly components?: ReactComponentRegistry;
   readonly contributions?: PlatformReactContributions<TContext>;
   readonly children: React.ReactNode;
 }
 
 export function PlatformProvider<TContext = unknown>({
   platform,
+  components,
   contributions,
   children,
 }: PlatformProviderProps<TContext>) {
+  const defaultComponents = React.useMemo(() => new ReactComponentRegistry(), []);
   const platformContributions = usePlatformUiContributions<TContext>(platform);
   const value = React.useMemo<PlatformReactContextValue<TContext>>(
-    () => ({ platform, contributions: contributions ?? platformContributions }),
-    [contributions, platform, platformContributions],
+    () => ({
+      platform,
+      components: components ?? defaultComponents,
+      contributions: contributions ?? platformContributions,
+    }),
+    [components, contributions, defaultComponents, platform, platformContributions],
   );
   return <PlatformReactContext.Provider value={value}>{children}</PlatformReactContext.Provider>;
 }
