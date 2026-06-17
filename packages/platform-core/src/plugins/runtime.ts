@@ -33,6 +33,7 @@ export class PlatformRuntime<TServices extends Record<string, unknown> = Record<
 
   private readonly plugins = new Map<string, PluginDefinition<TServices>>();
   private readonly pluginDisposables = new Map<string, DisposableStore>();
+  private readonly contributions: PlatformContributions[] = [];
 
   constructor(options: PlatformRuntimeOptions<TServices> = {}) {
     this.services = options.services ?? new ServiceRegistry<TServices>();
@@ -64,6 +65,10 @@ export class PlatformRuntime<TServices extends Record<string, unknown> = Record<
 
   getPlugins(): PluginDefinition<TServices>[] {
     return [...this.plugins.values()];
+  }
+
+  getContributions(): PlatformContributions {
+    return mergePlatformContributions(this.contributions);
   }
 
   async activatePlugin(pluginId: string): Promise<void> {
@@ -135,6 +140,8 @@ export class PlatformRuntime<TServices extends Record<string, unknown> = Record<
       return;
     }
 
+    this.contributions.push(contributions);
+
     for (const command of contributions.commands ?? []) {
       this.commands.register(command);
     }
@@ -143,4 +150,18 @@ export class PlatformRuntime<TServices extends Record<string, unknown> = Record<
       this.settings.register(setting);
     }
   }
+}
+
+function mergePlatformContributions(
+  contributions: readonly PlatformContributions[],
+): PlatformContributions {
+  return {
+    commands: contributions.flatMap((contribution) => contribution.commands ?? []),
+    menuRoots: contributions.flatMap((contribution) => contribution.menuRoots ?? []),
+    menus: contributions.flatMap((contribution) => contribution.menus ?? []),
+    shortcuts: contributions.flatMap((contribution) => contribution.shortcuts ?? []),
+    toolbars: contributions.flatMap((contribution) => contribution.toolbars ?? []),
+    settings: contributions.flatMap((contribution) => contribution.settings ?? []),
+    messages: contributions.flatMap((contribution) => contribution.messages ?? []),
+  };
 }

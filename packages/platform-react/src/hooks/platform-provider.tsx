@@ -38,6 +38,8 @@ export interface PlatformProviderProps<
 /**
  * Provides a platform runtime and React component manifest to component trees.
  *
+ * If contributions are omitted, renderer metadata is read from platform plugins.
+ *
  * @example
  * ```tsx
  * <PlatformProvider platform={platform}>
@@ -53,7 +55,7 @@ export function PlatformProvider<
     () => ({
       platform,
       components: components ?? {},
-      contributions: contributions ?? {},
+      contributions: contributions ?? (platform.getContributions() as PlatformReactContributions<TContext>),
     }),
     [components, contributions, platform],
   );

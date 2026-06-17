@@ -68,15 +68,6 @@ export const App = () => {
     [historyState, playbackState, selectionState],
   );
 
-  const contributions = React.useMemo(
-    () => ({
-      menuRoots: commandSetup.menuRoots,
-      menus: commandSetup.menus,
-      shortcuts: commandSetup.shortcuts,
-    }),
-    [commandSetup],
-  );
-
   contextRef.current = {
     notify: (message) => {
       alert("Command executed!" + "\n\n" + message);
@@ -89,11 +80,7 @@ export const App = () => {
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
-      <PlatformProvider
-        platform={commandSetup.platform}
-        components={dock.components}
-        contributions={contributions}
-      >
+      <PlatformProvider platform={commandSetup.platform} components={dock.components}>
         <ShortcutProvider context={platformContext}>
           <TooltipProvider>
             <CommandPalette
