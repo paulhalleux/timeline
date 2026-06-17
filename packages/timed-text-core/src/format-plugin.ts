@@ -1,4 +1,9 @@
-import { createExtensionPoint, createServiceToken, provideService } from "@ptl/platform-core";
+import {
+  createExtensionPoint,
+  createPlugin,
+  createServiceToken,
+  provideService,
+} from "@ptl/platform-core";
 import type { TimedTextAdapter, TimedTextFormatId } from "./adapter";
 
 export type TimedTextFormatOperation =
@@ -63,6 +68,13 @@ export interface TimedTextFormatService {
 export const timedTextFormatService = createServiceToken<TimedTextFormatService>(
   "timed-text.format-service",
 );
+
+export const createTimedTextFormatHostPlugin = () =>
+  createPlugin({
+    id: "timed-text.formats",
+    extensionPoints: [timedTextFormatContributions],
+    services: [timedTextFormatServiceProvider] as never,
+  });
 
 export const timedTextFormatServiceProvider = provideService(
   timedTextFormatService,
