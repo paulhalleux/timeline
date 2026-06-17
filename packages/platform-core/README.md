@@ -1,32 +1,71 @@
 # @ptl/platform-core
 
-`@ptl/platform-core` now exposes a plugin-first, factory-based authoring model. Registries remain available as compatibility internals, but feature authors should declare owned capabilities on a plugin.
+`@ptl/platform-core` exposes one plugin-first, factory-based platform architecture. Applications install plugins; plugins own services, commands, settings, messages, extension points, contributions, menus, shortcuts, toolbars, setup, and cleanup. Mutable registries are not part of the public API.
 
-## Create a plugin
+## Public API
+
+Use factories and capability readers:
 
 ```ts
-import { createPlugin } from "@ptl/platform-core";
+import {
+  createPlatform,
+  createPlugin,
+  createCommand,
+  createExtensionPoint,
+  createServiceToken,
+  provideService,
+} from "@ptl/platform-core";
+```
 
+The platform exposes read/execute capabilities only:
+
+```ts
+const platform = createPlatform({ plugins });
+await platform.start();
+
+platform.services.get(token);
+platform.commands.execute(command, input);
+platform.settings.get(setting);
+platform.messages.format(message);
+platform.contributions.getAll(extensionPoint);
+```
+
+Mutation happens through plugin lifecycle:
+
+```ts
+await platform.plugins.install(plugin);
+await platform.plugins.uninstall(plugin.id);
+```
+
+## Creating a plugin
+
+```ts
 export const createTimelinePlugin = () => createPlugin({
   id: "editor.timeline",
   displayName: "Timeline",
+  requires: [playbackService],
+  services: [provideService(timelineService, ({ get }) => createTimelineService(get(playbackService)))],
+  commands: [zoomInCommand],
+  settings: [followPlaybackSetting],
 });
 ```
 
-## Provide and consume a service
+## Services
 
 ```ts
-const playbackService = createServiceToken<PlaybackService>("playback");
+export const playbackService = createServiceToken<PlaybackService>("playback.service");
 
-createPlugin({
+export const createPlaybackPlugin = () => createPlugin({
   id: "playback",
   services: [provideService(playbackService, () => createPlaybackService())],
 });
 ```
 
-Consumers use `context.get(playbackService)` or the React `useService(playbackService)` hook.
+Service tokens participate in dependency ordering. A plugin that requires a service is activated after the provider plugin, independent of input order.
 
-## Commands with colocated handlers
+## Commands
+
+Commands include their handler in one object:
 
 ```ts
 const playCommand = createCommand({
@@ -36,9 +75,9 @@ const playCommand = createCommand({
 });
 ```
 
-The runtime still validates command input and result schemas, propagates abort signals, and installs/removes handlers with the owning plugin.
+Handlers receive typed services, nested command execution, and the abort signal supplied to `platform.commands.execute()`.
 
-## Extension points and contributions
+## Extension points
 
 ```ts
 export const exportFormats = createExtensionPoint<ExportFormat>({
@@ -59,32 +98,42 @@ export const createSrtExportPlugin = () => createPlugin({
 });
 ```
 
-`platform.contributions.getAll(exportFormats)` returns typed values. `getEntries()` includes owner metadata. Subscriptions update as plugins are deactivated.
+Contributions are owned automatically by the contributing plugin. `getEntries()` exposes owner metadata. Uninstalling a plugin removes its contributions atomically and notifies subscribers after commit.
 
-## Compose an application
+## Settings and messages
 
 ```ts
-const platform = createPlatform({
-  plugins: [createExportPlugin(), createSrtExportPlugin()],
+const followPlayback = createSetting({
+  id: "timeline.followPlayback",
+  defaultValue: true,
+  scope: "profile",
 });
 
-await platform.start();
-await platform.dispose();
+const title = createMessage({
+  id: "timeline.title",
+  defaultMessage: "Timeline",
+});
 ```
 
-## Lifecycle and cleanup
+Plugins declare settings, messages, and translation bundles. The platform exposes `settings.get/set/reset/subscribe` and `messages.format/setLocale/subscribe`; registration is plugin-owned.
 
-Each plugin receives an owned disposable scope. Declarative services, commands, settings, extension points, and contributions are removed automatically when the plugin is deactivated or the platform is disposed. `setup()` is reserved for runtime side effects and can use `add()` or `onDispose()`.
+## Menus, shortcuts, and toolbars
 
-## Migration from registries
+Plugins declare UI metadata directly:
 
-| Old API | New API |
-| --- | --- |
-| `new PlatformRuntime()` as app composition | `createPlatform({ plugins })` |
-| `definePlugin({ activate(context) { context.commands.register(...) } })` | `createPlugin({ commands: [createCommand({ handler })] })` |
-| `context.services.register("id", service)` | `services: [provideService(createServiceToken<T>("id"), factory)]` |
-| `context.extensionPoints.define(point)` | `extensionPoints: [createExtensionPoint(...)]` |
-| `context.extensionPoints.contribute(point, value, owner)` | `contributions: [point.contribute(value)]` |
-| command metadata plus `registerHandler()` | one `createCommand({ ..., handler })` object |
+```ts
+createPlugin({
+  id: "export",
+  commands: [runExportCommand],
+  menus: [createMenuItem({ menu: "main.file", command: runExportCommand, group: "export" })],
+  shortcuts: [createShortcut({ command: runExportCommand, shortcut: "mod+shift+e" })],
+});
+```
 
-Compatibility registries are still exported for existing packages during migration, but they should not be used as the primary authoring API.
+## Lifecycle and transactions
+
+Activation is transactional per plugin. If extension-point definition, service creation, command installation, setting/message installation, contribution validation, UI installation, or setup fails, the runtime rolls back only that plugin and preserves previously active plugins. Dynamic uninstall recursively deactivates active dependents in reverse topological order.
+
+## Diagnostics
+
+`platform.diagnostics.snapshot()` returns read-only plugin states, dependency ownership, service providers, command owners, and extension-point owners without exposing mutable internal stores.

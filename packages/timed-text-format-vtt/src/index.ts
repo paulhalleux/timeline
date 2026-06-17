@@ -4,3 +4,4 @@ export * from "./serializer";
 export * from "./text-parser";
 export * from "./types";
 export * from "./validation";
+export * from "./plugin";

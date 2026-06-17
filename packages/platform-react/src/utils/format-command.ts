@@ -1,17 +1,9 @@
-import type { CommandDefinition, I18nService, LocalizedText } from "@ptl/platform-core";
+import type { LocalizedText, MessageParams, MessageService } from "@ptl/platform-core";
 
-export function formatLocalizedTextSync(text: LocalizedText): string {
-  return typeof text === "string" ? text : text.defaultMessage;
+export async function formatLocalizedText(messages: MessageService, text: LocalizedText) {
+  return typeof text === "string" ? text : messages.format(text, {} as MessageParams);
 }
 
-export async function formatLocalizedText(i18n: I18nService, text: LocalizedText) {
-  return typeof text === "string" ? text : i18n.format(text, {});
-}
-
-export function formatCommandTitleSync(command: CommandDefinition<any, any>): string {
-  return formatLocalizedTextSync(command.title);
-}
-
-export function formatCommandDescriptionSync(command: CommandDefinition<any, any>): string {
-  return command.description ? formatLocalizedTextSync(command.description) : "";
+export function formatCommandTitleSync(command: { readonly title: LocalizedText }): string {
+  return typeof command.title === "string" ? command.title : command.title.defaultMessage;
 }

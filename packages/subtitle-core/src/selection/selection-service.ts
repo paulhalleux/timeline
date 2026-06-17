@@ -1,4 +1,4 @@
-import { TypedEventEmitter, type Disposable } from "@ptl/platform-core";
+import { createEventEmitter, type Disposable } from "@ptl/platform-core";
 import { Store } from "@ptl/store";
 
 export type SubtitleSelection =
@@ -37,7 +37,7 @@ interface SubtitleSelectionEvents {
  * ```
  */
 export class DefaultSubtitleSelectionService implements SubtitleSelectionService {
-  private readonly events = new TypedEventEmitter<SubtitleSelectionEvents>();
+  private readonly events = createEventEmitter<SubtitleSelectionEvents>();
   private readonly store = new Store<SubtitleSelection>({ kind: "none" });
 
   getStore(): Store<SubtitleSelection> {

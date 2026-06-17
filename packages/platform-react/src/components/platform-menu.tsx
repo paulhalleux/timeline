@@ -1,4 +1,5 @@
 import {
+  type CommandDefinition,
   isContributionEnabled,
   type MenuContribution,
   type MenuCommandContribution,
@@ -60,7 +61,7 @@ export function PlatformMenu<TContext = unknown>({
   itemClassName,
   empty = null,
 }: PlatformMenuProps<TContext>) {
-  const { contributions } = usePlatform<Record<string, unknown>, TContext>();
+  const { contributions } = usePlatform<TContext>();
   const menuContributions = React.useMemo(
     () =>
       groupMenuContributions(getVisibleMenuContributions(contributions.menus ?? [], menu, context)),
@@ -114,7 +115,7 @@ export function MenuBar<TContext = unknown>({
   contentClassName,
   leading,
 }: MenuBarProps<TContext>) {
-  const { contributions } = usePlatform<Record<string, unknown>, TContext>();
+  const { contributions } = usePlatform<TContext>();
   const roots = getMenuRoots(contributions.menuRoots, contributions.menus ?? [], menu, context);
 
   return (
@@ -159,7 +160,7 @@ function MenubarMenuItems<TContext = unknown>({
   menu: string;
   context: TContext;
 }) {
-  const { contributions } = usePlatform<Record<string, unknown>, TContext>();
+  const { contributions } = usePlatform<TContext>();
   const groups = groupMenuContributions(
     getVisibleMenuContributions(contributions.menus ?? [], menu, context),
   );
@@ -186,10 +187,10 @@ function MenubarMenuContribution<TContext = unknown>({
   contribution,
   context,
 }: {
-  contribution: MenuContribution<string, any, TContext>;
+  contribution: MenuContribution<string, CommandDefinition<unknown, unknown>, TContext>;
   context: TContext;
 }) {
-  const { platform, contributions } = usePlatform<Record<string, unknown>, TContext>();
+  const { platform, contributions } = usePlatform<TContext>();
   const refreshMenuState = useMenuStateRefresh();
 
   if (contribution.kind === "submenu") {
@@ -240,7 +241,7 @@ function ContextMenuItems<TContext = unknown>({
   context,
   empty = null,
 }: PlatformMenuProps<TContext>) {
-  const { platform, contributions } = usePlatform<Record<string, unknown>, TContext>();
+  const { platform, contributions } = usePlatform<TContext>();
   const refreshMenuState = useMenuStateRefresh();
   const items = getVisibleMenuContributions(contributions.menus ?? [], menu, context);
 
@@ -278,11 +279,11 @@ function PlatformMenuButton<TContext = unknown>({
   context,
   className,
 }: {
-  contribution: MenuContribution<string, any, TContext>;
+  contribution: MenuContribution<string, CommandDefinition<unknown, unknown>, TContext>;
   context: TContext;
   className?: string;
 }) {
-  const { platform } = usePlatform<Record<string, unknown>, TContext>();
+  const { platform } = usePlatform<TContext>();
   const refreshMenuState = useMenuStateRefresh();
 
   if (contribution.kind === "submenu") {
@@ -294,8 +295,8 @@ function PlatformMenuButton<TContext = unknown>({
   }
 
   const commandContribution = contribution as
-    | MenuCommandContribution<string, any, TContext>
-    | MenuToggleContribution<string, any, TContext>;
+    | MenuCommandContribution<string, CommandDefinition<unknown, unknown>, TContext>
+    | MenuToggleContribution<string, CommandDefinition<unknown, unknown>, TContext>;
 
   return (
     <Button

@@ -11,7 +11,7 @@ import {
 import * as React from "react";
 
 import { usePlatform } from "../hooks/platform-provider";
-import { useCommandRegistrySnapshot } from "../hooks/use-command-registry-snapshot";
+import { useCommandSnapshot } from "../hooks/use-command-registry-snapshot";
 import {
   matchesCommandQuery,
   toSearchableCommand,
@@ -28,7 +28,7 @@ export interface CommandPaletteProps {
 }
 
 /**
- * Command palette sourced directly from `CommandRegistry#getAll()`.
+ * Command palette sourced directly from `platform.commands.getAll()`.
  *
  * Commands with `palette === false` are hidden. Everything else is searchable
  * by title, category, description, and keywords, grouped by category.
@@ -42,7 +42,7 @@ export function CommandPalette({
   empty = "No commands found.",
 }: CommandPaletteProps) {
   const { platform } = usePlatform();
-  const registeredCommands = useCommandRegistrySnapshot(platform.commands);
+  const registeredCommands = useCommandSnapshot(platform.commands);
   const [internalQuery, setInternalQuery] = React.useState("");
   const [commands, setCommands] = React.useState<SearchableCommand[]>([]);
   const activeQuery = query ?? internalQuery;
@@ -52,12 +52,12 @@ export function CommandPalette({
     void Promise.all(
       registeredCommands
         .filter((c) => c.palette !== false)
-        .map(async (c) => toSearchableCommand(platform.i18n, c)),
+        .map(async (c) => toSearchableCommand(platform.messages, c)),
     ).then((resolved) => {
       if (!cancelled) setCommands(resolved);
     });
     return () => { cancelled = true; };
-  }, [platform.i18n, registeredCommands]);
+  }, [platform.messages, registeredCommands]);
 
   const groups = React.useMemo(() => {
     const filtered = commands.filter((c) => matchesCommandQuery(c, activeQuery));

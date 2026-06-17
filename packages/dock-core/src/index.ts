@@ -35,12 +35,6 @@ export {
   type DockLayoutBuilder,
 } from "./presets/layout-presets";
 export {
-  ToolWindowContributionRegistry,
-  createToolWindowState,
-  type ToolWindowConstraints,
-  type ToolWindowContribution,
-} from "./tool-windows/tool-window-contributions";
-export {
   createDefaultDockState,
   DockStateStore,
 } from "./state/dock-store";
@@ -68,3 +62,4 @@ export {
   type WorkspaceEditorDefinition,
   type WorkspaceEditorInstanceState,
 } from "./workspace/workspace-editor-definition";
+export { dockTools, dockWorkspaceEditors } from "./tools/tool-extension-points";

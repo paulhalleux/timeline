@@ -1,88 +1,15 @@
-export { createCommand, type CommandHandlerContext } from "./commands/create-command";
-export { createExtensionPoint, type ContributionReader, type ExtensionContribution, type ExtensionPoint, type ResolvedContribution } from "./extensions/extension-point";
+export { createCommand, type CommandDefinition, type CommandHandlerContext, type CommandInput, type CommandResult } from "./commands/create-command";
+export { createMenuItem, createMenuRoot, createShortcut, createToolbarItem, type MenuCommandContribution, type MenuContribution, type MenuContributionBase, type MenuRootContribution, type MenuSubmenuContribution, type MenuToggleContribution, type ShortcutContribution, type ToolbarContribution } from "./contributions/descriptors";
+export { isContributionEnabled, isContributionVisible, type ContributionStatePredicate, type WhenPredicate } from "./contributions/when";
+export { createExtensionPoint, type ContributionReader, type ExtensionContribution, type ExtensionPoint, type ExtensionPointOptions, type ResolvedContribution } from "./extensions/extension-point";
+export { createEventEmitter, type EventEmitter, type EventMap } from "./events/typed-event-emitter";
+export { disposable, createDisposableScope, type Disposable, type DisposableScope } from "./lifecycle/disposable";
+export { createMessage, createTranslationBundle, type MessageDefinition, type MessageReader, type MessageService, type TranslationBundle } from "./messages/message-service";
+export { PlatformError, platformErrorCodes, isPlatformError, type PlatformErrorCode, type PlatformErrorOptions } from "./errors/platform-error";
+export { createApplication, createPlatform, type ApplicationFactoryOptions, type CommandExecutor, type DiagnosticsService, type Platform, type PlatformDiagnosticSnapshot, type PlatformFactoryOptions, type PlatformUiReader, type PluginController, type PluginEvent, type PluginSnapshot, type PluginState, type ServiceReader } from "./plugins/platform";
+export { createPlugin, createPluginToken, type DependencyRequirement, type PluginDefinition, type PluginSetup, type PluginSetupContext, type PluginToken } from "./plugins/plugin-api";
+export { provideService, type ServiceFactoryContext, type ServiceProvider } from "./services/provider";
 export { createServiceToken, type ServiceToken } from "./services/tokens";
-export { provideService, type ServiceContribution, type ServiceFactoryContext } from "./services/provider";
-export { createPlatform, type Platform, type PlatformFactoryOptions } from "./plugins/platform";
-export { createPlugin, createPluginToken, type DependencyToken, type PluginSetupContext, type PluginToken } from "./plugins/plugin-api";
-export {
-  CommandRegistry,
-  defineCommand,
-  type CommandDefinition,
-  type CommandExecutionContext,
-  type CommandHandler,
-  type CommandInput,
-  type CommandRegistryEvents,
-  type CommandResult,
-} from "./commands/command-registry";
-export {
-  type MenuContribution,
-  type MenuCommandContribution,
-  type MenuContributionBase,
-  type MenuRootContribution,
-  type MenuSubmenuContribution,
-  type MenuToggleContribution,
-  type PlatformContributions,
-  type ShortcutContribution,
-  type ToolbarContribution,
-} from "./contributions/descriptors";
-export {
-  getPlatformDiagnostics,
-  type CommandDiagnostic,
-  type ExtensionPointDiagnostic,
-  type PlatformDiagnosticSnapshot,
-  type PluginDiagnostic,
-  type SettingDiagnostic,
-} from "./diagnostics/snapshot";
-export { disposable, DisposableStore, type Disposable } from "./lifecycle/disposable";
-export {
-  PlatformError,
-  platformErrorCodes,
-  type PlatformErrorCode,
-  type PlatformErrorOptions,
-  isPlatformError,
-} from "./errors/platform-error";
-export { TypedEventEmitter, type EventMap } from "./events/typed-event-emitter";
-export {
-  defineExtensionPoint,
-  ExtensionPointRegistry,
-  type ExtensionPointDefinition,
-} from "./extensions/extension-point-registry";
-export { I18nService, type I18nEvents, type TranslationBundle } from "./i18n/i18n-service";
-export { type ContributionOwner, type OwnedContribution } from "./contributions/owner";
-export { resolvePluginOrder, type PluginResolveContext } from "./plugins/resolver";
-export { PlatformRuntime, type PlatformRuntimeOptions } from "./plugins/runtime";
-export {
-  definePlugin,
-  type PluginActivationContext,
-  type PluginDefinition,
-  type PluginDependency,
-} from "./plugins/definition";
-export {
-  SchemaValidationError,
-  validateSchema,
-  type InferSchemaOutput,
-  type StandardSchemaIssue,
-  type StandardSchemaLike,
-  type StandardSchemaResult,
-} from "./validation/schema";
-export { ServiceRegistry } from "./services/service-registry";
-export {
-  defineSetting,
-  SettingsRegistry,
-  type SettingControl,
-  type SettingDefinition,
-  type SettingScope,
-  type SettingValue,
-} from "./settings/settings-registry";
-export {
-  defineMessage,
-  type LocalizedText,
-  type MessageDescriptor,
-  type MessageParams,
-} from "./text/messages";
-export {
-  isContributionEnabled,
-  isContributionVisible,
-  type ContributionStatePredicate,
-  type WhenPredicate,
-} from "./contributions/when";
+export { createSetting, type SettingControl, type SettingDefinition, type SettingsReader, type SettingsService, type SettingsStorage, type SettingScope, type SettingValue } from "./settings/settings-registry";
+export { defineMessage, type LocalizedText, type MessageDescriptor, type MessageParams } from "./text/messages";
+export { SchemaValidationError, validateSchema, type InferSchemaOutput, type StandardSchemaIssue, type StandardSchemaLike, type StandardSchemaResult } from "./validation/schema";

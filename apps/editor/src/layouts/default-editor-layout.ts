@@ -12,12 +12,12 @@ export const defaultEditorLayout = createLayoutPreset({
   id: "subtitle-editor.default",
   workspace: [{ editorId: "subtitle-document", active: true }],
   tools: {
-    "editor.outline": { placement: "left-top", visible: true },
-    "editor.tracks": { placement: "left-bottom", visible: true },
-    "editor.inspector": { placement: "right-top", visible: true },
-    "editor.quality": { placement: "right-bottom", visible: true },
-    "editor.playback": { placement: "bottom-right", visible: true },
-    "editor.timeline": { placement: "bottom-left", visible: true },
+    outline: { placement: "left-top", visible: true },
+    tracks: { placement: "left-bottom", visible: true },
+    inspector: { placement: "right-top", visible: true },
+    "quality-control": { placement: "right-bottom", visible: true },
+    playback: { placement: "bottom-right", visible: true },
+    timeline: { placement: "bottom-left", visible: true },
     export: { placement: "right-bottom", visible: true },
   },
 });

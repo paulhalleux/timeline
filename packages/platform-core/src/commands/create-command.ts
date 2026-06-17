@@ -1,7 +1,6 @@
 import type { ServiceToken } from "../services/tokens";
 import type { LocalizedText } from "../text/messages";
 import type { StandardSchemaLike } from "../validation/schema";
-import type { CommandDefinition as LegacyCommandDefinition } from "./command-registry";
 
 export interface CommandHandlerContext<TInput> {
   readonly input: TInput;
@@ -14,14 +13,8 @@ export interface CommandHandlerContext<TInput> {
   ): Promise<TNextResult>;
 }
 
-export interface CommandDefinition<TInput = void, TResult = void>
-  extends LegacyCommandDefinition<TInput, TResult> {
-  readonly handler?: (
-    context: CommandHandlerContext<TInput>,
-  ) => TResult | Promise<TResult>;
-}
-
-export interface CommandOptions<TInput, TResult> {
+export interface CommandDefinition<TInput = void, TResult = void> {
+  readonly kind: "command";
   readonly id: string;
   readonly title: LocalizedText;
   readonly description?: LocalizedText;
@@ -30,13 +23,19 @@ export interface CommandOptions<TInput, TResult> {
   readonly palette?: boolean;
   readonly input?: StandardSchemaLike<unknown, TInput>;
   readonly result?: StandardSchemaLike<unknown, TResult>;
-  readonly handler?: (
-    context: CommandHandlerContext<TInput>,
-  ) => TResult | Promise<TResult>;
+  readonly handler?: (context: CommandHandlerContext<TInput>) => TResult | Promise<TResult>;
 }
 
+export type CommandInput<TCommand> = TCommand extends CommandDefinition<infer TInput, unknown>
+  ? TInput
+  : never;
+
+export type CommandResult<TCommand> = TCommand extends CommandDefinition<unknown, infer TResult>
+  ? TResult
+  : never;
+
 export function createCommand<TInput = void, TResult = void>(
-  definition: CommandOptions<TInput, TResult>,
+  definition: Omit<CommandDefinition<TInput, TResult>, "kind">,
 ): CommandDefinition<TInput, TResult> {
-  return definition;
+  return { kind: "command", ...definition };
 }

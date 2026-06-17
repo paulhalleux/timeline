@@ -20,7 +20,8 @@
     "lint:fix": "oxlint . --fix"
   },
   "dependencies": {
-    "@ptl/timed-text-core": "^0.0.0"
+    "@ptl/timed-text-core": "^0.0.0",
+    "@ptl/platform-core": "^0.0.0"
   },
   "devDependencies": {
     "tsdown": "^0.22.2",

@@ -1,10 +1,9 @@
-import type { MenuContribution, MenuRootContribution } from "@ptl/platform-core";
-import { isContributionVisible } from "@ptl/platform-core";
+import { isContributionVisible, type CommandDefinition, type MenuContribution, type MenuRootContribution } from "@ptl/platform-core";
 import { formatCommandTitleSync } from "./format-command";
 import { localizedTextToString } from "./text";
 
 export function getVisibleMenuContributions<TContext>(
-  contributions: readonly MenuContribution<string, any, TContext>[],
+  contributions: readonly MenuContribution<string, CommandDefinition<unknown, unknown>, TContext>[],
   menu: string,
   context: TContext,
 ) {
@@ -15,9 +14,9 @@ export function getVisibleMenuContributions<TContext>(
 }
 
 export function groupMenuContributions<TContext>(
-  contributions: readonly MenuContribution<string, any, TContext>[],
+  contributions: readonly MenuContribution<string, CommandDefinition<unknown, unknown>, TContext>[],
 ) {
-  const groups = new Map<string, MenuContribution<string, any, TContext>[]>();
+  const groups = new Map<string, MenuContribution<string, CommandDefinition<unknown, unknown>, TContext>[]>();
   for (const contribution of contributions) {
     const key = contribution.group ?? "default";
     groups.set(key, [...(groups.get(key) ?? []), contribution]);
@@ -27,7 +26,7 @@ export function groupMenuContributions<TContext>(
 }
 
 export function getMenuChildren<TContext>(
-  contributions: readonly MenuContribution<string, any, TContext>[],
+  contributions: readonly MenuContribution<string, CommandDefinition<unknown, unknown>, TContext>[],
   menu: string,
 ) {
   const prefix = `${menu}.`;
@@ -50,7 +49,7 @@ export interface ResolvedMenuRoot {
 
 export function getMenuRoots<TContext>(
   roots: readonly MenuRootContribution<string, TContext>[] | undefined,
-  contributions: readonly MenuContribution<string, any, TContext>[],
+  contributions: readonly MenuContribution<string, CommandDefinition<unknown, unknown>, TContext>[],
   menu: string,
   context: TContext,
 ): ResolvedMenuRoot[] {
@@ -82,7 +81,7 @@ export function getMenuRoots<TContext>(
 }
 
 export function getMenuContributionKey<TContext>(
-  contribution: MenuContribution<string, any, TContext>,
+  contribution: MenuContribution<string, CommandDefinition<unknown, unknown>, TContext>,
 ): string {
   if (contribution.id) {
     return contribution.id;
@@ -96,7 +95,7 @@ export function getMenuContributionKey<TContext>(
 }
 
 export function getMenuContributionLabel<TContext>(
-  contribution: MenuContribution<string, any, TContext>,
+  contribution: MenuContribution<string, CommandDefinition<unknown, unknown>, TContext>,
 ): string {
   if (contribution.label) {
     return localizedTextToString(contribution.label);
@@ -110,8 +109,8 @@ export function getMenuContributionLabel<TContext>(
 }
 
 function compareMenuContribution<TContext>(
-  a: MenuContribution<string, any, TContext>,
-  b: MenuContribution<string, any, TContext>,
+  a: MenuContribution<string, CommandDefinition<unknown, unknown>, TContext>,
+  b: MenuContribution<string, CommandDefinition<unknown, unknown>, TContext>,
 ) {
   const order = (a.order ?? 0) - (b.order ?? 0);
   return order === 0

@@ -18,9 +18,5 @@ export {
   type PlatformReactContextValue,
   type PlatformReactContributions,
 } from "./hooks/platform-provider";
-export {
-  ReactComponentRegistry,
-  reactComponentRegistryErrorCodes,
-} from "./registry/react-component-registry";
 export type { SearchableCommand } from "./utils/searchable-command";
 export type { ShortcutConflict } from "./utils/shortcut-conflicts";

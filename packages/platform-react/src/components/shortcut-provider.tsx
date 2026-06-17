@@ -1,12 +1,11 @@
-import type { ShortcutContribution } from "@ptl/platform-core";
-import { isContributionEnabled, isContributionVisible } from "@ptl/platform-core";
+import { isContributionEnabled, isContributionVisible, type CommandDefinition, type ShortcutContribution } from "@ptl/platform-core";
 import { useHotkeys, type RegisterableHotkey } from "@tanstack/react-hotkeys";
 import * as React from "react";
 
 import { usePlatform } from "../hooks/platform-provider";
 import { findShortcutConflicts, type ShortcutConflict } from "../utils/shortcut-conflicts";
 
-const EMPTY_SHORTCUTS: readonly ShortcutContribution<any, any>[] = [];
+const EMPTY_SHORTCUTS: readonly ShortcutContribution<CommandDefinition<unknown, unknown>, unknown>[] = [];
 
 export interface ShortcutProviderProps<TContext = unknown> {
   context: TContext;
@@ -38,10 +37,7 @@ export function ShortcutProvider<TContext = unknown>({
   protectTextInput = true,
   onConflict,
 }: ShortcutProviderProps<TContext>) {
-  const { platform, contributions: platformContributions } = usePlatform<
-    Record<string, unknown>,
-    TContext
-  >();
+  const { platform, contributions: platformContributions } = usePlatform<TContext>();
   const contributions = platformContributions.shortcuts ?? EMPTY_SHORTCUTS;
 
   React.useEffect(() => {

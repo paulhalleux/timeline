@@ -18,7 +18,7 @@ export {
 } from "./provider/dock-provider";
 import type React from "react";
 import type { DockedPlacement, ToolDefinition } from "@ptl/dock-core";
-export { createTool } from "@ptl/dock-core";
+export { createTool, createWorkspaceEditor } from "@ptl/dock-core";
 
 export interface ToolPanelProps<TState = unknown> {
   readonly toolId: string;
@@ -42,3 +42,28 @@ export type ReactToolDefinition<TState = unknown> = ToolDefinition<
   TState,
   React.ComponentType<ToolHeaderProps<TState>>
 >;
+import { createPlugin, type PluginDefinition } from "@ptl/platform-core";
+import { dockTools, dockWorkspaceEditors, type ToolDefinition as DockToolDefinition, type WorkspaceEditorDefinition } from "@ptl/dock-core";
+
+export interface DockPluginDefinition extends Omit<PluginDefinition, "kind" | "contributions" | "requires"> {
+  readonly requires?: PluginDefinition["requires"];
+  readonly contributions?: PluginDefinition["contributions"];
+  readonly tools?: readonly DockToolDefinition<unknown, unknown, unknown>[];
+  readonly workspaceEditors?: readonly WorkspaceEditorDefinition<unknown, unknown, unknown>[];
+}
+
+export function createDockPlugin<const TPlugin extends DockPluginDefinition>(definition: TPlugin) {
+  return createPlugin({
+    ...definition,
+    requires: [dockTools, dockWorkspaceEditors, ...(definition.requires ?? [])],
+    extensionPoints: [
+      ...(definition.extensionPoints ?? []),
+      ...(definition.id === "dock" ? [dockTools, dockWorkspaceEditors] : []),
+    ],
+    contributions: [
+      ...(definition.contributions ?? []),
+      ...(definition.tools ?? []).map((tool) => dockTools.contribute(tool)),
+      ...(definition.workspaceEditors ?? []).map((editor) => dockWorkspaceEditors.contribute(editor)),
+    ],
+  });
+}
