@@ -1,5 +1,8 @@
 import {
+  createApplication,
   createCommand,
+  createPlugin,
+  type CommandDefinition,
   type MenuContribution,
   type MenuRootContribution,
   type ShortcutContribution,
@@ -10,6 +13,7 @@ import {
   DefaultSubtitleSelectionService,
   SubtitlePlaybackService,
   TimedTextDocumentService,
+  defaultSubtitleCommands,
   defaultSubtitleMenuContributions,
   defaultSubtitleShortcutContributions,
   type SubtitleCommandContext,
@@ -19,7 +23,7 @@ import { TooltipProvider } from "@ptl/ui";
 import { Bug, Captions, ChartGantt, Gauge, ListTree, Rows3 } from "lucide-react";
 import React from "react";
 
-import { createEditorApplication } from "../../application/create-editor-application";
+import { createEditorPlugins } from "../../application/create-editor-application";
 import { createEditorDock, editorDockToolWindowIds } from "../../dock/editor-dock";
 import { EditorDockServicesProvider } from "../../dock/editor-services-context";
 import { EditorDockToolbar } from "../../dock/dock-toolbar";
@@ -32,7 +36,6 @@ interface EditorCommandContext {
 }
 
 export const App = () => {
-  const application = React.useMemo(() => createEditorApplication(), []);
   const contextRef = React.useRef<EditorCommandContext | null>(null);
   const commandPaletteRef = React.useRef<{ toggle(): void } | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = React.useState(false);
@@ -57,10 +60,15 @@ export const App = () => {
     () => ({ history: historyState, playback: playbackState, selection: selectionState }),
     [historyState, playbackState, selectionState],
   );
-  const contributions = React.useMemo(
-    () => createEditorMenuContributions(dock.store, commandPaletteRef, contextRef),
+  const editorUi = React.useMemo(
+    () => createEditorUiPlugin(dock.store, commandPaletteRef, contextRef),
     [dock.store],
   );
+  const application = React.useMemo(
+    () => createApplication({ plugins: [...createEditorPlugins(), editorUi.plugin] }),
+    [editorUi.plugin],
+  );
+  const contributions = editorUi.contributions;
 
   contextRef.current = {
     notify: (message) => {
@@ -149,7 +157,7 @@ const toolbarItems = [
   },
 ] as const;
 
-function createEditorMenuContributions(
+function createEditorUiPlugin(
   dock: ReturnType<typeof createEditorDock>["store"],
   commandPaletteRef: React.RefObject<{ toggle(): void } | null>,
   contextRef: React.RefObject<EditorCommandContext | null>,
@@ -162,10 +170,22 @@ function createEditorMenuContributions(
     { menu: "main.playback", label: "Playback", order: 50 },
     { menu: "main.view", label: "View", order: 60 },
   ];
-  const menus: MenuContribution[] = [...(defaultSubtitleMenuContributions as MenuContribution[])];
+  const subtitleCommands = defaultSubtitleCommands.map((command) =>
+    withFallbackHandler(command as CommandDefinition<unknown, unknown>, contextRef),
+  );
+  const commandById = new Map(subtitleCommands.map((command) => [command.id, command]));
+  const menus: MenuContribution[] = remapMenuCommands(
+    defaultSubtitleMenuContributions as MenuContribution[],
+    commandById,
+  );
   const shortcuts: ShortcutContribution[] = [
-    ...(defaultSubtitleShortcutContributions as ShortcutContribution[]),
+    ...remapShortcutCommands(
+      defaultSubtitleShortcutContributions as ShortcutContribution[],
+      commandById,
+    ),
   ];
+
+  const commands: CommandDefinition<unknown, unknown>[] = [...subtitleCommands];
 
   const notifyCommand = (
     id: string,
@@ -181,6 +201,7 @@ function createEditorMenuContributions(
       keywords: [group],
       handler: () => contextRef.current?.notify(`${title} triggered.`),
     });
+    commands.push(command);
     menus.push({ menu, command, group, order: 10 });
     if (shortcut) shortcuts.push({ command, shortcut, preventDefault: true, source: "editor" });
   };
@@ -196,6 +217,7 @@ function createEditorMenuContributions(
     keywords: ["palette", "commands", "search"],
     handler: () => commandPaletteRef.current?.toggle(),
   });
+  commands.push(commandPaletteCommand);
   menus.push({ menu: "main.view", command: commandPaletteCommand, group: "Window", order: 5 });
   shortcuts.push({
     command: commandPaletteCommand,
@@ -226,6 +248,7 @@ function createEditorMenuContributions(
         else dock.showToolWindow(item.id);
       },
     });
+    commands.push(command);
     menus.push({
       kind: "toggle",
       menu: "main.view.panels",
@@ -241,5 +264,59 @@ function createEditorMenuContributions(
     });
   });
 
-  return { menuRoots, menus, shortcuts };
+  const contributions = { menuRoots, menus, shortcuts };
+
+  return {
+    contributions,
+    plugin: createPlugin({
+      id: "editor.legacy-dock-ui",
+      commands,
+      menuRoots,
+      menus,
+      shortcuts,
+    }),
+  };
+}
+
+function withFallbackHandler(
+  command: CommandDefinition<unknown, unknown>,
+  contextRef: React.RefObject<EditorCommandContext | null>,
+): CommandDefinition<unknown, unknown> {
+  return {
+    ...command,
+    handler:
+      command.handler ??
+      (() => {
+        contextRef.current?.notify(`${getCommandTitle(command)} triggered.`);
+      }),
+  };
+}
+
+function remapMenuCommands(
+  menus: MenuContribution[],
+  commandById: ReadonlyMap<string, CommandDefinition<unknown, unknown>>,
+): MenuContribution[] {
+  return menus.map((menu) => {
+    if (menu.kind === "submenu") return menu;
+    return { ...menu, command: commandById.get(menu.command.id) ?? menu.command };
+  });
+}
+
+function remapShortcutCommands(
+  shortcuts: ShortcutContribution[],
+  commandById: ReadonlyMap<string, CommandDefinition<unknown, unknown>>,
+): ShortcutContribution[] {
+  return shortcuts.map((shortcut) => ({
+    ...shortcut,
+    command: commandById.get(shortcut.command.id) ?? shortcut.command,
+  }));
+}
+
+function getCommandTitle(command: CommandDefinition<unknown, unknown>) {
+  const title = command.title;
+  if (typeof title === "string") return title;
+  if (title && typeof title === "object" && "defaultMessage" in title) {
+    return String(title.defaultMessage);
+  }
+  return command.id;
 }
