@@ -1,5 +1,13 @@
 export { DockLayout, type DockLayoutProps } from "./components/dock-layout";
 export {
+  DockContributionLayout,
+  createContributionDockState,
+  type DockContributionLayoutPreset,
+  type DockContributionLayoutProps,
+  type DockLayoutToolPreset,
+  type DockLayoutWorkspacePreset,
+} from "./components/dock-contribution-layout";
+export {
   DockDragDropContext,
   type DockDragDropContextProps,
 } from "./components/dock-drag-drop-context";
@@ -42,10 +50,24 @@ export type ReactToolDefinition<TState = unknown> = ToolDefinition<
   TState,
   React.ComponentType<ToolHeaderProps<TState>>
 >;
-import { createPlugin, type PluginDefinition } from "@ptl/platform-core";
-import { dockTools, dockWorkspaceEditors, type ToolDefinition as DockToolDefinition, type WorkspaceEditorDefinition } from "@ptl/dock-core";
+import {
+  createPlugin,
+  type DependencyRequirement,
+  type ExtensionContribution,
+  type ExtensionPoint,
+  type PluginDefinition,
+} from "@ptl/platform-core";
+import {
+  dockTools,
+  dockWorkspaceEditors,
+  type ToolDefinition as DockToolDefinition,
+  type WorkspaceEditorDefinition,
+} from "@ptl/dock-core";
 
-export interface DockPluginDefinition extends Omit<PluginDefinition, "kind" | "contributions" | "requires"> {
+export interface DockPluginDefinition extends Omit<
+  PluginDefinition,
+  "kind" | "contributions" | "requires"
+> {
   readonly requires?: PluginDefinition["requires"];
   readonly contributions?: PluginDefinition["contributions"];
   readonly tools?: readonly DockToolDefinition<unknown, unknown, unknown>[];
@@ -55,15 +77,21 @@ export interface DockPluginDefinition extends Omit<PluginDefinition, "kind" | "c
 export function createDockPlugin<const TPlugin extends DockPluginDefinition>(definition: TPlugin) {
   return createPlugin({
     ...definition,
-    requires: [dockTools, dockWorkspaceEditors, ...(definition.requires ?? [])],
+    requires: [
+      dockTools,
+      dockWorkspaceEditors,
+      ...(definition.requires ?? []),
+    ] as readonly DependencyRequirement[],
     extensionPoints: [
       ...(definition.extensionPoints ?? []),
       ...(definition.id === "dock" ? [dockTools, dockWorkspaceEditors] : []),
-    ],
+    ] as readonly ExtensionPoint<unknown>[],
     contributions: [
       ...(definition.contributions ?? []),
       ...(definition.tools ?? []).map((tool) => dockTools.contribute(tool)),
-      ...(definition.workspaceEditors ?? []).map((editor) => dockWorkspaceEditors.contribute(editor)),
-    ],
+      ...(definition.workspaceEditors ?? []).map((editor) =>
+        dockWorkspaceEditors.contribute(editor),
+      ),
+    ] as readonly ExtensionContribution<unknown>[],
   });
 }

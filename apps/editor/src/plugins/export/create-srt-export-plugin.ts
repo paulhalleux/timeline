@@ -1,15 +1,4 @@
-import { createPlugin } from "@ptl/platform-core";
-import { createExportFormat, exportFormats } from "./export-formats";
+import { createSrtTimedTextFormatPlugin } from "@ptl/timed-text-format-srt";
 
-export const srtExportFormat = createExportFormat({
-  id: "srt",
-  label: "SubRip",
-  extensions: ["srt"],
-  export: async () => ({ content: "", mimeType: "application/x-subrip" }),
-});
-
-export const createSrtExportPlugin = () => createPlugin({
-  id: "export.format.srt",
-  requires: [exportFormats],
-  contributions: [exportFormats.contribute(srtExportFormat)],
-});
+/** @deprecated SRT export now comes from the SRT timed-text format plugin. */
+export const createSrtExportPlugin = createSrtTimedTextFormatPlugin;

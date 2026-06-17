@@ -1,10 +1,12 @@
-export interface EditorLayoutPreset {
+import type { DockContributionLayoutPreset } from "@ptl/dock-react";
+
+export interface EditorLayoutPreset extends DockContributionLayoutPreset {
   readonly id: string;
-  readonly workspace: readonly { readonly editorId: string; readonly active?: boolean }[];
-  readonly tools: Readonly<Record<string, { readonly placement: string; readonly visible: boolean }>>;
 }
 
-export function createLayoutPreset<const TPreset extends EditorLayoutPreset>(preset: TPreset): TPreset {
+export function createLayoutPreset<const TPreset extends EditorLayoutPreset>(
+  preset: TPreset,
+): TPreset {
   return preset;
 }
 
