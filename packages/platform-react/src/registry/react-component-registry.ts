@@ -2,6 +2,22 @@ import { disposable, PlatformError } from "@ptl/platform-core";
 import type { Disposable } from "@ptl/platform-core";
 import * as React from "react";
 
+export type ReactComponentMap = Record<string, React.ComponentType<any>>;
+export type ReactComponentSource =
+  | ReactComponentMap
+  | { resolve<TProps>(id: string): React.ComponentType<TProps> | undefined };
+
+export function resolveReactComponent<TProps>(
+  source: ReactComponentSource | undefined,
+  id: string,
+): React.ComponentType<TProps> | undefined {
+  if (!source) {
+    return undefined;
+  }
+
+  return "resolve" in source ? source.resolve<TProps>(id) : source[id];
+}
+
 export const reactComponentRegistryErrorCodes = {
   duplicateComponent: "platform-react.component.duplicate",
 } as const;
@@ -9,6 +25,7 @@ export const reactComponentRegistryErrorCodes = {
 /**
  * React-only component lookup table for plugin-owned UI.
  *
+ * Prefer passing a plain `ReactComponentMap` for host-owned static UI.
  * Components are registered during plugin activation and removed by disposing
  * the returned registration. The registry is intentionally renderer-specific:
  * platform-core remains free of React types.
@@ -52,17 +69,4 @@ export class ReactComponentRegistry {
   ids(): string[] {
     return [...this.components.keys()];
   }
-}
-
-export type ReactComponentRegistryEntries = Record<string, React.ComponentType<any>>;
-
-export function createReactComponentRegistry(
-  components: ReactComponentRegistryEntries = {},
-): ReactComponentRegistry {
-  const registry = new ReactComponentRegistry();
-  for (const [id, component] of Object.entries(components)) {
-    registry.register(id, component);
-  }
-
-  return registry;
 }

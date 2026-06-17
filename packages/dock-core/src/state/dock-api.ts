@@ -6,7 +6,7 @@ import type {
   DockState,
   WorkspaceItemState,
 } from "../layout-state";
-import type { ToolWindowContributionRegistry } from "../tool-windows/tool-window-contributions";
+import type { ToolWindowContributionSource } from "../tool-windows/tool-window-contributions";
 
 /**
  * Options used to construct a dock state store.
@@ -27,12 +27,13 @@ export interface DockStateStoreOptions {
    */
   initialState?: DockState;
   /**
-   * Registry used when a tool window is shown before it exists in state.
+   * Tool-window manifest or dynamic source used when a tool window is shown
+   * before it exists in state.
    *
-   * The store reads the contribution, creates a `ToolWindowState`, and then
-   * inserts it into the requested placement.
+   * Hosts can pass a plain `ToolWindowContribution[]`; plugin systems can still
+   * pass a dynamic object with `get(id)`.
    */
-  toolWindows?: ToolWindowContributionRegistry;
+  toolWindows?: ToolWindowContributionSource;
 }
 
 /**

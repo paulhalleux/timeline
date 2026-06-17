@@ -35,15 +35,14 @@ export {
   type DockLayoutBuilder,
 } from "./presets/layout-presets";
 export {
-  createToolWindowContributionRegistry,
   ToolWindowContributionRegistry,
   createToolWindowState,
   type ToolWindowConstraints,
   type ToolWindowContribution,
+  type ToolWindowContributionSource,
 } from "./tool-windows/tool-window-contributions";
 export {
   createDefaultDockState,
-  createDockStateStore,
   DockStateStore,
 } from "./state/dock-store";
 export {

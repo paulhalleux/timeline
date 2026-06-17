@@ -1,10 +1,9 @@
-import { createReactComponentRegistry } from "@ptl/platform-react";
 import {
-  createDockStateStore,
-  createToolWindowContributionRegistry,
+  DockStateStore,
   type ToolWindowContribution,
   type WorkspaceItemState,
 } from "@ptl/dock-core";
+import type { ReactComponentMap } from "@ptl/platform-react";
 
 import {
   InspectorToolWindow,
@@ -35,7 +34,7 @@ export const editorDockToolWindowIds = {
   timeline: "editor.timeline",
 } as const;
 
-const editorDockComponents = {
+const components = {
   [editorDockComponentIds.subtitleDocument]: SubtitleDocumentPane,
   [editorDockComponentIds.outline]: OutlineToolWindow,
   [editorDockComponentIds.tracks]: TracksToolWindow,
@@ -43,9 +42,9 @@ const editorDockComponents = {
   [editorDockComponentIds.quality]: QualityToolWindow,
   [editorDockComponentIds.playback]: PlaybackToolWindow,
   [editorDockComponentIds.timeline]: TimelineToolWindow,
-};
+} satisfies ReactComponentMap;
 
-const editorToolWindows = [
+const toolWindows = [
   {
     id: editorDockToolWindowIds.outline,
     title: "Outline",
@@ -90,7 +89,7 @@ const editorToolWindows = [
   },
 ] satisfies readonly ToolWindowContribution[];
 
-const editorWorkspaceItems = [
+const workspaceItems = [
   {
     id: "subtitle-document",
     type: "subtitle-document",
@@ -100,31 +99,26 @@ const editorWorkspaceItems = [
 ] satisfies readonly WorkspaceItemState[];
 
 export interface EditorDockSetup {
-  components: ReturnType<typeof createReactComponentRegistry>;
-  store: ReturnType<typeof createDockStateStore>;
-  toolWindows: ReturnType<typeof createToolWindowContributionRegistry>;
+  components: ReactComponentMap;
+  store: DockStateStore;
 }
 
 /**
- * Create the editor dock shell from declarative component and tool-window lists.
+ * Create the editor dock shell from a single static manifest.
  *
- * @example
- * ```ts
- * const dock = createEditorDock();
- * ```
+ * Static editor-owned UI uses plain objects and arrays. Dynamic registries remain
+ * available in lower-level packages only for plugin-driven contribution flows.
  */
 export function createEditorDock(): EditorDockSetup {
-  const components = createReactComponentRegistry(editorDockComponents);
-  const toolWindows = createToolWindowContributionRegistry(editorToolWindows);
-  const store = createDockStateStore({ toolWindows });
+  const store = new DockStateStore({ toolWindows });
 
-  for (const item of editorWorkspaceItems) {
+  for (const item of workspaceItems) {
     store.openWorkspaceItem(item);
   }
 
-  for (const toolWindow of editorToolWindows) {
+  for (const toolWindow of toolWindows) {
     store.showToolWindow(toolWindow.id);
   }
 
-  return { components, store, toolWindows };
+  return { components, store };
 }

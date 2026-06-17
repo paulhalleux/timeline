@@ -1,6 +1,6 @@
 import * as React from "react";
 import type {
-  ToolWindowContributionRegistry,
+  ToolWindowContributionSource,
   DockApi,
   DockStateStore,
   DockState,
@@ -12,7 +12,7 @@ const DockContext = React.createContext<DockStateStore | null>(null);
 export type DockProviderProps = React.PropsWithChildren<{
   store?: DockStateStore;
   initialState?: DockState;
-  toolWindows?: ToolWindowContributionRegistry;
+  toolWindows?: ToolWindowContributionSource;
 }>;
 
 /**
@@ -24,6 +24,7 @@ export type DockProviderProps = React.PropsWithChildren<{
  *
  * @example
  * ```tsx
+ * const toolWindows = [{ id: "outline", title: "Outline", component: "dock.outline" }];
  * const store = new DockStateStore({ toolWindows });
  *
  * <DockProvider initialState={state}>

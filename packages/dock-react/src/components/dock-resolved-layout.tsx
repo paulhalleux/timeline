@@ -1,4 +1,4 @@
-import { usePlatform } from "@ptl/platform-react";
+import { resolveReactComponent, usePlatform } from "@ptl/platform-react";
 import type { ToolWindowState, DockApi, WorkspaceItemState } from "@ptl/dock-core";
 import type React from "react";
 
@@ -32,7 +32,7 @@ export interface DockResolvedLayoutProps extends Omit<
  *
  * @example
  * ```tsx
- * components.register("dock.editor", EditorPane);
+ * components={{ "dock.editor": EditorPane }}
  * <DockResolvedLayout />
  * ```
  */
@@ -47,7 +47,8 @@ export function DockResolvedLayout({
     <DockLayout
       {...layoutProps}
       renderToolWindow={(toolWindow) => {
-        const Component = components.resolve<DockToolWindowComponentProps>(
+        const Component = resolveReactComponent<DockToolWindowComponentProps>(
+          components,
           toolWindow.component,
         );
 
@@ -66,8 +67,10 @@ export function DockResolvedLayout({
           return undefined;
         }
 
-        const Component =
-          components.resolve<DockToolWindowHeaderComponentProps>(headerComponent);
+        const Component = resolveReactComponent<DockToolWindowHeaderComponentProps>(
+          components,
+          headerComponent,
+        );
 
         return Component ? (
           <Component toolWindow={toolWindow} dock={dock} />
@@ -78,7 +81,10 @@ export function DockResolvedLayout({
         );
       }}
       renderWorkspaceItem={(item) => {
-        const Component = components.resolve<DockWorkspaceItemComponentProps>(item.component);
+        const Component = resolveReactComponent<DockWorkspaceItemComponentProps>(
+          components,
+          item.component,
+        );
 
         return Component ? (
           <Component item={item} dock={dock} />

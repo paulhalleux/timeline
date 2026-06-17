@@ -16,10 +16,11 @@ export {
   type PlatformReactContributions,
 } from "./hooks/platform-provider";
 export {
-  createReactComponentRegistry,
   ReactComponentRegistry,
   reactComponentRegistryErrorCodes,
-  type ReactComponentRegistryEntries,
+  resolveReactComponent,
+  type ReactComponentMap,
+  type ReactComponentSource,
 } from "./registry/react-component-registry";
 export type { SearchableCommand } from "./utils/searchable-command";
 export type { ShortcutConflict } from "./utils/shortcut-conflicts";

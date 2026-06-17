@@ -3,16 +3,19 @@ import type {
   DockRegion,
   DockState,
 } from "../layout-state";
-import type { ToolWindowContributionRegistry } from "../tool-windows/tool-window-contributions";
+import {
+  getToolWindowContribution,
+  type ToolWindowContributionSource,
+} from "../tool-windows/tool-window-contributions";
 
 /** Persist a dock-placement split size after applying active tool constraints. */
 export function resizeToolWindowPlacementState(
   state: DockState,
   placement: DockedPlacement,
   size: number,
-  registry?: ToolWindowContributionRegistry,
+  source?: ToolWindowContributionSource,
 ): DockState {
-  const constrainedSize = constrainPlacementSize(state, placement, size, registry);
+  const constrainedSize = constrainPlacementSize(state, placement, size, source);
 
   return {
     ...state,
@@ -52,11 +55,13 @@ function constrainPlacementSize(
   state: DockState,
   placement: DockedPlacement,
   size: number,
-  registry?: ToolWindowContributionRegistry,
+  source?: ToolWindowContributionSource,
 ): number {
   const activeItemId = state.placements[placement].activeItemId;
   const activeToolWindow = activeItemId ? state.toolWindows[activeItemId] : undefined;
-  const constraints = activeToolWindow ? registry?.get(activeToolWindow.id)?.constraints : undefined;
+  const constraints = activeToolWindow
+    ? getToolWindowContribution(source, activeToolWindow.id)?.constraints
+    : undefined;
   const minSize = placement.startsWith("bottom") ? constraints?.minHeight : constraints?.minWidth;
 
   if (!Number.isFinite(size)) {

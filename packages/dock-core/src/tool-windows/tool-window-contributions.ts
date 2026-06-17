@@ -31,11 +31,31 @@ export interface ToolWindowContribution<TMeta = unknown> {
   owner?: ContributionOwner;
 }
 
+export type ToolWindowContributionSource =
+  | readonly ToolWindowContribution[]
+  | { get(id: string): ToolWindowContribution | undefined };
+
+export function getToolWindowContribution(
+  source: ToolWindowContributionSource | undefined,
+  id: string,
+): ToolWindowContribution | undefined {
+  if (!source) {
+    return undefined;
+  }
+
+  return Array.isArray(source)
+    ? source.find((contribution) => contribution.id === id)
+    : source.get(id);
+}
+
 /**
  * Stores generic tool-window contributions from plugins or host defaults.
  *
  * The contribution carries a component ID, not a React component. Rendering
  * remains a responsibility of `dock-react` or the host application.
+ *
+ * Prefer passing plain `ToolWindowContribution[]` manifests to app-owned dock
+ * setup. Keep this registry for dynamic plugin contribution lifecycles.
  *
  * @example
  * ```ts
@@ -76,17 +96,6 @@ export class ToolWindowContributionRegistry {
   getAll(): ToolWindowContribution[] {
     return [...this.toolWindows.values()];
   }
-}
-
-export function createToolWindowContributionRegistry(
-  contributions: readonly ToolWindowContribution[] = [],
-): ToolWindowContributionRegistry {
-  const registry = new ToolWindowContributionRegistry();
-  for (const contribution of contributions) {
-    registry.register(contribution);
-  }
-
-  return registry;
 }
 
 export function createToolWindowState(contribution: ToolWindowContribution): ToolWindowState {

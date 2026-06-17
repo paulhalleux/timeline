@@ -9,7 +9,7 @@ import {
   type DockState,
   type WorkspaceItemState,
 } from "../layout-state";
-import type { ToolWindowContributionRegistry } from "../tool-windows/tool-window-contributions";
+import type { ToolWindowContributionSource } from "../tool-windows/tool-window-contributions";
 import type { DockApi, DockStateStoreOptions } from "./dock-api";
 import {
   dockToolWindowState,
@@ -47,7 +47,7 @@ import {
  */
 export class DockStateStore implements DockApi {
   private readonly store: Store<DockState>;
-  private readonly toolWindows?: ToolWindowContributionRegistry;
+  private readonly toolWindows?: ToolWindowContributionSource;
 
   constructor(options: DockStateStoreOptions = {}) {
     this.store = new Store(options.initialState ?? createDockState());
@@ -293,10 +293,6 @@ export class DockStateStore implements DockApi {
       Object.assign(draft, createNext(draft as DockState));
     });
   }
-}
-
-export function createDockStateStore(options: DockStateStoreOptions = {}): DockStateStore {
-  return new DockStateStore(options);
 }
 
 /**

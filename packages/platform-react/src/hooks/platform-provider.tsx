@@ -6,7 +6,7 @@ import {
 } from "@ptl/platform-core";
 import * as React from "react";
 
-import { ReactComponentRegistry } from "../registry/react-component-registry";
+import type { ReactComponentSource } from "../registry/react-component-registry";
 
 export interface PlatformReactContributions<TContext = unknown> {
   menuRoots?: readonly MenuRootContribution<string, TContext>[];
@@ -19,7 +19,7 @@ export interface PlatformReactContextValue<
   TContext = unknown,
 > {
   platform: PlatformRuntime<TServices>;
-  components: ReactComponentRegistry;
+  components: ReactComponentSource;
   contributions: PlatformReactContributions<TContext>;
 }
 
@@ -30,13 +30,13 @@ export interface PlatformProviderProps<
   TContext = unknown,
 > {
   platform: PlatformRuntime<TServices>;
-  components?: ReactComponentRegistry;
+  components?: ReactComponentSource;
   contributions?: PlatformReactContributions<TContext>;
   children: React.ReactNode;
 }
 
 /**
- * Provides a platform runtime and React-only registries to component trees.
+ * Provides a platform runtime and React component manifest to component trees.
  *
  * @example
  * ```tsx
@@ -49,14 +49,13 @@ export function PlatformProvider<
   TServices extends Record<string, unknown> = Record<string, unknown>,
   TContext = unknown,
 >({ platform, components, contributions, children }: PlatformProviderProps<TServices, TContext>) {
-  const defaultComponents = React.useMemo(() => new ReactComponentRegistry(), []);
   const value = React.useMemo<PlatformReactContextValue<TServices, TContext>>(
     () => ({
       platform,
-      components: components ?? defaultComponents,
+      components: components ?? {},
       contributions: contributions ?? {},
     }),
-    [components, contributions, defaultComponents, platform],
+    [components, contributions, platform],
   );
 
   return <PlatformReactContext.Provider value={value}>{children}</PlatformReactContext.Provider>;
@@ -66,7 +65,7 @@ export function PlatformProvider<
  * Read the platform React adapter context.
  *
  * This is intentionally the only hook exported by `@ptl/platform-react`.
- * Callers can destructure the runtime and React-only registries they need from
+ * Callers can destructure the runtime and React component maps they need from
  * one stable place:
  *
  * @example

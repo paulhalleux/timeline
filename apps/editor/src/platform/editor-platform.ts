@@ -1,5 +1,5 @@
 import {
-  createPlatformRuntime,
+  PlatformRuntime,
   defineCommand,
   type CommandDefinition,
   type MenuContribution,
@@ -79,7 +79,7 @@ const editorPanelToggles = [
 ] as const;
 
 export interface EditorPlatformSetup {
-  platform: ReturnType<typeof createPlatformRuntime>;
+  platform: PlatformRuntime;
   menuRoots: MenuRootContribution[];
   menus: MenuContribution[];
   shortcuts: ShortcutContribution[];
@@ -113,7 +113,7 @@ export function createEditorPlatform({
   contextRef,
   commandPaletteRef,
 }: EditorPlatformOptions): EditorPlatformSetup {
-  const platform = createPlatformRuntime();
+  const platform = new PlatformRuntime();
   const menuRoots = [...editorMenuRoots];
   const menus: MenuContribution[] = [];
   const shortcuts: ShortcutContribution[] = [];
@@ -187,12 +187,7 @@ export function createEditorPlatform({
     commandPaletteRef.current?.toggle();
   });
   menus.push({ menu: "main.view", command: commandPaletteCommand, group: "Window", order: 5 });
-  shortcuts.push({
-    command: commandPaletteCommand,
-    shortcut: "Mod+Shift+P",
-    preventDefault: true,
-    source: "editor",
-  });
+  shortcuts.push({ command: commandPaletteCommand, shortcut: "Mod+Shift+P", preventDefault: true, source: "editor" });
 
   registerSubtitleEditorCommand({
     platform,

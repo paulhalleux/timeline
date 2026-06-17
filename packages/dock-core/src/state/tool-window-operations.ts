@@ -9,26 +9,31 @@ import {
 } from "../layout-state";
 import {
   createToolWindowState,
-  type ToolWindowContributionRegistry,
+  getToolWindowContribution,
+  type ToolWindowContribution,
+  type ToolWindowContributionSource,
 } from "../tool-windows/tool-window-contributions";
 import { removeFloatingItem } from "./floating-operations";
 
 /**
- * Show a tool window by using existing state or a registered contribution.
+ * Show a tool window by using existing state or a contribution source.
  *
  * @param state - Current dock state.
  * @param toolWindowId - Tool-window id to show.
- * @param registry - Optional contribution registry used for first-time creation.
+ * @param source - Optional contribution source used for first-time creation.
  * @returns State with the tool window visible in its docked placement.
  */
 export function showToolWindowState(
   state: DockState,
   toolWindowId: string,
-  registry?: ToolWindowContributionRegistry,
+  source?: ToolWindowContributionSource,
 ): DockState {
   const existing = state.toolWindows[toolWindowId];
-  const contribution = registry?.get(toolWindowId);
-  const toolWindow = { ...(existing ?? contributionToState(toolWindowId, contribution)), hidden: false };
+  const contribution = getToolWindowContribution(source, toolWindowId);
+  const toolWindow = {
+    ...(existing ?? contributionToState(toolWindowId, contribution)),
+    hidden: false,
+  };
   const withAdded = addToolWindow(removeFloatingItem(state, toolWindowId), toolWindow);
 
   return activateToolWindowState(withAdded, toolWindowId);
@@ -42,16 +47,16 @@ export function showToolWindowState(
  *
  * @param state - Current dock state.
  * @param toolWindowId - Tool-window id to hide.
- * @param registry - Optional contribution registry with hide constraints.
+ * @param source - Optional contribution source with hide constraints.
  * @returns State with the tool window marked as hidden.
  */
 export function hideToolWindowState(
   state: DockState,
   toolWindowId: string,
-  registry?: ToolWindowContributionRegistry,
+  source?: ToolWindowContributionSource,
 ): DockState {
   const toolWindow = requireToolWindow(state, toolWindowId);
-  const contribution = registry?.get(toolWindowId);
+  const contribution = getToolWindowContribution(source, toolWindowId);
 
   if (contribution?.constraints?.canHide === false) {
     throw new PlatformError({
@@ -96,7 +101,7 @@ export function hideToolWindowState(
  * @param toolWindowId - Tool-window id to move.
  * @param placement - Destination dock placement.
  * @param index - Optional zero-based index inside the destination stack.
- * @param registry - Optional contribution registry with move constraints.
+ * @param source - Optional contribution source with move constraints.
  * @returns State with the tool window docked in the destination placement.
  */
 export function moveToolWindowState(
@@ -104,10 +109,10 @@ export function moveToolWindowState(
   toolWindowId: string,
   placement: DockedPlacement,
   index: number | undefined,
-  registry?: ToolWindowContributionRegistry,
+  source?: ToolWindowContributionSource,
 ): DockState {
   const toolWindow = requireToolWindow(state, toolWindowId);
-  const contribution = registry?.get(toolWindowId);
+  const contribution = getToolWindowContribution(source, toolWindowId);
 
   if (contribution?.constraints?.canMove === false) {
     throw new PlatformError({
@@ -295,13 +300,13 @@ export function requireToolWindow(state: DockState, toolWindowId: string): ToolW
  * Materialize a registered contribution into persisted tool-window state.
  *
  * @param toolWindowId - Tool-window id requested by the caller.
- * @param contribution - Optional registry contribution.
+ * @param contribution - Optional tool-window contribution.
  * @returns Initial tool-window state derived from the contribution.
  * @throws PlatformError when no contribution exists for the id.
  */
 function contributionToState(
   toolWindowId: string,
-  contribution: ReturnType<ToolWindowContributionRegistry["get"]>,
+  contribution: ToolWindowContribution | undefined,
 ): ToolWindowState {
   if (!contribution) {
     throw new PlatformError({
